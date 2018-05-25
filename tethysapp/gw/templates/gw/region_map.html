@@ -58,10 +58,13 @@
   </div>
 {% endblock %}
 
+{% block app_navigation_items %}
+  {{ block.super }}
+    <br>
+    {% gizmo select_input select_region %}
+{% endblock %}
+
+
 {% block app_actions %}
-  {% gizmo save_button %}
-  {% gizmo edit_button %}
-  {% gizmo remove_button %}
-  {% gizmo previous_button %}
-  {% gizmo next_button %}
+
 {% endblock %}

@@ -39,6 +39,11 @@ class Gw(TethysAppBase):
                 url='gw/displaygeojson',
                 controller='gw.ajax_controllers.displaygeojson'
             ),
+            UrlMap(
+                name='load_well_time',
+                url='gw/loadjson',
+                controller='gw.ajax_controllers.loadjson'
+            ),
 
         )
 

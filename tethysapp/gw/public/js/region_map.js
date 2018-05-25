@@ -18,9 +18,15 @@ var wmsLayer = L.tileLayer.wms('https://demo.boundlessgeo.com/geoserver/ows?', {
     layers: 'nasa:bluemarble'
 }).addTo(map);
 
-displaygeojson();
+var well_group=L.layerGroup();
+$('#select_region').change(function(){
+    var region_number=$("#select_region").find('option:selected').val();
+    region_number=Number(region_number);
+    well_group.clearLayers();
+    displaygeojson(region_number,loadjson);
+});
 
-function displaygeojson() {
+function displaygeojson(region_number, loadjson) {
     var geolayer = 'Wells1.json';
     $.ajax({
         url: '/apps/gw/displaygeojson/',
@@ -30,17 +36,35 @@ function displaygeojson() {
         error: function (status) {
 
         }, success: function (response) {
-            var subset1=response;
-            var j=0;
+            var well_points=[];
+            var j=region_number;
             for (i=0;i<response.features.length;i++){
-                if (response.features[i].properties.HydroID>(j+1)*1000000 || response.features[i].properties.HydroID<(j*1000000)){
-                    subset1.features.splice(i);
+                if (response.features[i].properties.HydroID<((j+1)*1000000) && response.features[i].properties.HydroID>=(j*1000000)){
+                    well_points.push(response.features[i]);
                 }
             }
-            L.geoJSON(subset1,{pointToLayer:function(geoJsonPoint, latlng){
+            var well_layer=L.geoJSON(well_points,{pointToLayer:function(geoJsonPoint, latlng){
                 return L.circleMarker(latlng,{radius:1});
             }
-                }).addTo(map);
+                });
+            well_group.addLayer(well_layer);
+            well_group.addTo(map);
+            loadjson(region_number);
+        }
+    })
+}
+
+function loadjson(region_number) {
+    var geolayer = 'Wells_time'+region_number+'.json';
+    $.ajax({
+        url: '/apps/gw/loadjson/',
+        type: 'GET',
+        data: {'geolayer':geolayer},
+        contentType: 'application/json',
+        error: function (status) {
+
+        }, success: function (response) {
+            console.log(response.features[0].TsValue);
         }
     })
 }
