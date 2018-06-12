@@ -1,5 +1,5 @@
 from tethys_sdk.base import TethysAppBase, url_map_maker
-
+from tethys_sdk.app_settings import PersistentStoreDatabaseSetting
 
 class Gw(TethysAppBase):
     """
@@ -13,9 +13,23 @@ class Gw(TethysAppBase):
     root_url = 'gw'
     color = '#27AE60'
     description = 'This application uses spatial and temporal interpolation of well data to create groundwater level maps and time series.'
-    tags = '&quot;Hydrology&quot;,&quot;Groundwater&quot;,&quot;Timeseries&quot;'
+    tags = 'Hydrology,Groundwater'
     enable_feedback = False
     feedback_emails = []
+
+    def persistent_store_settings(self):
+        #Define Persistent Store Settings.
+
+        ps_settings=(
+            PersistentStoreDatabaseSetting(
+                name='primary_db',
+                description='primary database',
+                initializer='gw.model.init_primary_db',
+                required=True
+            ),
+        )
+
+        return ps_settings
 
     def url_maps(self):
         """
@@ -43,6 +57,16 @@ class Gw(TethysAppBase):
                 name='load_well_time',
                 url='gw/loadjson',
                 controller='gw.ajax_controllers.loadjson'
+            ),
+            UrlMap(
+                name='save_json',
+                url='gw/savejson',
+                controller='gw.ajax_controllers.savejson'
+            ),
+            UrlMap(
+                name='retrieve_wells',
+                url='gw/retrieve_Wells',
+                controller='gw.model.retrieve_Wells'
             ),
 
         )
