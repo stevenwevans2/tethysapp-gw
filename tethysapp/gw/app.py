@@ -59,14 +59,14 @@ class Gw(TethysAppBase):
                 controller='gw.ajax_controllers.loadjson'
             ),
             UrlMap(
-                name='save_json',
-                url='gw/savejson',
-                controller='gw.ajax_controllers.savejson'
-            ),
-            UrlMap(
                 name='retrieve_wells',
                 url='gw/retrieve_Wells',
                 controller='gw.model.retrieve_Wells'
+            ),
+            UrlMap(
+                name='loaddata',
+                url='gw/loaddata',
+                controller='gw.ajax_controllers.loaddata'
             ),
 
         )
