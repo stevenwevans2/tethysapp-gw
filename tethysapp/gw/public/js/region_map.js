@@ -62,6 +62,25 @@ var wmsLayer = L.tileLayer.wms('https://demo.boundlessgeo.com/geoserver/ows?', {
     layers: 'nasa:bluemarble'
 }).addTo(map);
 
+var geolayer = 'Texas_State_Boundary.json';
+$.ajax({
+    url: '/apps/gw/displaygeojson/',
+    type: 'GET',
+    data: {'geolayer':geolayer},
+    contentType: 'application/json',
+    error: function (status) {
+
+    }, success: function (response) {
+        texasboundary=response.features;
+        texasborder=L.geoJSON(texasboundary,{
+            color:"red",
+            weight:1,
+            fillOpacity:0.0
+        })
+        texasborder.addTo(map)
+    }
+});
+
 var testLegend = L.control({
     position: 'topright'
 });
@@ -94,7 +113,7 @@ function clearwaterlevels(){
 
 //This is the new function that I am working on
 function displaygeojson(region_number, nextfunction) {
-    var geolayer = 'MajorAquifers.json';
+    geolayer = 'MajorAquifers.json';
     $.ajax({
         url: '/apps/gw/displaygeojson/',
         type: 'GET',
@@ -135,18 +154,10 @@ function displaygeojson(region_number, nextfunction) {
                         }
                     }
                     if (AquiferShape.length>0){
-                        var AquiferLayer=L.geoJSON(AquiferShape//,{
-//                            onEachFeature: function (feature, layer){
-//                            if (feature.properties.AQ_NAME){
-//                                //Major Aquifer
-//                                popup_content=feature.properties.AQ_NAME +"<br>"+"Major Aquifer";
-//                            }
-//                            else{
-//                                popup_content=feature.properties.AQU_NAME +"<br>"+"Minor Aquifer";
-//                            }
-//                            layer.bindPopup(popup_content);
-//                            }
-//                        }
+                        var AquiferLayer=L.geoJSON(AquiferShape,{
+                            fillOpacity:0.0,
+                            weight:1,
+                        }
                         );
                         aquifer_group.addLayer(AquiferLayer);
                     }
@@ -154,7 +165,7 @@ function displaygeojson(region_number, nextfunction) {
 
                     min_num=$("#required_data").val();
                     id=region_number;
-		            var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity (High Plains)','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];
+		            var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity-High Plains','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];
     		        var name=aquifers[region_number-1];
                     $.ajax({
                         url: '/apps/gw/loaddata/',
@@ -182,7 +193,7 @@ function displaygeojson(region_number, nextfunction) {
 function displayallwells(region_number,well_points,interpolate,required){
 
 	var colors=['blue','red','yellow','green','orange','purple'];
-    var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity (High Plains)','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];
+    var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity-High Plains','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];
     num=region_number%6;
     var color=colors[num];
     var aquifer=aquifers[region_number-1];
@@ -308,7 +319,7 @@ function displayallwells(region_number,well_points,interpolate,required){
 function showraster(){
     var region_number=$("#select_aquifer").find('option:selected').val();
     region_number=Number(region_number);
-    var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity (High Plains)','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];
+    var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity-High Plains','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];
     var name=aquifers[region_number-1];
     name=name.replace(/ /g,"_")
     var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+name+".nc";

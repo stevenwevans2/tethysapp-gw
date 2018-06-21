@@ -74,16 +74,13 @@ def loaddata(request):
 
 		name = name.replace(' ', '_')
 		interpolate = 1
-		timesteps = 14
 		if min_num == 0:
 			interpolate = 0
-			timesteps = 1
 		serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
 		name = name + ".nc"
 		netcdfpath = os.path.join(serverpath, name)
 		if os.path.exists(netcdfpath):
 			interpolate = 0
-			timesteps = 1
 		return_obj['interpolate'] = interpolate
 
 		start = t.time()
@@ -106,8 +103,6 @@ def loaddata(request):
 				if feature['properties']['AquiferID'] == aquifer:
 					points['features'].append(feature)
 			points['features'].sort(key=lambda x: x['properties']['HydroID'])
-			print len(points['features'])
-
 			time_csv = []
 			aquifer = str(aquifer)
 			mycsv='csv/Wells_Master.csv'
@@ -147,6 +142,7 @@ def loaddata(request):
 						timestep = (int(row['FeatureID']), (row['TsTime']), (float(row['TsValue'])),
 									(float(row['TsValue_normalized'])))
 						time_csv.append(timestep)
+		time_csv.sort(key=lambda x:x[0])
 
 		number = 0
 		aquifermin = 0.0
@@ -165,9 +161,9 @@ def loaddata(request):
 						aquifermin = i[2]
 					break
 				number += 1
-		print points['features'][0]
 
-		count = 0
+
+
 		for i in points['features']:
 			if 'TsValue' in i:
 				array = []
@@ -195,10 +191,8 @@ def loaddata(request):
 					i['TsTime'].append(array[j][0])
 					i['TsValue'].append(array[j][1])
 					i['TsValue_norm'].append(array[j][2])
-				if count == 0:
-					print array
-				count += 1
-		print(points['features'][0])
+
+
 
 		print len(time_csv)
 
@@ -405,6 +399,7 @@ def loaddata(request):
 			longitude = h.createVariable("lon", np.float64, ("lon"))
 			time = h.createVariable("time", np.float64, ("time"), fill_value="NaN")
 			depth = h.createVariable("depth", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
+			depth.long_name="Depth to Water Table"
 			depth.units = "ft"
 			depth.grid_mapping = "WGS84"
 			depth.cell_measures = "area: area"
