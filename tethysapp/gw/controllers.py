@@ -57,13 +57,13 @@ def region_map(request):
         attributes={
             'data-toggle': 'tooltip',
             'data-placement': 'top',
-            'title': 'Display Wells',
+            'title': 'Clear Wells',
             'onclick': 'clearwells()'
         },
     )
 
     interpolatebutton=Button(
-        display_text="Show interpolated Water Levels",
+        display_text="Show Water Levels",
         name='interpolationbutton',
 
         attributes={
@@ -75,12 +75,25 @@ def region_map(request):
         }
     )
 
+    clearrasterbutton=Button(
+        display_text='Clear Water Levels',
+        name='clearrasterbutton',
+
+        attributes={
+            'data-toggle': 'tooltip',
+            'data-placement': 'top',
+            'title': 'Clear Water Levels',
+            'onclick': 'clearwaterlevels()'
+        }
+    )
+
     context = {
         "select_aquifer":select_aquifer,
         "required_data": required_data,
         "calcbutton": calcbutton,
         "clearbutton":clearbutton,
-        'interpolatebutton':interpolatebutton
+        'interpolatebutton':interpolatebutton,
+        'clearrasterbutton':clearrasterbutton,
     }
 
     return render(request, 'gw/region_map.html', context)

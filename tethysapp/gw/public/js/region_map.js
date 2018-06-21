@@ -38,7 +38,7 @@ $(function() {
 
 
 var regioncenter=[30.0,-100.0];
-
+var mychart=[]
 //add a map to the html div "map" with time dimension capabilities. Times are currently hard coded, but will need to be changed as new GRACE data comes
 var map = L.map('map', {
     crs: L.CRS.EPSG4326,
@@ -84,8 +84,11 @@ function displaywells(){
 function clearwells(){
     well_group.clearLayers();
     aquifer_group.clearLayers();
-    interpolation_group.clearLayers();
     document.getElementById("chart").innerHTML="";
+}
+
+function clearwaterlevels(){
+    interpolation_group.clearLayers();
 }
 
 
@@ -198,6 +201,18 @@ function displayallwells(region_number,well_points,interpolate,required){
     else{
         points=well_points;
     }
+    name=name.replace(/ /g,"_")
+    var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+name+".nc";
+    var testLayer = L.tileLayer.wms(testWMS, {
+        layers: 'depth',
+        format: 'image/png',
+        transparent: true,
+        opacity:0.5,
+        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+    });
+    var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
+    });
+	testTimeLayer.addTo(map);
 	var well_layer=L.geoJSON(points,{
 	    onEachFeature: function (feature, layer){
             var popup_content="Hydro ID: "+feature.properties.HydroID;
@@ -215,7 +230,7 @@ function displayallwells(region_number,well_points,interpolate,required){
                 click: function showResultsInDiv() {
                     //var d = document.getElementById('chart');
                     //d.innerHTML =data;
-                    Highcharts.chart('chart',{
+                    mychart=Highcharts.chart('chart',{
                         chart: {
                             type: 'spline'
                         },
@@ -227,7 +242,14 @@ function displayallwells(region_number,well_points,interpolate,required){
 
                             title: {
                                 text: 'Date'
-                            }
+                            },
+			    plotLines: [{
+		                color: 'red',
+		                dashStyle: 'solid',
+		                value: new Date(testTimeLayer._timeDimension.getCurrentTime()),
+		                width: 2,
+		                id: 'pbCurrentTime'
+		            }]			    
                         },
                         yAxis:{
                             title: {
@@ -239,8 +261,23 @@ function displayallwells(region_number,well_points,interpolate,required){
 
                         }]
                     });
+                testTimeLayer._timeDimension.on('timeload', (function() {
+                    if (!mychart){
+                        return;
+                    }
+                    mychart.xAxis[0].removePlotBand("pbCurrentTime");
+                    mychart.xAxis[0].addPlotLine({
+                        color: 'red',
+                        dashStyle: 'solid',
+                        value: new Date(testTimeLayer._timeDimension.getCurrentTime()),
+                        width: 2,
+                        id: 'pbCurrentTime'
+                    });
+                        }).bind(this));
                 }
+
             });
+
             layer.bindPopup(popup_content);
 	    },
 	    pointToLayer:function(geoJsonPoint, latlng){
@@ -249,17 +286,7 @@ function displayallwells(region_number,well_points,interpolate,required){
 	});
 	well_group.addLayer(well_layer);
 
-    name=name.replace(/ /g,"_")
-    var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+name+".nc";
-    var testLayer = L.tileLayer.wms(testWMS, {
-        layers: 'depth',
-        format: 'image/png',
-        transparent: true,
-        opacity:0.5,
-        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
-    });
-    var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
-    });
+
     //testTimeLayer.addTo(map);
     interpolation_group.addLayer(testTimeLayer);
     interpolation_group.addTo(map);
@@ -293,8 +320,6 @@ function showraster(){
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
     var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
-        //updateTimeDimension: true,
-        //setDefaultTime: true,
     });
     interpolation_group.addLayer(testTimeLayer);
     interpolation_group.addTo(map);
@@ -308,3 +333,6 @@ function showraster(){
     };
     testLegend.addTo(map);
 }
+
+
+
