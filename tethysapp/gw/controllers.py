@@ -27,73 +27,25 @@ def region_map(request):
                                         ('Brazos River Alluvium (minor)',5),('Capitan Reef Complex (minor)',9),('Dockum (minor)',26),('Edwards-Trinity (High Plains) (minor)',12),
                                         ('Ellenburger-San-Aba (minor)',14),('Hickory (minor)',16),('Igneous (minor)',17),('Lipan (minor)', 30),('Marathon (minor)',18),
                                         ('Marble Falls (minor)',19),('Nacatoch (minor)',20),('Queen City (minor)',24),('Rita Blanca (minor)',23),('Rustler (minor)',25),
-                                        ('Sparta (minor)',27),('West Texas Bolsons (minor)',2),('Woodbine (minor)',29),('Yegua Jackson (minor)',31),('NA',22),('All',32)]
-                               )
+                                        ('Sparta (minor)',27),('West Texas Bolsons (minor)',2),('Woodbine (minor)',29),('Yegua Jackson (minor)',31),('NA',22),('All',32)],
+                               initial='All',
+                               attributes={
+                                   'onchange':'displaywells()'
+                               }
+    )
 
     required_data=RangeSlider(display_text='Minimum Number of Data Points per Well',
                       name='required_data',
                       min=0,
                       max=50,
-                      initial=0,
+                      initial=2,
                       step=1
     )
 
-    calcbutton = Button(
-        display_text='Display Wells',
-        name='calcbutton',
-
-        attributes={
-            'data-toggle': 'tooltip',
-            'data-placement': 'top',
-            'title': 'Display Wells',
-            'onclick':'displaywells()'
-        },
-    )
-
-    clearbutton = Button(
-        display_text='Clear Wells',
-        name='clearbutton',
-
-        attributes={
-            'data-toggle': 'tooltip',
-            'data-placement': 'top',
-            'title': 'Clear Wells',
-            'onclick': 'clearwells()'
-        },
-    )
-
-    interpolatebutton=Button(
-        display_text="Show Water Levels",
-        name='interpolationbutton',
-
-        attributes={
-            'data-toggle': 'tooltip',
-            'data-placement': 'top',
-            'title':'Interpolate water levels',
-            'onclick':'showraster()'
-
-        }
-    )
-
-    clearrasterbutton=Button(
-        display_text='Clear Water Levels',
-        name='clearrasterbutton',
-
-        attributes={
-            'data-toggle': 'tooltip',
-            'data-placement': 'top',
-            'title': 'Clear Water Levels',
-            'onclick': 'clearwaterlevels()'
-        }
-    )
 
     context = {
         "select_aquifer":select_aquifer,
         "required_data": required_data,
-        "calcbutton": calcbutton,
-        "clearbutton":clearbutton,
-        'interpolatebutton':interpolatebutton,
-        'clearrasterbutton':clearrasterbutton,
     }
 
     return render(request, 'gw/region_map.html', context)

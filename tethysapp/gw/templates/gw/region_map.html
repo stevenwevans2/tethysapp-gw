@@ -36,21 +36,20 @@
 </html>
 {% endblock %}
 
-{# Use the after_app_content block for modals #}
-{% block after_app_content %}
-
-{% endblock %}
-
 {% block app_navigation_items %}
   {{ block.super }}
     <br>
     {% gizmo select_input select_aquifer %}
     {% gizmo required_data %}
-    {% gizmo calcbutton %}
-    {% gizmo clearbutton %}
-    <br>
-    {% gizmo interpolatebutton %}
-    {% gizmo clearrasterbutton %}
+     <label class="container"> <input type="checkbox" name="userinput" id="aquifer_display" checked>Aquifer Boundaries
+            <span class="checkmark"></span>
+     </label>
+     <label class="container"> <input type="checkbox" name="userinput" id="surface_display" >Interpolated Surface
+            <span class="checkmark"></span>
+     </label>
+    <label class="container"> <input type="checkbox" name="userinput" id="well_display" >Wells
+            <span class="checkmark"></span>
+     </label>
     <div id="waiting_output"></div><br>
 
 {% endblock %}

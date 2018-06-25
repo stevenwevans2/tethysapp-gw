@@ -55,6 +55,26 @@ def loadjson(request):
 	return JsonResponse(return_obj)
 
 
+def checkdata(request):
+	return_obj = {
+		'success': False
+	}
+	# Check if its an ajax post request
+	if request.is_ajax() and request.method == 'GET':
+		return_obj['success'] = True
+		name = request.GET.get('name')
+		return_obj['name'] = name
+
+		name=name.replace(' ','_')
+		serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
+		name = name + ".nc"
+		netcdfpath = os.path.join(serverpath, name)
+		exists=0
+		if os.path.exists(netcdfpath):
+			exists = 1
+		return_obj['exists']=exists
+	return JsonResponse(return_obj)
+
 def loaddata(request):
 	return_obj = {
 		'success': False
@@ -328,11 +348,8 @@ def loaddata(request):
 							grid[i, j] = np.sum(v / (distance ** power) / total)
 				return grid
 
-			grid = np.zeros((lonrange, latrange), dtype='float32')  # float32 gives us a lot precision
-			mastergrid = []
-			grids = []
+			grid = np.zeros((lonrange, latrange), dtype='float32')
 
-			#aquifer = int(aquifer)
 			aquifers = ['HUECO_BOLSON', 'WEST TEXAS BOLSONS', 'PECOS VALLEY', 'SEYMOUR', 'BRAZOS RIVER ALLUVIUM',
 						'BLAINE', 'BLOSSOM', 'BONE SPRING-VICTORIO PEAK', 'CAPITAN REEF COMPLEX', 'CARRIZO', 'EDWARDS',
 						'EDWARDS-TRINITY (HIGH PLAINS)', 'EDWARDS-TRINITY', 'ELLENBURGER-SAN SABA', 'GULF_COAST',
@@ -433,7 +450,7 @@ def loaddata(request):
 					# depth[i,x,y]=f([longrid[x],latgrid[y]],power=2.0,n_neighbors=len(values))
 			h.close()
 
-			#os.system("./aquifersubset.sh %s" % (filename))
+			#Calls a shellscript that uses NCO to clip the NetCDF File created above to aquifer boundaries
 			myshell='aquifersubset.sh'
 			directory=app_workspace.path
 			shellscript=os.path.join(app_workspace.path,myshell)

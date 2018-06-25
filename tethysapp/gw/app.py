@@ -68,6 +68,11 @@ class Gw(TethysAppBase):
                 url='gw/loaddata',
                 controller='gw.ajax_controllers.loaddata'
             ),
+            UrlMap(
+                name='checkdata',
+                url='gw/checkdata',
+                controller='gw.ajax_controllers.checkdata'
+            ),
 
         )
 

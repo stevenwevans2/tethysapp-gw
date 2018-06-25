@@ -23,6 +23,51 @@
 {% block app_content %}
 {% endblock %}
 
+{# Use the after_app_content block for modals #}
+{% block after_app_content %}
+  <!-- Help Modal -->
+  <div class="modal fade" id="help-modal" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h2>Select Aquifer</h2>
+          <ul>
+            <li>Click the "Select Aquifer" dropdown and select the desired aquifer (or All aquifers)</li>
+          </ul>
+          <h2>Specify Required Data</h2>
+          <ul>
+            <li>Move the slider below the heading "Minimum Number of Data Points per Well"</li>
+            <li>This slider adjusts how many wells will be dislayed. Only wells with the minimum specified number of measurements will be mapped.</li>
+          </ul>
+          <h2>Display Wells</h2>
+          <ul>
+            <li>Click the "Display Wells" button. The app will load and then display the wells for the specified aquifer with the required measurements.</li>
+          </ul>
+          <h2>Click on individual wells</h2>
+          <ul>
+            <li>When clicked, each well will display timeseries data and well metadata.</li>
+            <li>Use the "Clear Wells" button to clear all displayed wells.</li>
+          </ul>
+          <h2>Display Surface</h2>
+          <ul>
+            <li>Click the "Display Surface" button to display the interpolated groundwater levels for the specified aquifer.</li>
+            <li>Use the slider at the bottom of the map to view the interpolated surface at different timesteps.</li>
+            <li>Use the "Clear Surface" button to clear all displayed groundwater surface maps.</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
 {% block app_actions %}
 {% endblock %}
 
