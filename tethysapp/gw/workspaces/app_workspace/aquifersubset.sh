@@ -1,6 +1,7 @@
 #!/bin/bash
 # $1 is the name of the region to process
 # $2 is the directory where files are located
+# $3 is the type of interpolation
 echo "called shellscript"
 cd $2
 pwd
@@ -20,11 +21,16 @@ ncap2 -s 'Band1=Band1/Band1' $1 temp2.nc
 
 ncap2 -s 'depth=Band1*depth;' temp2.nc temp.nc
 
+#d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
+d='/home/tethys/Thredds/groundwater/'
+
+destination=$d$3
+
 rm Aquifer.nc
 rm temp2.nc
 rm Region2.nc
 rm Region25.nc
 rm $1
 mv temp.nc $1
-mv $1 /home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/
+mv $1 $destination
 

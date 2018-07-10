@@ -36,27 +36,29 @@
         <div class="modal-body">
           <h2>Select Aquifer</h2>
           <ul>
-            <li>Click the "Select Aquifer" dropdown and select the desired aquifer (or All aquifers)</li>
+            <li>Click the "Select Aquifer" dropdown and select the desired aquifer (or All aquifers). The data for the specified aquifer will appear on the map.</li>
           </ul>
           <h2>Specify Required Data</h2>
           <ul>
-            <li>Move the slider below the heading "Minimum Number of Data Points per Well"</li>
-            <li>This slider adjusts how many wells will be dislayed. Only wells with the minimum specified number of measurements will be mapped.</li>
+            <li>Select the interpolation method for the interpolated water level surface.</li>
+            <li>Adjust the slider below the heading "Minimum Samples per Well"</li>
+            <li>This slider adjusts how many wells will be dislayed. Only wells with at least the minimum specified number of samples will be mapped.</li>
+            <li>Check or uncheck the options for Aquifer Boundaries, Interpolated Surface, and Wells.</li>
           </ul>
-          <h2>Display Wells</h2>
-          <ul>
-            <li>Click the "Display Wells" button. The app will load and then display the wells for the specified aquifer with the required measurements.</li>
-          </ul>
+          <h2>Display Data</h2>
+          <li>Data may be displayed in two ways:</li>
+          <ol>
+            <li>Click the "Select Aquifer" dropdown and select the desired aquifer (or All aquifers). The data for the specified aquifer will appear on the map.</li>
+            <li>Click the "Update Region" button. The app will load and then display the wells for the specified aquifer with the specified options.</li>
+          </ol>
           <h2>Click on individual wells</h2>
           <ul>
             <li>When clicked, each well will display timeseries data and well metadata.</li>
-            <li>Use the "Clear Wells" button to clear all displayed wells.</li>
+
           </ul>
           <h2>Display Surface</h2>
           <ul>
-            <li>Click the "Display Surface" button to display the interpolated groundwater levels for the specified aquifer.</li>
             <li>Use the slider at the bottom of the map to view the interpolated surface at different timesteps.</li>
-            <li>Use the "Clear Surface" button to clear all displayed groundwater surface maps.</li>
           </ul>
         </div>
         <div class="modal-footer">

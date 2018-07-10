@@ -1,4 +1,7 @@
 from __future__ import division
+from sklearn.utils import resample
+import pykrige.kriging_tools as kt
+from pykrige.ok import OrdinaryKriging
 from django.http import Http404, HttpResponse, JsonResponse
 import os
 import json
@@ -63,12 +66,15 @@ def checkdata(request):
 	if request.is_ajax() and request.method == 'GET':
 		return_obj['success'] = True
 		name = request.GET.get('name')
+		interpolation_type=request.GET.get('interpolation_type')
 		return_obj['name'] = name
 
 		name=name.replace(' ','_')
-		serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
+		serverpath='/home/tethys/Thredds/groundwater/'
+		#serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
 		name = name + ".nc"
-		netcdfpath = os.path.join(serverpath, name)
+		netcdfpath = os.path.join(serverpath, interpolation_type)
+		netcdfpath=os.path.join(netcdfpath,name)
 		exists=0
 		if os.path.exists(netcdfpath):
 			exists = 1
@@ -86,9 +92,11 @@ def loaddata(request):
 		aquiferid = request.GET.get('id')
 		min_num = request.GET.get('min_num')
 		name = request.GET.get('name')
+		interpolation_type=request.GET.get('interpolation_type')
 		return_obj['iteration'] = min_num
 		return_obj['id'] = aquiferid
 		return_obj['name'] = name
+		return_obj['interpolation_type']=interpolation_type
 		app_workspace = app.get_app_workspace()
 
 
@@ -96,9 +104,12 @@ def loaddata(request):
 		interpolate = 1
 		if min_num == 0:
 			interpolate = 0
-		serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
+		serverpath = '/home/tethys/Thredds/groundwater/'
+
+		#serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
 		name = name + ".nc"
-		netcdfpath = os.path.join(serverpath, name)
+		netcdfpath = os.path.join(serverpath, interpolation_type)
+		netcdfpath=os.path.join(netcdfpath,name)
 		if os.path.exists(netcdfpath):
 			interpolate = 0
 		return_obj['interpolate'] = interpolate
@@ -347,6 +358,20 @@ def loaddata(request):
 							total = np.sum(1 / (distance ** power))
 							grid[i, j] = np.sum(v / (distance ** power) / total)
 				return grid
+	
+			#GMS Method of IDW interpolation
+			def gms(x,y,v,grid,power):
+			    for i in xrange(grid.shape[0]):
+				for j in xrange(grid.shape[1]):
+				    distance = np.sqrt((x-((i*.05)+lonmin))**2+(y-((j*.05)+latmin))**2)
+				    if (distance**power).min()==0:
+					grid[i,j] = v[(distance**power).argmin()]
+				    else:
+					R=np.amax(distance)
+					w=((R-distance)/(R*distance))**2
+					wtotal=np.sum(w)
+					grid[i,j]=np.sum(v*w/wtotal)
+			    return grid
 
 			grid = np.zeros((lonrange, latrange), dtype='float32')
 
@@ -393,7 +418,7 @@ def loaddata(request):
 			for i in minor['features']:
 				if i['properties']['AQU_NAME'] == region:
 					AquiferShape['features'].append(i)
-			if region == 'Texas':
+			if region == 'Texas' or region=='NONE':
 				AquiferShape['features'].append(texas['features'][0])
 
 			myshapefile=os.path.join(app_workspace.path,"shapefile.json")
@@ -440,21 +465,33 @@ def loaddata(request):
 				a = np.array(a)
 				b = np.array(b)
 				c = np.array(c)
-				grids = iwd(a, b, c, grid, 2)
-				timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
-				year += 5
-				time[i] = timearray[i]
-				for x in range(0, len(longrid)):
-					for y in range(0, len(latgrid)):
-						depth[i, x, y] = grids[x, y]
-					# depth[i,x,y]=f([longrid[x],latgrid[y]],power=2.0,n_neighbors=len(values))
+				if interpolation_type=='IDW':
+					grids = gms(a, b, c, grid, 2)
+					timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+					year += 5
+					time[i] = timearray[i]
+					for x in range(0, len(longrid)):
+						for y in range(0, len(latgrid)):
+							depth[i, x, y] = grids[x, y]
+				elif interpolation_type=='Kriging':
+					OK = OrdinaryKriging(a, b, c, variogram_model='power', verbose=True, enable_plotting=False)
+					if len(a)>30:
+						krig, ss = OK.execute('grid', longrid, latgrid, backend='loop', n_closest_points=25)
+					else:
+						krig,ss=OK.execute('grid',longrid,latgrid)
+					timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+					year += 5
+					time[i] = timearray[i]
+					for x in range(0, len(longrid)):
+						for y in range(0, len(latgrid)):
+							depth[i, x, y] = krig[y, x]
 			h.close()
 
 			#Calls a shellscript that uses NCO to clip the NetCDF File created above to aquifer boundaries
 			myshell='aquifersubset.sh'
 			directory=app_workspace.path
 			shellscript=os.path.join(app_workspace.path,myshell)
-			subprocess.call([shellscript, filename, directory])
+			subprocess.call([shellscript, filename, directory,interpolation_type])
 			# serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
 			# destination = os.path.join(serverpath, filename)
 			# os.rename(nc_file, destination)

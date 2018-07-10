@@ -34,18 +34,38 @@ def region_map(request):
                                }
     )
 
-    required_data=RangeSlider(display_text='Minimum Number of Data Points per Well',
+    select_interpolation = SelectInput(display_text='Select Interpolation Method',
+                                 name='select_interpolation',
+                                 multiple=False,
+                                 options=[("IDW (Shepard's Method)", 'IDW'), ('Kriging', 'Kriging')],
+                                 initial="IDW (Shepard's Method)",
+    )
+
+    required_data=RangeSlider(display_text='Minimum Samples per Well',
                       name='required_data',
                       min=0,
                       max=50,
                       initial=2,
                       step=1
     )
+    updatebutton = Button(
+        display_text='Update Region',
+        name='button',
 
+        attributes={
+            'data-toggle': 'tooltip',
+            'data-placement': 'top',
+            'title': 'Update Region',
+            'onclick': 'displaywells()'
+
+        },
+    )
 
     context = {
         "select_aquifer":select_aquifer,
         "required_data": required_data,
+        "select_interpolation": select_interpolation,
+        "updatebutton":updatebutton
     }
 
     return render(request, 'gw/region_map.html', context)

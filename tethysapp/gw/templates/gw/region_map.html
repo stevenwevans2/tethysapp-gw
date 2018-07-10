@@ -40,6 +40,7 @@
   {{ block.super }}
     <br>
     {% gizmo select_input select_aquifer %}
+    {% gizmo select_input select_interpolation %}
     {% gizmo required_data %}
      <label class="container"> <input type="checkbox" name="userinput" id="aquifer_display" checked>Aquifer Boundaries
             <span class="checkmark"></span>
@@ -51,6 +52,7 @@
             <span class="checkmark"></span>
      </label>
     <div id="waiting_output"></div><br>
+    {% gizmo updatebutton %}
 
 {% endblock %}
 

@@ -49,7 +49,6 @@ var map = L.map('map', {
 			 times:"1949-12-30T00:00:00.000Z,1954-12-30T00:00:00.000Z,1959-12-30T00:00:00.000Z,1964-12-30T00:00:00.000Z,1969-12-30T00:00:00.000Z,1974-12-30T00:00:00.000Z,1979-12-30T00:00:00.000Z,1984-12-30T00:00:00.000Z,1989-12-30T00:00:00.000Z,1994-12-30T00:00:00.000Z,1999-12-30T00:00:00.000Z,2004-12-30T00:00:00.000Z,2009-12-30T00:00:00.000Z,2014-12-30T00:00:00.000Z",
 			 //timeInterval:"1950-01-01/2015-01-01",
 			 //period:"P5Y"
-			 //currentTime:"2000-01-01T00:00:00.000Z"
     },
     timeDimensionControl: true,
     center: regioncenter,
@@ -99,6 +98,7 @@ function displaywells(){
 
     var region_number=$("#select_aquifer").find('option:selected').val();
     region_number=Number(region_number);
+
     displaygeojson(region_number,displayallwells);
 };
 
@@ -189,11 +189,12 @@ function displaygeojson(region_number, wellfunction,surfacefunction) {
                     id=region_number;
 		            var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity-High Plains','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];
     		        var name=aquifers[region_number-1];
+    		        var interpolation_type=$("#select_interpolation").find('option:selected').val();
     		        if (display_wells){
                         $.ajax({
                             url: '/apps/gw/loaddata/',
                             type: 'GET',
-                            data: {'id':id,'min_num':min_num, 'name':name},
+                            data: {'id':id,'min_num':min_num, 'name':name, 'interpolation_type':interpolation_type},
                             contentType: 'application/json',
                             error: function (status) {
 
@@ -250,7 +251,9 @@ function displayallwells(region_number,well_points,interpolate,required){
     }
     if (interpolate==1){
         name=name.replace(/ /g,"_")
-        var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+name+".nc";
+        var interpolation_type=$("#select_interpolation").find('option:selected').val();
+        var testWMS="http://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+        //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
         var testLayer = L.tileLayer.wms(testWMS, {
             layers: 'depth',
             format: 'image/png',
@@ -264,6 +267,20 @@ function displayallwells(region_number,well_points,interpolate,required){
         var well_layer=L.geoJSON(points,{
             onEachFeature: function (feature, layer){
                 var popup_content="Hydro ID: "+feature.properties.HydroID;
+                var type=feature.properties.FType;
+                if (type=="W"){
+                    type="Water Withdrawal";
+                }
+                else if (type=="P"){
+                    type="Petroleum";
+                }
+                else if (type=="O"){
+                    type="Observation";
+                }
+                else if (type=="M"){
+                    type="Mine";
+                }
+                popup_content+="<br>"+"Well Type: "+type;
                 popup_content+="<br>"+"Aquifer: "+aquifer;
                 popup_content+="<br>"+"Elevation: "+feature.properties.LandElev + " feet";
                 popup_content+="<br>"+"Well Depth: "+feature.properties.WellDepth + " feet";
@@ -349,6 +366,20 @@ function displayallwells(region_number,well_points,interpolate,required){
         var well_layer=L.geoJSON(points,{
             onEachFeature: function (feature, layer){
                 var popup_content="Hydro ID: "+feature.properties.HydroID;
+                var type=feature.properties.FType;
+                if (type=="W"){
+                    type="Water Withdrawal";
+                }
+                else if (type=="P"){
+                    type="Petroleum";
+                }
+                else if (type=="O"){
+                    type="Observation";
+                }
+                else if (type=="M"){
+                    type="Mine";
+                }
+                popup_content+="<br>"+"Well Type: "+type;
                 popup_content+="<br>"+"Aquifer: "+aquifer;
                 popup_content+="<br>"+"Elevation: "+feature.properties.LandElev + " feet";
                 popup_content+="<br>"+"Well Depth: "+feature.properties.WellDepth + " feet";
@@ -415,11 +446,12 @@ function showraster(){
     region_number=Number(region_number);
     var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity-High Plains','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];
     var name=aquifers[region_number-1];
-    name=name.replace(/ /g,"_")
+    name=name.replace(/ /g,"_");
+    var interpolation_type=$("#select_interpolation").find('option:selected').val();
     $.ajax({
         url: '/apps/gw/checkdata/',
         type: 'GET',
-        data: {'name':name},
+        data: {'name':name,'interpolation_type':interpolation_type},
         contentType: 'application/json',
         error: function (status) {
 
@@ -430,16 +462,19 @@ function showraster(){
                 document.getElementById('waiting_output').innerHTML = wait_text;
                 var min_num=$("#required_data").val();
                 var id=region_number;
+                var interpolation_type=$("#select_interpolation").find('option:selected').val();
                 $.ajax({
                     url: '/apps/gw/loaddata/',
                     type: 'GET',
-                    data: {'id':id,'min_num':min_num, 'name':name},
+                    data: {'id':id,'min_num':min_num, 'name':name,'interpolation_type':interpolation_type},
                     contentType: 'application/json',
                     error: function (status) {
 
                     }, success: function (response) {
                         var well_points=response['data'];//.features;
-                        var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+name+".nc";
+                        var interpolation_type=$("#select_interpolation").find('option:selected').val();
+                        var testWMS="http://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+                        //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
                         var testLayer = L.tileLayer.wms(testWMS, {
                             layers: 'depth',
                             format: 'image/png',
@@ -465,7 +500,9 @@ function showraster(){
                 })
             }
             else{
-                var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+name+".nc";
+                var interpolation_type=$("#select_interpolation").find('option:selected').val();
+                var testWMS="http://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+                //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
                 var testLayer = L.tileLayer.wms(testWMS, {
                     layers: 'depth',
                     format: 'image/png',
