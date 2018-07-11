@@ -254,11 +254,17 @@ function displayallwells(region_number,well_points,interpolate,required){
         var interpolation_type=$("#select_interpolation").find('option:selected').val();
         var testWMS="http://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
         //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+        var colormin=-500;
+        var colormax=0;
+        if (region_number==28){
+              colormin=-1000;
+        }
         var testLayer = L.tileLayer.wms(testWMS, {
             layers: 'depth',
             format: 'image/png',
             transparent: true,
             opacity:0.5,
+            colorscalerange:colormin+','+colormax,
             attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
         });
         var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
@@ -354,7 +360,12 @@ function displayallwells(region_number,well_points,interpolate,required){
         interpolation_group.addTo(map);
 
         testLegend.onAdd = function(map) {
-        var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER=depth&PALETTE=grace";
+        var colormin=-500;
+        var colormax=0;
+        if (region_number==28){
+              colormin=-1000;
+        }
+        var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER=depth&PALETTE=grace&COLORSCALERANGE="+colormin+","+colormax;
         var div = L.DomUtil.create('div', 'info legend');
         div.innerHTML +=
             '<img src="' + src + '" alt="legend">';
@@ -475,11 +486,17 @@ function showraster(){
                         var interpolation_type=$("#select_interpolation").find('option:selected').val();
                         var testWMS="http://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
                         //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+                        var colormin=-500;
+                        var colormax=0;
+                        if (id==28){
+                            colormin=-1000;
+                        }
                         var testLayer = L.tileLayer.wms(testWMS, {
                             layers: 'depth',
                             format: 'image/png',
                             transparent: true,
                             opacity:0.5,
+                            colorscalerange=colormin+','+colormax,
                             attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
                         });
                         var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
@@ -487,8 +504,9 @@ function showraster(){
                         interpolation_group.addLayer(testTimeLayer);
                         interpolation_group.addTo(map);
 
+
                         testLegend.onAdd = function(map) {
-                            var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER=depth&PALETTE=grace";
+                            var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER=depth&PALETTE=grace&COLORSCALERANGE="+colormin+","+colormax;
                             var div = L.DomUtil.create('div', 'info legend');
                             div.innerHTML +=
                                 '<img src="' + src + '" alt="legend">';
@@ -501,13 +519,20 @@ function showraster(){
             }
             else{
                 var interpolation_type=$("#select_interpolation").find('option:selected').val();
+                var id=region_number;
                 var testWMS="http://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
                 //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+                var colormin=-500;
+                        var colormax=0;
+                        if (id==28){
+                            colormin=-1000;
+                        }
                 var testLayer = L.tileLayer.wms(testWMS, {
                     layers: 'depth',
                     format: 'image/png',
                     transparent: true,
                     opacity:0.5,
+                    colorscalerange=colormin+','+colormax,
                     attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
                 });
                 var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
@@ -515,8 +540,9 @@ function showraster(){
                 interpolation_group.addLayer(testTimeLayer);
                 interpolation_group.addTo(map);
 
+
                 testLegend.onAdd = function(map) {
-                    var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER=depth&PALETTE=grace";
+                    var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER=depth&PALETTE=grace&COLORSCALERANGE="+colormin+","+colormax;
                     var div = L.DomUtil.create('div', 'info legend');
                     div.innerHTML +=
                         '<img src="' + src + '" alt="legend">';

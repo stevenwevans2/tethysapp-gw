@@ -1,5 +1,4 @@
 from __future__ import division
-from sklearn.utils import resample
 import pykrige.kriging_tools as kt
 from pykrige.ok import OrdinaryKriging
 from django.http import Http404, HttpResponse, JsonResponse
