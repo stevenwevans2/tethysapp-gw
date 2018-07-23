@@ -40,7 +40,7 @@ function updateWMS(){
     name=name.replace(/ /g,"_");
     clearwaterlevels();
     var interpolation_type=$("#select_interpolation").find('option:selected').val();
-    var testWMS="https://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
     //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
     var colormin=$("#col_min").val();
     var colormax=$("#col_max").val();
@@ -397,7 +397,7 @@ function displayallwells(region_number,well_points,interpolate,required){
     if (interpolate==1){
         name=name.replace(/ /g,"_")
         var interpolation_type=$("#select_interpolation").find('option:selected').val();
-        var testWMS="https://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+        var testWMS="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
         //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
         var colormin=-500;
         var colormax=0;
@@ -632,7 +632,7 @@ function showraster(){
                     }, success: function (response) {
                         var well_points=response['data'];//.features;
                         var interpolation_type=$("#select_interpolation").find('option:selected').val();
-                        var testWMS="https://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+                        var testWMS="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
                         //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
                         var colormin=-500;
                         var colormax=0;
@@ -670,7 +670,7 @@ function showraster(){
             else{
                 var interpolation_type=$("#select_interpolation").find('option:selected').val();
                 var id=region_number;
-                var testWMS="https://tethys.byu.edu:7000/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+                var testWMS="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
                 //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
                 var colormin=-500;
                         var colormax=0;
