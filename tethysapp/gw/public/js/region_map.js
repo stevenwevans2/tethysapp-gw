@@ -53,6 +53,7 @@ function updateWMS(){
         format: 'image/png',
         transparent: true,
         opacity:opac,
+        styles:'boxfill/grace',
         colorscalerange:colormin+','+colormax,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
@@ -411,6 +412,7 @@ function displayallwells(region_number,well_points,interpolate,required){
             format: 'image/png',
             transparent: true,
             opacity:0.5,
+            styles:'boxfill/grace',
             colorscalerange:colormin+','+colormax,
             attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
         });
@@ -645,6 +647,7 @@ function showraster(){
                             format: 'image/png',
                             transparent: true,
                             opacity:0.5,
+                            styles:'boxfill/grace',
                             colorscalerange:colormin+','+colormax,
                             attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
                         });
@@ -683,6 +686,7 @@ function showraster(){
                     format: 'image/png',
                     transparent: true,
                     opacity:0.5,
+                    styles:'boxfill/grace',
                     colorscalerange:colormin+','+colormax,
                     attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
                 });
