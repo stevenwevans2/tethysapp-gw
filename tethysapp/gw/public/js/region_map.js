@@ -32,6 +32,52 @@ $(function() {
     });
 }); //document ready
 
+function updateWMS(){
+    var region_number=$("#select_aquifer").find('option:selected').val();
+    region_number=Number(region_number);
+    var aquifers=['Hueco Bolson','West Texas Bolsons','Pecos Valley','Seymour','Brazos River Alluvium','Blaine','Blossom','Bone Spring-Victorio Peak','Capitan Reef Complex','Carrizo','Edwards','Edwards-Trinity-High Plains','Edwards-Trinity','Ellenburger-San-Aba','Gulf Coast','Hickory','Igneous','Maratho','Marble Falls','Nacatoch','Ogallala','None','Rita Blanca','Queen City','Rustler','Dockum','Sparta','Trinity','Woodbine','Lipan','Yegua Jackson','Texas'];    var aquifer=aquifers[region_number-1];
+    var name=aquifers[region_number-1];
+    name=name.replace(/ /g,"_");
+    clearwaterlevels();
+    var interpolation_type=$("#select_interpolation").find('option:selected').val();
+    var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+interpolation_type+"/"+name+".nc";
+    var colormin=$("#col_min").val();
+    var colormax=$("#col_max").val();
+    var opac = $("#opacity_val").val();
+    var wmsLayer=$("#select_view").find('option:selected').val();
+
+
+    var testLayer = L.tileLayer.wms(testWMS, {
+        layers: wmsLayer,
+        format: 'image/png',
+        transparent: true,
+        opacity:opac,
+        colorscalerange:colormin+','+colormax,
+        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+    });
+    var contourLayer=L.tileLayer.wms(testWMS,{
+        layers: wmsLayer,
+        format: 'image/png',
+        transparent: true,
+        colorscalerange:colormin+','+colormax,
+        styles:'contour/grace',
+        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+    });
+    var testTimeLayer=L.timeDimension.layer.wms(testLayer);
+    testLegend.onAdd = function(map) {
+                    var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER="+wmsLayer+"&PALETTE=grace&COLORSCALERANGE="+colormin+","+colormax;
+                    var div = L.DomUtil.create('div', 'info legend');
+                    div.innerHTML +=
+                        '<img src="' + src + '" alt="legend">';
+                    return div;
+                };
+    testLegend.addTo(map);
+    var contourTimeLayer=L.timeDimension.layer.wms(contourLayer);
+    interpolation_group.addLayer(testTimeLayer);
+    interpolation_group.addTo(map);
+    contour_group.addLayer(contourTimeLayer);
+}
+
 var addLegend=function(testWMS,contourWMS, testLayer,colormin,colormax,layer,testTimeLayer){
     testLegend.onAdd = function(map) {
                     var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER="+layer+"&PALETTE=grace&COLORSCALERANGE="+colormin+","+colormax;
@@ -45,7 +91,6 @@ var addLegend=function(testWMS,contourWMS, testLayer,colormin,colormax,layer,tes
     interpolation_group.addLayer(testTimeLayer);
     interpolation_group.addTo(map);
     contour_group.addLayer(contourLayer);
-    console.log(contour_group);
     toggle.addOverlay(contour_group, "Contours");
 //    map.on('overlayremove',function(eventLayer){
 //        if (eventLayer.name=='Contours'){

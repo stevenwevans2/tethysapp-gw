@@ -9,13 +9,22 @@
 {% endblock %}
 
 {% block app_content %}
-    <html>
+<html>
     <head>
         <title>GRACE Data Viewer</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" />
         <link rel="stylesheet" href="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.control.min.css" />
     </head>
     <body>
+        <span class="leg_min_max" style="white-space:nowrap; float:right;">
+
+                Min:
+                    <input type="number" name="leg_min" id="col_min" min="-6000" max="6000" step="50" value="-500" onchange=updateWMS()>
+                Max:
+                    <input type="number" name="leg_max" id="col_max" min="-6000" max="6000" step="50" value="0" onchange=updateWMS()>
+                Opacity:
+                    <input type="number" name="opacity" id="opacity_val" min="0.1" max="1" step="0.1" value="0.5" onchange=updateWMS()>
+        </span>
         <div id="map" style="height: 500px; width: 100%"></div>
         <div id="chart" style="width: 100%; height: 400px; "></div>
 	    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
@@ -32,6 +41,7 @@
         <script src="https://code.highcharts.com/modules/exporting.js"></script>
         <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
         <!--<script type="text/javascript" src="{% static 'gw/js/regionviewer.js' %}"></script>-->
+
     </body>
 </html>
 {% endblock %}
