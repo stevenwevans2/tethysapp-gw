@@ -69,8 +69,8 @@ def checkdata(request):
 		return_obj['name'] = name
 
 		name=name.replace(' ','_')
-		#serverpath='/home/tethys/Thredds/groundwater/'
-		serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
+		serverpath='/home/tethys/Thredds/groundwater/'
+		#serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
 
 		name = name + ".nc"
 		netcdfpath = os.path.join(serverpath, interpolation_type)
