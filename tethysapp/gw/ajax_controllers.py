@@ -69,8 +69,9 @@ def checkdata(request):
 		return_obj['name'] = name
 
 		name=name.replace(' ','_')
-		serverpath='/home/tethys/Thredds/groundwater/'
-		#serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
+		#serverpath='/home/tethys/Thredds/groundwater/'
+		serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
+
 		name = name + ".nc"
 		netcdfpath = os.path.join(serverpath, interpolation_type)
 		netcdfpath=os.path.join(netcdfpath,name)
@@ -103,9 +104,9 @@ def loaddata(request):
 		interpolate = 1
 		if min_num == 0:
 			interpolate = 0
-		serverpath = '/home/tethys/Thredds/groundwater/'
+		#serverpath = '/home/tethys/Thredds/groundwater/'
+		serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
 
-		#serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
 		name = name + ".nc"
 		netcdfpath = os.path.join(serverpath, interpolation_type)
 		netcdfpath=os.path.join(netcdfpath,name)
@@ -232,6 +233,7 @@ def loaddata(request):
 			lons = []
 			lats = []
 			values = []
+			elevations=[]
 
 			for v in range(0, 14):
 				targetyear = 1950 + 5 * v
@@ -241,6 +243,7 @@ def loaddata(request):
 				mylons = []
 				mylats = []
 				myvalues = []
+				myelevations=[]
 				slope = 0
 				number = 0
 				timevalue = 0
@@ -309,17 +312,21 @@ def loaddata(request):
 							else:
 								timevalue = i['TsValue'][listlength - 1]
 						if timevalue != 9999:
+							the_elevation=i['properties']['LandElev']+timevalue
+							myelevations.append(the_elevation)
 							myvalues.append(timevalue)
 							myspots.append(i['geometry']['coordinates'])
 							mylons.append(i['geometry']['coordinates'][0])
 							mylats.append(i['geometry']['coordinates'][1])
 				values.append(myvalues)
+				elevations.append(myelevations)
 				spots.append(myspots)
 				lons.append(mylons)
 				lats.append(mylats)
 			lons = np.array(lons)
 			lats = np.array(lats)
 			values = np.array(values)
+			elevations=np.array(elevations)
 
 			lonmin = 360.0
 			latmin = 90.0
@@ -440,11 +447,19 @@ def loaddata(request):
 			longitude = h.createVariable("lon", np.float64, ("lon"))
 			time = h.createVariable("time", np.float64, ("time"), fill_value="NaN")
 			depth = h.createVariable("depth", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
+			elevation=h.createVariable("elevation",np.float64,('time','lon','lat'),fill_value=-9999)
+			elevation.long_name="Elevation of Water Table"
+			elevation.units="ft"
+			elevation.grid_mapping="WFS84"
+			elevation.cell_measures = "area: area"
+			elevation.coordinates = "time lat lon"
+
 			depth.long_name="Depth to Water Table"
 			depth.units = "ft"
 			depth.grid_mapping = "WGS84"
 			depth.cell_measures = "area: area"
 			depth.coordinates = "time lat lon"
+
 			latitude.long_name = "Latitude"
 			latitude.units = "degrees_north"
 			latitude.axis = "Y"
@@ -461,9 +476,11 @@ def loaddata(request):
 				a = lons[i]
 				b = lats[i]
 				c = values[i]
+				d=elevations[i]
 				a = np.array(a)
 				b = np.array(b)
 				c = np.array(c)
+				d=np.array(d)
 				if interpolation_type=='IDW':
 					grids = gms(a, b, c, grid, 2)
 					timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
@@ -472,11 +489,22 @@ def loaddata(request):
 					for x in range(0, len(longrid)):
 						for y in range(0, len(latgrid)):
 							depth[i, x, y] = grids[x, y]
+
+
+					grid2 = gms(a, b, d, grid, 2)
+					for x in range(0, len(longrid)):
+						for y in range(0, len(latgrid)):
+							elevation[i, x, y] = grid2[x, y]
+
+
 				elif interpolation_type=='Kriging':
-					OK = OrdinaryKriging(a, b, c, variogram_model='power', verbose=True, enable_plotting=False)
+					OK = OrdinaryKriging(a, b, c, variogram_model='power', verbose=False, enable_plotting=False)
+					EK=OrdinaryKriging(a, b, d, variogram_model='power', verbose=False, enable_plotting=False)
 					if len(a)>30:
+						elev,error=EK.execute('grid', longrid, latgrid, backend='loop', n_closest_points=25)
 						krig, ss = OK.execute('grid', longrid, latgrid, backend='loop', n_closest_points=25)
 					else:
+						elev,error=EK.execute('grid',longrid,latgrid)
 						krig,ss=OK.execute('grid',longrid,latgrid)
 					timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
 					year += 5
@@ -484,6 +512,8 @@ def loaddata(request):
 					for x in range(0, len(longrid)):
 						for y in range(0, len(latgrid)):
 							depth[i, x, y] = krig[y, x]
+							elevation[i,x,y]=elev[y,x]
+
 			h.close()
 
 			#Calls a shellscript that uses NCO to clip the NetCDF File created above to aquifer boundaries

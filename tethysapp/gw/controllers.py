@@ -30,8 +30,14 @@ def region_map(request):
                                         ('Sparta (minor)',27),('West Texas Bolsons (minor)',2),('Woodbine (minor)',29),('Yegua Jackson (minor)',31),('NA',22),('All',32)],
                                initial='All',
                                attributes={
-                                   'onchange':'displaywells()'
+                                   'onchange':'change_region()'
                                }
+    )
+
+    select_view=SelectInput(display_text='Select Data Type',
+                                 name='select_view',
+                                 multiple=False,
+                                 options=[("Depth to Groundwater", 'depth'), ('Elevation of Groundwater', 'elevation')],
     )
 
     select_interpolation = SelectInput(display_text='Select Interpolation Method',
@@ -56,7 +62,7 @@ def region_map(request):
             'data-toggle': 'tooltip',
             'data-placement': 'top',
             'title': 'Update Region',
-            'onclick': 'displaywells()'
+            'onclick': 'change_region()'
 
         },
     )
@@ -65,7 +71,8 @@ def region_map(request):
         "select_aquifer":select_aquifer,
         "required_data": required_data,
         "select_interpolation": select_interpolation,
-        "updatebutton":updatebutton
+        "updatebutton":updatebutton,
+        "select_view":select_view,
     }
 
     return render(request, 'gw/region_map.html', context)

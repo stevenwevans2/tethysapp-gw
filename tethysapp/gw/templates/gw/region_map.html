@@ -41,18 +41,19 @@
     <br>
     {% gizmo select_input select_aquifer %}
     {% gizmo select_input select_interpolation %}
+    {% gizmo select_input select_view %}
     {% gizmo required_data %}
-     <label class="container"> <input type="checkbox" name="userinput" id="aquifer_display" checked>Aquifer Boundaries
+     <label class="container"> <input type="checkbox" name="userinput" id="aquifer_display"  checked>Aquifer Boundaries
             <span class="checkmark"></span>
      </label>
-     <label class="container"> <input type="checkbox" name="userinput" id="surface_display" >Interpolated Surface
+     <label class="container"> <input type="checkbox" name="userinput" id="surface_display"  >Interpolated Surface
             <span class="checkmark"></span>
      </label>
     <label class="container"> <input type="checkbox" name="userinput" id="well_display" >Wells
             <span class="checkmark"></span>
      </label>
-    <div id="waiting_output"></div><br>
     {% gizmo updatebutton %}
+    <div id="waiting_output"></div><br>
 
 {% endblock %}
 
