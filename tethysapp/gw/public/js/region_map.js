@@ -123,11 +123,7 @@ var getLayerMinMax = function(layer,testLayer,contourWMS, testWMS, callback,test
         var range = data.max - data.min;
         var min = Math.round(data.min/100.0)*100;
         var max = Math.round(data.max/100.0)*100;
-        console.log(url);
-        console.log(data.min);
-        console.log(data.max);
-        console.log(min);
-        console.log(max);
+       
         if (min==max){
             min-=50;
             max+=50;
@@ -142,6 +138,8 @@ var getLayerMinMax = function(layer,testLayer,contourWMS, testWMS, callback,test
         testLayer.wmsParams.colorscalerange = min + "," + max;
         contourWMS.options.colorscalerange = min + "," + max;
         contourWMS.wmsParams.colorscalerange = min + "," + max;
+	document.getElementById("col_min").value=min;
+        document.getElementById("col_max").value=max;
 
         if (callback != undefined) {
             callback(testWMS,contourWMS,testLayer,min,max,layer,testTimeLayer);
