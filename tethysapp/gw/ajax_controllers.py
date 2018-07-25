@@ -14,6 +14,7 @@ import time as t
 import calendar
 from operator import itemgetter
 import subprocess
+import cython
 
 def displaygeojson(request):
 	return_obj = {
@@ -501,8 +502,8 @@ def loaddata(request):
 					OK = OrdinaryKriging(a, b, c, variogram_model='power', verbose=False, enable_plotting=False)
 					EK=OrdinaryKriging(a, b, d, variogram_model='power', verbose=False, enable_plotting=False)
 					if len(a)>30:
-						elev,error=EK.execute('grid', longrid, latgrid, backend='loop', n_closest_points=25)
-						krig, ss = OK.execute('grid', longrid, latgrid, backend='loop', n_closest_points=25)
+						elev,error=EK.execute('grid', longrid, latgrid, backend='C', n_closest_points=25)
+						krig, ss = OK.execute('grid', longrid, latgrid, backend='C', n_closest_points=25)
 					else:
 						elev,error=EK.execute('grid',longrid,latgrid)
 						krig,ss=OK.execute('grid',longrid,latgrid)
