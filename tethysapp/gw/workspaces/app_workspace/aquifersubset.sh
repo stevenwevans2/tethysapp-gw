@@ -17,11 +17,13 @@ ncks -A Region25.nc $1
 
 ncatted -a _FillValue,,o,d,-9999 $1
 
-ncap2 -s 'Band1=Band1/Band1' $1 temp2.nc
+ncap2 -s 'Band1=Band1/Band1' $1 temp3.nc
 
-ncap2 -s 'depth=Band1*depth;' temp2.nc temp1.nc
+ncap2 -s 'depth=Band1*depth;' temp3.nc temp2.nc
 
-ncap2 -s 'elevation=Band1*elevation;' temp1.nc temp.nc
+ncap2 -s 'elevation=Band1*elevation;' temp2.nc temp1.nc
+
+ncap2 -s 'drawdown=Band1*drawdown;' temp1.nc temp.nc
 
 #d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
 d='/home/tethys/Thredds/groundwater/'
@@ -29,6 +31,7 @@ d='/home/tethys/Thredds/groundwater/'
 destination=$d$3
 
 rm Aquifer.nc
+rm temp3.nc
 rm temp2.nc
 rm temp1.nc
 rm Region2.nc

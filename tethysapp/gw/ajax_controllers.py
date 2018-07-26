@@ -48,13 +48,28 @@ def loadjson(request):
 		geolayer = request.GET.get('geolayer')
 		return_obj['geolayer'] = geolayer
 		app_workspace = app.get_app_workspace()
-		geofile = os.path.join(app_workspace.path, geolayer)
-		with open(geofile, 'r') as f:
-			allwells = ''
-			wells = f.readlines()
-			for i in range(0, len(wells)):
-				allwells += wells[i]
-		return_obj = json.loads(allwells)
+		minorfile = os.path.join(app_workspace.path, 'MinorAquifers.json')
+		majorfile = os.path.join(app_workspace.path, 'MajorAquifers.json')
+		with open(minorfile, 'r') as f:
+			minor = ''
+			entry = f.readlines()
+			for i in range(0, len(entry)):
+				minor += entry[i]
+		with open(majorfile, 'r') as f:
+			major = ''
+			entry = f.readlines()
+			for i in range(0, len(entry)):
+				major += entry[i]
+		minor = json.loads(minor)
+		major=json.loads(major)
+		aquiferShape=[]
+		for i in minor['features']:
+			if i['properties']['AQU_NAME']==geolayer:
+				aquiferShape.append(i)
+		for i in major['features']:
+			if i['properties']['AQ_NAME']==geolayer:
+				aquiferShape.append(i)
+		return_obj['data']=aquiferShape
 	return JsonResponse(return_obj)
 
 
@@ -70,8 +85,8 @@ def checkdata(request):
 		return_obj['name'] = name
 
 		name=name.replace(' ','_')
-		#serverpath='/home/tethys/Thredds/groundwater/'
-		serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
+		serverpath='/home/tethys/Thredds/groundwater/'
+		#serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
 
 		name = name + ".nc"
 		netcdfpath = os.path.join(serverpath, interpolation_type)
@@ -461,6 +476,13 @@ def loaddata(request):
 			depth.cell_measures = "area: area"
 			depth.coordinates = "time lat lon"
 
+			drawdown = h.createVariable("drawdown", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
+			drawdown.long_name="Well Drawdown"
+			drawdown.units = "ft"
+			drawdown.grid_mapping = "WGS84"
+			drawdown.cell_measures = "area: area"
+			drawdown.coordinates = "time lat lon"
+
 			latitude.long_name = "Latitude"
 			latitude.units = "degrees_north"
 			latitude.axis = "Y"
@@ -490,7 +512,10 @@ def loaddata(request):
 					for x in range(0, len(longrid)):
 						for y in range(0, len(latgrid)):
 							depth[i, x, y] = grids[x, y]
-
+							if i == 0:
+								drawdown[i, x, y] = 0
+							else:
+								drawdown[i, x, y] = depth[i, x, y] - depth[0, x, y]
 
 					grid2 = gms(a, b, d, grid, 2)
 					for x in range(0, len(longrid)):
@@ -514,6 +539,10 @@ def loaddata(request):
 						for y in range(0, len(latgrid)):
 							depth[i, x, y] = krig[y, x]
 							elevation[i,x,y]=elev[y,x]
+							if i == 0:
+								drawdown[i, x, y] = 0
+							else:
+								drawdown[i, x, y] = depth[i, x, y] - depth[0, x, y]
 
 			h.close()
 

@@ -40,7 +40,6 @@
         <script src="https://code.highcharts.com/modules/series-label.js"></script>
         <script src="https://code.highcharts.com/modules/exporting.js"></script>
         <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
-        <!--<script type="text/javascript" src="{% static 'gw/js/regionviewer.js' %}"></script>-->
 
     </body>
 </html>
@@ -52,17 +51,8 @@
     {% gizmo select_input select_aquifer %}
     {% gizmo select_input select_interpolation %}
     {% gizmo select_input select_view %}
-    {% gizmo required_data %}
-     <label class="container"> <input type="checkbox" name="userinput" id="aquifer_display"  checked>Aquifer Boundaries
-            <span class="checkmark"></span>
-     </label>
-     <label class="container"> <input type="checkbox" name="userinput" id="surface_display"  >Interpolated Surface
-            <span class="checkmark"></span>
-     </label>
-    <label class="container"> <input type="checkbox" name="userinput" id="well_display" >Wells
-            <span class="checkmark"></span>
-     </label>
-    {% gizmo updatebutton %}
+    {% gizmo select_input required_data %}
+    <!--<p>Minimum Samples per Well</p><input type="number"  name="required_data" id="required_data" min="0" max="50" step="1" value="2" >-->
     <div id="waiting_output"></div><br>
 
 {% endblock %}
