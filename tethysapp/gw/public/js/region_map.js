@@ -179,6 +179,9 @@ var getLayerMinMax = function(layer,testLayer,contourWMS, testWMS, callback,test
         if (max<data.max){
             max+=50;
         }
+        if (layer=="drawdown"){
+            max=min*-1;
+        }
         testLayer.options.colorscalerange = min + "," + max;
         testLayer.wmsParams.colorscalerange = min + "," + max;
         contourWMS.options.colorscalerange = min + "," + max;
