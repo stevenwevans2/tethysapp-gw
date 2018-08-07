@@ -18,19 +18,28 @@ def region_map(request):
     """
     Controller for the app home page.
     """
+    select_region = SelectInput(display_text='Select Region',
+                                 name='select_region',
+                                 multiple=False,
+                                 options=[('Texas', 'Texas'), ('Utah', "Utah")],
+                                 initial='Texas',
+                                 attributes={
+                                     'onchange':'list_aquifer()'
+                                 }
+    )
 
     select_aquifer=SelectInput(display_text='Select Aquifer',
                                name='select_aquifer',
                                multiple=False,
-                               options=[('Carrizo',10),('Edwards',11),('Edwards-Trinity',13),('Gulf Coast',15),('Hueco Bolson',1),('Ogallala',21),
-                                        ('Pecos Valley',3),('Seymour',4),('Trinity',28),('Blaine (minor)',6),('Blossom (minor)',7),('Bone Spring-Victorio Peak (minor)',8),
-                                        ('Brazos River Alluvium (minor)',5),('Capitan Reef Complex (minor)',9),('Dockum (minor)',26),('Edwards-Trinity (High Plains) (minor)',12),
-                                        ('Ellenburger-San-Aba (minor)',14),('Hickory (minor)',16),('Igneous (minor)',17),('Lipan (minor)', 30),('Marathon (minor)',18),
-                                        ('Marble Falls (minor)',19),('Nacatoch (minor)',20),('Queen City (minor)',24),('Rita Blanca (minor)',23),('Rustler (minor)',25),
-                                        ('Sparta (minor)',27),('West Texas Bolsons (minor)',2),('Woodbine (minor)',29),('Yegua Jackson (minor)',31),('NA',22),('All',32)],
-                               initial='All',
+                               options=[('',9999),('Carrizo',10),('Edwards',11),('Edwards-Trinity',13),('Gulf Coast',15),('Hueco Bolson',1),('Ogallala',21),
+                                        ('Pecos Valley',3),('Seymour',4),('Trinity',28),('Blaine',6),('Blossom',7),('Bone Spring-Victorio Peak',8),
+                                        ('Brazos River Alluvium',5),('Capitan Reef Complex',9),('Dockum',26),('Edwards-Trinity-High Plains',12),
+                                        ('Ellenburger-San Saba',14),('Hickory',16),('Igneous',17),('Lipan', 30),('Marathon',18),
+                                        ('Marble Falls',19),('Nacatoch',20),('Queen City',24),('Rita Blanca',23),('Rustler',25),
+                                        ('Sparta',27),('West Texas Bolsons',2),('Woodbine',29),('Yegua Jackson',31),('NA',22),('Texas',32)],
+                               initial='',
                                attributes={
-                                   'onchange':'change_region()'
+                                   'onchange':'change_aquifer()'
                                }
     )
 
@@ -68,6 +77,7 @@ def region_map(request):
                                        )
 
     context = {
+        "select_region":select_region,
         "select_aquifer":select_aquifer,
         "required_data": required_data,
         "select_interpolation": select_interpolation,
@@ -75,3 +85,93 @@ def region_map(request):
     }
 
     return render(request, 'gw/region_map.html', context)
+
+def interpolation(request):
+    """
+    Controller for the app home page.
+    """
+    select_region = SelectInput(display_text='Select Region',
+                                 name='select_region',
+                                 multiple=False,
+                                 options=[('Texas', 'Texas'), ('Utah', "Utah")],
+                                 initial='Texas',
+                                 attributes={
+                                     'onchange':'update_aquifers()'
+                                 }
+    )
+
+    select_aquifer=SelectInput(display_text='Select Aquifer',
+                               name='select_aquifer',
+                               multiple=False,
+                               options=[('Carrizo',10),('Edwards',11),('Edwards-Trinity',13),('Gulf Coast',15),('Hueco Bolson',1),('Ogallala',21),
+                                        ('Pecos Valley',3),('Seymour',4),('Trinity',28),('Blaine',6),('Blossom',7),('Bone Spring-Victorio Peak',8),
+                                        ('Brazos River Alluvium',5),('Capitan Reef Complex',9),('Dockum',26),('Edwards-Trinity-High Plains',12),
+                                        ('Ellenburger-San Saba',14),('Hickory',16),('Igneous',17),('Lipan', 30),('Marathon',18),
+                                        ('Marble Falls',19),('Nacatoch',20),('Queen City',24),('Rita Blanca',23),('Rustler',25),
+                                        ('Sparta',27),('West Texas Bolsons',2),('Woodbine',29),('Yegua Jackson',31),('NA',22),('Texas',32)],
+                               initial='',
+                               attributes={
+                               }
+    )
+
+
+    select_interpolation = SelectInput(display_text='Interpolation Method',
+                                 name='select_interpolation',
+                                 multiple=False,
+                                 options=[("IDW (Shepard's Method)", 'IDW'), ('Kriging', 'Kriging')],
+                                 initial="IDW (Shepard's Method)",
+                                 attributes={
+                                 }
+    )
+    dates=[]
+    for i in range(1800,2019):
+        date=(i,i)
+        dates.append(date)
+    start_date = SelectInput(display_text='Interpolation Start Date',
+                                name='start_date',
+                                multiple=False,
+                                options=dates,
+                                initial=1950
+                                )
+    end_date = SelectInput(display_text='Interpolation End Date',
+                             name='end_date',
+                             multiple=False,
+                             options=dates,
+                             initial=2015
+                             )
+    frequency = SelectInput(display_text='Time Interval',
+                           name='frequency',
+                           multiple=False,
+                           options=[("1 year",1),("2 years",2),("5 years",5),("10 years",10),("25 years",25)],
+                           initial="5 years"
+                           )
+    resolution = SelectInput(display_text='Raster Resolution',
+                            name='resolution',
+                            multiple=False,
+                            options=[(".01 degree", .01), (".025 degree", .025), (".05 degree", .05), (".1 degree", .10)],
+                            initial=".05 degree"
+                            )
+    submit_button = Button(
+        display_text='Submit',
+        name='submit_button',
+        attributes={
+            'data-toggle': 'tooltip',
+            'data-placement': 'top',
+            'title': 'Submit',
+            'onclick':'submit_form()'
+        }
+    )
+
+
+    context = {
+        "select_region":select_region,
+        "select_aquifer":select_aquifer,
+        "select_interpolation": select_interpolation,
+        "start_date":start_date,
+        "end_date":end_date,
+        "frequency":frequency,
+        "resolution":resolution,
+        "submit_button":submit_button
+    }
+
+    return render(request, 'gw/interpolation.html', context)

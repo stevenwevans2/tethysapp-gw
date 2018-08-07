@@ -1,0 +1,47 @@
+function update_aquifers(){
+    var region=$("#select_region").find('option:selected').val();
+    $.ajax({
+                    url: '/apps/gw/loadaquiferlist/',
+                    type: 'GET',
+                    data: {'region':region},
+                    contentType: 'application/json',
+                    error: function (status) {
+
+                    }, success: function (response) {
+                        aquiferlist=response.aquiferlist;
+                        $("#select_aquifer").empty();
+                        for (i=0;i<aquiferlist.length;i++){
+                            name=aquiferlist[i].Name;
+                            number=aquiferlist[i].Id;
+                            $("#select_aquifer").append('<option value="'+number+'">'+name+'</option>');
+                        }
+                    }
+                });
+}
+
+function submit_form(){
+    document.getElementById('chart').innerHTML='';
+    var wait_text = "<strong>Loading Data...</strong><br>" +
+        "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='/static/gw/images/loading.gif'>";
+    document.getElementById('waiting_output').innerHTML = wait_text;
+    var id=$("#select_aquifer option:selected").val()
+    var interpolation_type=$("#select_interpolation").find('option:selected').val();
+    var region=$("#select_region").find('option:selected').val();
+    var start_date=$("#start_date").find('option:selected').val();
+    var end_date=$("#end_date").find('option:selected').val();
+    var interval=$("#frequency").find('option:selected').val();
+    var resolution=$("#resolution").find('option:selected').val();
+
+        $.ajax({
+            url: '/apps/gw/loaddata/',
+            type: 'GET',
+            data: {'id':id, 'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution},
+            contentType: 'application/json',
+            error: function (status) {
+
+            }, success: function (response) {
+                document.getElementById('waiting_output').innerHTML = '';
+                document.getElementById('chart').innerHTML='Finished Interpolation';
+            }
+        })
+}

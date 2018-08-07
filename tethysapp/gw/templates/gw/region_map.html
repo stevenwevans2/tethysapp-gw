@@ -48,6 +48,7 @@
 {% block app_navigation_items %}
   {{ block.super }}
     <br>
+    {% gizmo select_input select_region %}
     {% gizmo select_input select_aquifer %}
     {% gizmo select_input select_interpolation %}
     {% gizmo select_input select_view %}

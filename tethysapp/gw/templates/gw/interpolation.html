@@ -1,0 +1,34 @@
+{% extends "gw/base.html" %}
+{% load tethys_gizmos %}
+{% load staticfiles %}
+
+{% block header_buttons %}
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="Help">
+    <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
+  </div>
+{% endblock %}
+
+{% block app_content %}
+  <h1>Interpolation Wizard</h1>
+  <p>This Wizard allows you to adjust interpolation settings and interpolate water levels</p>
+    {% gizmo select_input select_region %}
+    {% gizmo select_input select_aquifer %}
+    {% gizmo select_input start_date %}
+    {% gizmo select_input end_date %}
+    {% gizmo select_input frequency %}
+    {% gizmo select_input resolution %}
+    {% gizmo select_input select_interpolation %}
+    {% gizmo submit_button %}
+    <div id="chart" style="width: 100%; height: 100px; "></div>
+
+    <script type="text/javascript" src="{% static 'gw/js/interpolation.js' %}"></script>
+{% endblock %}
+
+{% block app_navigation_items %}
+  {{ block.super }}
+    <div id="waiting_output"></div><br>
+{% endblock %}
+
+{% block app_actions %}
+
+{% endblock %}

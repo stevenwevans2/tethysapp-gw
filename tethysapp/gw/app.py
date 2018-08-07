@@ -49,6 +49,11 @@ class Gw(TethysAppBase):
                 controller='gw.controllers.region_map'
             ),
             UrlMap(
+                name='interpolation',
+                url='interpolation',
+                controller='gw.controllers.interpolation'
+            ),
+            UrlMap(
                 name='create_wells',
                 url='gw/displaygeojson',
                 controller='gw.ajax_controllers.displaygeojson'
@@ -73,7 +78,11 @@ class Gw(TethysAppBase):
                 url='gw/checkdata',
                 controller='gw.ajax_controllers.checkdata'
             ),
-
+            UrlMap(
+                name='loadaquiferlist',
+                url='gw/loadaquiferlist',
+                controller='gw.ajax_controllers.loadaquiferlist'
+            ),
         )
 
         return url_maps

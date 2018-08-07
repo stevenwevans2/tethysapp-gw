@@ -2,10 +2,12 @@
 # $1 is the name of the region to process
 # $2 is the directory where files are located
 # $3 is the type of interpolation
+# $4 is the region
+# $5 is the grid resolution
 echo "called shellscript"
 cd $2
 pwd
-gdal_rasterize -burn 1 -l shapefile -of netcdf -tr 0.05 0.05 -co "FORMAT=NC4" shapefile.json Aquifer.nc
+gdal_rasterize -burn 1 -l shapefile -of netcdf -tr $5 $5 -co "FORMAT=NC4" shapefile.json Aquifer.nc
 
 ncremap -i Aquifer.nc -a nds -d $1 -o Region25.nc
 
@@ -28,7 +30,7 @@ ncap2 -s 'drawdown=Band1*drawdown;' temp1.nc temp.nc
 #d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
 d='/home/tethys/Thredds/groundwater/'
 
-destination=$d$3
+destination=$d$4'/'$3
 
 rm Aquifer.nc
 rm temp3.nc
