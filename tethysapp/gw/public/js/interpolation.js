@@ -10,6 +10,7 @@ function update_aquifers(){
                     }, success: function (response) {
                         aquiferlist=response.aquiferlist;
                         $("#select_aquifer").empty();
+                        $("#select_aquifer").append('<option value="'+9999+'">'+'Interpolate All Aquifers'+'</option>');
                         for (i=0;i<aquiferlist.length;i++){
                             name=aquiferlist[i].Name;
                             number=aquiferlist[i].Id;
@@ -24,24 +25,29 @@ function submit_form(){
     var wait_text = "<strong>Loading Data...</strong><br>" +
         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='/static/gw/images/loading.gif'>";
     document.getElementById('waiting_output').innerHTML = wait_text;
-    var id=$("#select_aquifer option:selected").val()
+
     var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var region=$("#select_region").find('option:selected').val();
     var start_date=$("#start_date").find('option:selected').val();
     var end_date=$("#end_date").find('option:selected').val();
     var interval=$("#frequency").find('option:selected').val();
     var resolution=$("#resolution").find('option:selected').val();
+    var id=$("#select_aquifer option:selected").val()
+    var length=$("#select_aquifer option").length-1;
+    var overwrite=$("#overwrite").find('option:selected').val();
+    var min_samples=$("#min_samples").find('option:selected').val();
+    var min_ratio=$("#min_ratio").find('option:selected').val();
+    $.ajax({
+        url: '/apps/gw/loaddata/',
+        type: 'GET',
+        data: {'id':id, 'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'overwrite':overwrite, 'min_samples':min_samples, 'min_ratio':min_ratio},
+        contentType: 'application/json',
+        error: function (status) {
 
-        $.ajax({
-            url: '/apps/gw/loaddata/',
-            type: 'GET',
-            data: {'id':id, 'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution},
-            contentType: 'application/json',
-            error: function (status) {
+        }, success: function (response) {
+            document.getElementById('waiting_output').innerHTML = '';
+            document.getElementById('chart').innerHTML='Finished Interpolation';
+        }
+    })
 
-            }, success: function (response) {
-                document.getElementById('waiting_output').innerHTML = '';
-                document.getElementById('chart').innerHTML='Finished Interpolation';
-            }
-        })
 }

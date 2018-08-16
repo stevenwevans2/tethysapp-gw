@@ -68,8 +68,28 @@ function changeWMS(){
         styles:'contour/grace',
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
-    var testTimeLayer=L.timeDimension.layer.wms(testLayer);
-    getLayerMinMax(wmsLayer,testLayer,contourLayer,testWMS,addLegend,testTimeLayer);
+    var testTimeLayer=L.timeDimension.layer.wms(testLayer, {
+
+    });
+    var url = "http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities"
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", (function(xhr) {
+        var response = xhr.currentTarget.response;
+        pos1=response.indexOf("-12-30T00:00:00.000Z")+1
+        pos2=response.indexOf("-12-30T00:00:00.000Z",pos1)-4
+        pos3=response.indexOf(">",pos2)
+        pos4=response.indexOf("<",pos2)
+        pos3=Math.min(pos3,pos4)
+        substring=response.substring(pos2,pos3)
+        map.timeDimension.setAvailableTimes(substring, "replace");
+        //document.getElementById('waiting_output').innerHTML = '';
+        getLayerMinMax(wmsLayer,testLayer,contourLayer,testWMS,addLegend,testTimeLayer);
+    }));
+    oReq.open("GET", url);
+    oReq.send();
+
+    //getLayerMinMax(wmsLayer,testLayer,contourLayer,testWMS,addLegend,testTimeLayer);
 }
 
 //This function is called when the min, max, and opacity boxes are adjusted on the app Regional Map page. This function clears the netCDF rasters and legend
@@ -107,7 +127,9 @@ function updateWMS(){
         styles:'contour/grace',
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
-    var testTimeLayer=L.timeDimension.layer.wms(testLayer);
+    var testTimeLayer=L.timeDimension.layer.wms(testLayer,{
+
+    });
     testLegend.onAdd = function(map) {
                     var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER="+wmsLayer+"&PALETTE=grace&COLORSCALERANGE="+colormin+","+colormax;
                     var div = L.DomUtil.create('div', 'info legend');
@@ -120,6 +142,23 @@ function updateWMS(){
     interpolation_group.addLayer(testTimeLayer);
     interpolation_group.addTo(map);
     contour_group.addLayer(contourTimeLayer);
+
+    var url = "http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities"
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", (function(xhr) {
+        var response = xhr.currentTarget.response;
+        pos1=response.indexOf("-12-30T00:00:00.000Z")+1
+        pos2=response.indexOf("-12-30T00:00:00.000Z",pos1)-4
+        pos3=response.indexOf(">",pos2)
+        pos4=response.indexOf("<",pos2)
+        pos3=Math.min(pos3,pos4)
+        substring=response.substring(pos2,pos3)
+        map.timeDimension.setAvailableTimes(substring, "replace");
+        document.getElementById('waiting_output').innerHTML = '';
+    }));
+    oReq.open("GET", url);
+    oReq.send();
 }
 
 //This function is called by the getLayerMinMax function and adds a legend to the map as well as contour symbology
@@ -199,9 +238,9 @@ var map = L.map('map', {
     zoom: 5,
     fullscreenControl: true,
     timeDimension: true,
-    timeDimensionOptions:{
-			 times:"1949-12-30T00:00:00.000Z,1954-12-30T00:00:00.000Z,1959-12-30T00:00:00.000Z,1964-12-30T00:00:00.000Z,1969-12-30T00:00:00.000Z,1974-12-30T00:00:00.000Z,1979-12-30T00:00:00.000Z,1984-12-30T00:00:00.000Z,1989-12-30T00:00:00.000Z,1994-12-30T00:00:00.000Z,1999-12-30T00:00:00.000Z,2004-12-30T00:00:00.000Z,2009-12-30T00:00:00.000Z,2014-12-30T00:00:00.000Z",
-    },
+//    timeDimensionOptions:{
+//			 times:"1949-12-30T00:00:00.000Z,1954-12-30T00:00:00.000Z,1959-12-30T00:00:00.000Z,1964-12-30T00:00:00.000Z,1969-12-30T00:00:00.000Z,1974-12-30T00:00:00.000Z,1979-12-30T00:00:00.000Z,1984-12-30T00:00:00.000Z,1989-12-30T00:00:00.000Z,1994-12-30T00:00:00.000Z,1999-12-30T00:00:00.000Z,2004-12-30T00:00:00.000Z,2009-12-30T00:00:00.000Z,2014-12-30T00:00:00.000Z",
+//    },
     timeDimensionControl: true,
     timeDimensionControlOptions:{
         loopButton:true,
@@ -258,6 +297,12 @@ var testLegend = L.control({
     position: 'bottomright'
 });
 
+//This function is called when the amount of wells visible changes
+function change_filter(){
+    if ($("#select_aquifer").find('option:selected').val()!=9999){
+        change_aquifer();
+    }
+}
 
 //This function is called when the aquifer is changed in the Select Aquifer dropdown.
 function change_aquifer(){
@@ -339,7 +384,7 @@ function displaygeojson(aquifer_number, displayallwells) {
             $.ajax({
                 url: '/apps/gw/loaddata/',
                 type: 'GET',
-                data: {'id':id, 'interpolation_type':interpolation_type,'region':region},
+                data: {'id':id, 'interpolation_type':interpolation_type,'region':region, 'overwrite':0},
                 contentType: 'application/json',
                 error: function (status) {
 
@@ -414,7 +459,9 @@ function displayallwells(aquifer_number,well_points,required){
         styles:'contour/grace',
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
-    var testTimeLayer=L.timeDimension.layer.wms(testLayer);
+    var testTimeLayer=L.timeDimension.layer.wms(testLayer, {
+
+    });
 
     getLayerMinMax(wmsLayer,testLayer,contourLayer,testWMS,addLegend,testTimeLayer);
 
@@ -508,7 +555,24 @@ function displayallwells(aquifer_number,well_points,required){
 
     well_group.addTo(map);
 
-    document.getElementById('waiting_output').innerHTML = '';
+    var url = "http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities"
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", (function(xhr) {
+        var response = xhr.currentTarget.response;
+        pos1=response.indexOf("-12-30T00:00:00.000Z")+1
+        pos2=response.indexOf("-12-30T00:00:00.000Z",pos1)-4
+        pos3=response.indexOf(">",pos2)
+        pos4=response.indexOf("<",pos2)
+        pos3=Math.min(pos3,pos4)
+        substring=response.substring(pos2,pos3)
+        map.timeDimension.setAvailableTimes(substring, "replace");
+        document.getElementById('waiting_output').innerHTML = '';
+    }));
+    oReq.open("GET", url);
+    oReq.send();
+
+    //document.getElementById('waiting_output').innerHTML = '';
 }
 
 function list_aquifer(){

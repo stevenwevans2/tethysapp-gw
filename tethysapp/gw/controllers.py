@@ -73,7 +73,10 @@ def region_map(request):
                                                 ("35", "35"),("36","36"),("37","37"),("38","38"),("39","39"),("40","40"),("41","41"),
                                                 ("42", "42"),("43","43"),("44","44"),("45","45"),("46","46"),("47","47"),("48","48"),
                                                 ("49", "49"),("50","50"),],
-                                       initial="2"
+                                       initial="2",
+                                       attributes={
+                                            'onchange': 'change_filter()'
+                                       }
                                        )
 
     context = {
@@ -103,12 +106,12 @@ def interpolation(request):
     select_aquifer=SelectInput(display_text='Select Aquifer',
                                name='select_aquifer',
                                multiple=False,
-                               options=[('Carrizo',10),('Edwards',11),('Edwards-Trinity',13),('Gulf Coast',15),('Hueco Bolson',1),('Ogallala',21),
+                               options=[('Interpolate All Aquifers',9999),('Carrizo',10),('Edwards',11),('Edwards-Trinity',13),('Gulf Coast',15),('Hueco Bolson',1),('Ogallala',21),
                                         ('Pecos Valley',3),('Seymour',4),('Trinity',28),('Blaine',6),('Blossom',7),('Bone Spring-Victorio Peak',8),
                                         ('Brazos River Alluvium',5),('Capitan Reef Complex',9),('Dockum',26),('Edwards-Trinity-High Plains',12),
                                         ('Ellenburger-San Saba',14),('Hickory',16),('Igneous',17),('Lipan', 30),('Marathon',18),
                                         ('Marble Falls',19),('Nacatoch',20),('Queen City',24),('Rita Blanca',23),('Rustler',25),
-                                        ('Sparta',27),('West Texas Bolsons',2),('Woodbine',29),('Yegua Jackson',31),('NA',22),('Texas',32)],
+                                        ('Sparta',27),('West Texas Bolsons',2),('Woodbine',29),('Yegua Jackson',31),('None',22),('Texas',32)],
                                initial='',
                                attributes={
                                }
@@ -139,7 +142,7 @@ def interpolation(request):
                              options=dates,
                              initial=2015
                              )
-    frequency = SelectInput(display_text='Time Interval',
+    frequency = SelectInput(display_text='Time Increment',
                            name='frequency',
                            multiple=False,
                            options=[("1 year",1),("2 years",2),("5 years",5),("10 years",10),("25 years",25)],
@@ -151,6 +154,22 @@ def interpolation(request):
                             options=[(".01 degree", .01), (".025 degree", .025), (".05 degree", .05), (".1 degree", .10)],
                             initial=".05 degree"
                             )
+    min_samples=SelectInput(display_text='Minimum Water Level Samples per Well',
+                            name='min_samples',
+                            options=[("1 Sample", 1),("2 Samples",2),("5 Samples",5),("10 Samples",10),("25 Samples",25),("50 Samples",50)]
+                            )
+    min_ratio=SelectInput(display_text='Percent of Time Frame Well Timeseries Must Span',
+                            name='min_ratio',
+                            options=[("No Minimum", 0),("25%",.25),("50%",.5),("75%",.75),("100%",1.0)],
+                            initial="75%"
+                            )
+
+    overwrite=SelectInput(display_text='Overwrite Existing Interpolation Files',
+                          name='overwrite',
+                          multiple=False,
+                          options=[("Yes",1),("No",0)],
+                          initial="No"
+                          )
     submit_button = Button(
         display_text='Submit',
         name='submit_button',
@@ -171,7 +190,10 @@ def interpolation(request):
         "end_date":end_date,
         "frequency":frequency,
         "resolution":resolution,
-        "submit_button":submit_button
+        "submit_button":submit_button,
+        "overwrite":overwrite,
+        "min_samples":min_samples,
+        'min_ratio':min_ratio
     }
 
     return render(request, 'gw/interpolation.html', context)

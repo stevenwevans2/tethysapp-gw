@@ -1,11 +1,9 @@
 from __future__ import division
-import pykrige.kriging_tools as kt
 from pykrige.ok import OrdinaryKriging
 from django.http import Http404, HttpResponse, JsonResponse
 import os
 import json
 import netCDF4
-from netCDF4 import Dataset
 import datetime
 import numpy as np
 from .app import Gw as app
@@ -14,7 +12,6 @@ import time as t
 import calendar
 from operator import itemgetter
 import subprocess
-import cython
 import urllib
 import pandas as pd
 from shapely.geometry import Point
@@ -155,73 +152,43 @@ def loaddata(request):
         end_date = request.GET.get('end_date')
         interval = request.GET.get('interval')
         resolution = request.GET.get('resolution')
+        length=request.GET.get('length')
         interpolation_type=request.GET.get('interpolation_type')
+        overwrite=request.GET.get("overwrite")
+        min_samples=request.GET.get("min_samples")
+        min_ratio=request.GET.get("min_ratio")
         return_obj['id'] = aquiferid
         return_obj['interpolation_type']=interpolation_type
         app_workspace = app.get_app_workspace()
+        aquiferid=int(aquiferid)
 
+        overwrite = int(overwrite)
         if start_date and end_date and interval and resolution:
             start_date=int(start_date)
             end_date=int(end_date)
             interval=int(interval)
             resolution=float(resolution)
+            length=int(length)
+            min_samples=int(min_samples)
+            min_ratio=float(min_ratio)
         else:
             start_date=1950
             end_date=2015
             interval=5
             resolution=.05
+            overwrite=False
+            min_samples=25
+            if interpolation_type=="IDW":
+                min_ratio=.75
+            else:
+                min_ratio=1
 
-        interpolate = 1
-
-        serverpath = '/home/tethys/Thredds/groundwater/'+region
-        #serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/" + region
-
-        aquiferlist = getaquiferlist(app_workspace, region)
-
-        for i in aquiferlist:
-            if i['Id'] == int(aquiferid):
-                myaquifer = i
-        name = myaquifer['Name'].replace(' ', '_')
-
-        netcdfpath = os.path.join(serverpath, interpolation_type)
-        netcdfpath = os.path.join(netcdfpath, name+'.nc')
-
-        if os.path.exists(netcdfpath):
-            interpolate = 0
-        return_obj['interpolate'] = interpolate
-        start=t.time()
-
-
-        #Check whether the region has been divided. If not, then divide it
-        directory = os.path.join(app_workspace.path, region + '/aquifers')
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        filename = name + '.json'
-        filename = os.path.join(app_workspace.path, region + '/aquifers/' + filename)
-        well_file=os.path.join(app_workspace.path,region+'/Wells.json')
-        if not os.path.exists(filename):
-
-            for i in range(1, len(aquiferlist) + 1):
-                if os.path.exists(well_file):
-                    divideaquifers(region, app_workspace, i)
-                else:
-                    subdivideaquifers(region, app_workspace, i)
-        with open(filename, 'r') as f:
-            allwells = ''
-            wells = f.readlines()
-            for i in range(0, len(wells)):
-                allwells += wells[i]
-        points = json.loads(allwells)
-        print len(points['features'])
-
-
-        #Execute the following function to interpolate groundwater levels and create a netCDF File and upload it to the server
-        if interpolate==1:
-            upload_netcdf(points,name,app_workspace,aquiferid,region,interpolation_type,start_date,end_date,interval,resolution)
-
-        end = t.time()
-        print(end - start)
+        if aquiferid==9999:
+            for i in range(1,length):
+                aquiferid=i
+                points=interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, overwrite, min_samples, min_ratio)
+        else:
+            points=interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, overwrite, min_samples, min_ratio)
 
         return_obj['data']=points
     return JsonResponse(return_obj)
@@ -229,7 +196,7 @@ def loaddata(request):
 # This function takes a set of well points from a specified aquifer in a region and interpolates the data through time and space
 # and writes a NetCDF file for the interpolated data, clips the netCDF file to the boundaries of the specified aquifer,
 # and then uploads this file to the server.
-def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_type,start_date,end_date,interval,resolution):
+def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_type,start_date,end_date,interval,resolution, min_samples, min_ratio):
     # Execute the following code to interpolate groundwater levels and create a netCDF File and upload it to the server
 
     spots = []
@@ -239,102 +206,267 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     elevations = []
     aquifermin=points['aquifermin']
     iterations=int((end_date-start_date)/interval+1)
+    start_time=calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple())
+    end_time=calendar.timegm(datetime.datetime(end_date, 1, 1).timetuple())
+    # min_ratio=1.0
+    # if interpolation_type=="IDW":
+    #     min_ratio=0.75
+    # if min_samples<30:
+    #     min_ratio=0.0
 
 
-    for v in range(0, iterations):
-        targetyear = start_date + interval * v
-        target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-        fiveyears = 157766400 * 2
-        myspots = []
-        mylons = []
-        mylats = []
-        myvalues = []
-        myelevations = []
-        slope = 0
-        number = 0
-        timevalue = 0
+    #old method of interpolation that uses all data
+    if min_samples==1 and min_ratio==0:
+        for v in range(0, iterations):
+            targetyear = start_date + interval * v
+            target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+            fiveyears = 157766400 * 2
+            myspots = []
+            mylons = []
+            mylats = []
+            myvalues = []
+            myelevations = []
+            slope = 0
+            number = 0
+            timevalue = 0
 
-        for i in points['features']:
-            if 'TsTime' in i and 'LandElev' in i['properties']:
-                tlocation = 0
-                stop_location = 0
-                listlength = len(i['TsTime'])
-                for j in range(0, listlength):
-                    if i['TsTime'][j] >= target_time and stop_location == 0:
-                        tlocation = j
-                        stop_location = 1
+            for i in points['features']:
+                if 'TsTime' in i and 'LandElev' in i['properties']:
+                    tlocation = 0
+                    stop_location = 0
+                    listlength = len(i['TsTime'])
+                    for j in range(0, listlength):
+                        if i['TsTime'][j] >= target_time and stop_location == 0:
+                            tlocation = j
+                            stop_location = 1
 
-                # target time is larger than max date
-                if tlocation == 0 and stop_location == 0:
-                    tlocation = -999
+                    # target time is larger than max date
+                    if tlocation == 0 and stop_location == 0:
+                        tlocation = -999
 
-                # target time is smaller than min date
-                if tlocation == 0 and stop_location == 1:
-                    tlocation = -888
+                    # target time is smaller than min date
+                    if tlocation == 0 and stop_location == 1:
+                        tlocation = -888
 
-                # for the case where the target time is in the middle
-                if tlocation > 0:
-                    timedelta = target_time - i['TsTime'][tlocation - 1]
-                    slope = (i['TsValue'][tlocation] - i['TsValue'][tlocation - 1]) / (
-                            i['TsTime'][tlocation] - i['TsTime'][tlocation - 1])
-                    timevalue = i['TsValue'][tlocation - 1] + slope * timedelta
+                    # for the case where the target time is in the middle
+                    if tlocation > 0:
+                        timedelta = target_time - i['TsTime'][tlocation - 1]
+                        slope = (i['TsValue'][tlocation] - i['TsValue'][tlocation - 1]) / (
+                                i['TsTime'][tlocation] - i['TsTime'][tlocation - 1])
+                        timevalue = i['TsValue'][tlocation - 1] + slope * timedelta
 
-                # for the case where the target time is before
-                if tlocation == -888:
-                    timedelta = i['TsTime'][0] - target_time
-                    if abs(timedelta) > fiveyears:
-                        timevalue = 9999
-                    elif listlength > 1:
-                        if (i['TsTime'][1] - i['TsTime'][0]) != 0:
-                            slope = (i['TsValue'][1] - i['TsValue'][0]) / (i['TsTime'][1] - i['TsTime'][0])
-                            if abs(slope) > (1.0 / (24 * 60 * 60)):
-                                timevalue = i['TsValue'][0]
+                    # for the case where the target time is before
+                    if tlocation == -888:
+                        timedelta = i['TsTime'][0] - target_time
+                        if abs(timedelta) > fiveyears:
+                            timevalue = 9999
+                        elif listlength > 1:
+                            if (i['TsTime'][1] - i['TsTime'][0]) != 0:
+                                slope = (i['TsValue'][1] - i['TsValue'][0]) / (i['TsTime'][1] - i['TsTime'][0])
+                                if abs(slope) > (1.0 / (24 * 60 * 60)):
+                                    timevalue = i['TsValue'][0]
+                                else:
+                                    timevalue = i['TsValue'][0] - slope * timedelta
+                                if (timevalue > 0 and timevalue != 9999) or timevalue < aquifermin:
+                                    timevalue = i['TsValue'][0]
                             else:
-                                timevalue = i['TsValue'][0] - slope * timedelta
-                            if (timevalue > 0 and timevalue != 9999) or timevalue < aquifermin:
                                 timevalue = i['TsValue'][0]
                         else:
                             timevalue = i['TsValue'][0]
-                    else:
-                        timevalue = i['TsValue'][0]
 
-                # for the case where the target time is after
-                if tlocation == -999:
-                    timedelta = target_time - i['TsTime'][listlength - 1]
-                    if abs(timedelta) > fiveyears:
+                    # for the case where the target time is after
+                    if tlocation == -999:
+                        timedelta = target_time - i['TsTime'][listlength - 1]
+                        if abs(timedelta) > fiveyears:
 
-                        timevalue = 9999
-                    elif listlength > 1:
-                        if (i['TsTime'][listlength - 1] - i['TsTime'][listlength - 2]) != 0:
-                            slope = (i['TsValue'][listlength - 1] - i['TsValue'][listlength - 2]) / (
-                                    i['TsTime'][listlength - 1] - i['TsTime'][listlength - 2])
-                            if abs(slope) > (1.0 / (24 * 60 * 60)):
-                                timevalue = i['TsValue'][listlength - 1]
+                            timevalue = 9999
+                        elif listlength > 1:
+                            if (i['TsTime'][listlength - 1] - i['TsTime'][listlength - 2]) != 0:
+                                slope = (i['TsValue'][listlength - 1] - i['TsValue'][listlength - 2]) / (
+                                        i['TsTime'][listlength - 1] - i['TsTime'][listlength - 2])
+                                if abs(slope) > (1.0 / (24 * 60 * 60)):
+                                    timevalue = i['TsValue'][listlength - 1]
+                                else:
+                                    timevalue = i['TsValue'][listlength - 1] + slope * timedelta
+                                if (timevalue > 0 and timevalue != 9999) or timevalue < aquifermin:
+                                    timevalue = i['TsValue'][listlength - 1]
                             else:
-                                timevalue = i['TsValue'][listlength - 1] + slope * timedelta
-                            if (timevalue > 0 and timevalue != 9999) or timevalue < aquifermin:
                                 timevalue = i['TsValue'][listlength - 1]
                         else:
                             timevalue = i['TsValue'][listlength - 1]
-                    else:
-                        timevalue = i['TsValue'][listlength - 1]
-                if timevalue != 9999:
-                    the_elevation = i['properties']['LandElev'] + timevalue
-                    myelevations.append(the_elevation)
-                    myvalues.append(timevalue)
-                    myspots.append(i['geometry']['coordinates'])
-                    mylons.append(i['geometry']['coordinates'][0])
-                    mylats.append(i['geometry']['coordinates'][1])
-        values.append(myvalues)
-        elevations.append(myelevations)
-        spots.append(myspots)
-        lons.append(mylons)
-        lats.append(mylats)
-        print len(myvalues)
-    lons = np.array(lons)
-    lats = np.array(lats)
-    values = np.array(values)
-    elevations = np.array(elevations)
+                    if timevalue != 9999:
+                        the_elevation = i['properties']['LandElev'] + timevalue
+                        myelevations.append(the_elevation)
+                        myvalues.append(timevalue)
+                        myspots.append(i['geometry']['coordinates'])
+                        mylons.append(i['geometry']['coordinates'][0])
+                        mylats.append(i['geometry']['coordinates'][1])
+            values.append(myvalues)
+            elevations.append(myelevations)
+            spots.append(myspots)
+            lons.append(mylons)
+            lats.append(mylats)
+            print len(myvalues)
+        lons = np.array(lons)
+        lats = np.array(lats)
+        values = np.array(values)
+        elevations = np.array(elevations)
+
+    #New method for interpolation that uses least squares fit and filters data
+    else:
+        for v in range(0, iterations):
+            targetyear = start_date + interval * v
+            target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+            fiveyears = 157766400
+            myspots = []
+            mylons = []
+            mylats = []
+            myvalues = []
+            myelevations = []
+            timevalue = 0
+
+            for i in points['features']:
+                if 'TsTime' in i and 'LandElev' in i['properties']:
+                    listlength = len(i['TsTime'])
+                    length_time = end_time - start_time
+                    mylength_time = min(i['TsTime'][listlength - 1] - i['TsTime'][0], i['TsTime'][listlength - 1] - start_time, end_time-i['TsTime'][0])
+
+                    ratio = float(mylength_time / length_time)
+                    if ratio > min_ratio:
+                        tlocation = 0
+                        stop_location = 0
+                        for j in range(0, listlength):
+                            if i['TsTime'][j] >= target_time and stop_location == 0:
+                                tlocation = j
+                                stop_location = 1
+
+                        # target time is larger than max date
+                        if tlocation == 0 and stop_location == 0:
+                            tlocation = -999
+
+                        # target time is smaller than min date
+                        if tlocation == 0 and stop_location == 1:
+                            tlocation = -888
+
+                        # for the case where the target time is in the middle
+                        if tlocation > 0:
+                            if listlength > min_samples and listlength > 1:
+
+                                timedelta = target_time - i['TsTime'][tlocation - 1]
+                                slope = (i['TsValue'][tlocation] - i['TsValue'][tlocation - 1]) / (
+                                        i['TsTime'][tlocation] - i['TsTime'][tlocation - 1])
+                                timevalue = i['TsValue'][tlocation - 1] + slope * timedelta
+
+
+                            else:
+                                timevalue = 9999
+
+                        # for the case where the target time is before
+                        if tlocation == -888:
+                            if listlength > min_samples:
+                                consistent = False
+                                if listlength > 10:
+                                    consistent = True
+                                    for step in range(0, 6):
+                                        if (i['TsTime'][step+1] - i['TsTime'][step]) > (fiveyears / 2.5):
+                                            consistent = False
+                                            break
+                                if (i['TsTime'][0] - target_time) < fiveyears or (consistent and (i['TsTime'][0]-target_time)<(fiveyears*3)):
+
+                                    sumx = 0
+                                    sumxy = 0
+                                    sumy = 0
+                                    sumx2 = 0
+                                    interp = 0
+                                    for x in range(0, listlength):
+                                        delta = i['TsTime'][x] - i['TsTime'][0]
+                                        if delta != 0:
+                                            sumxy += delta * i['TsValue'][x]
+                                            sumx += delta
+                                            sumy += i['TsValue'][x]
+                                            sumx2 += delta * delta
+                                            interp = 1
+                                    if interp == 1:
+                                        n = x + 1
+                                        a_top = sumxy - ((sumx * sumy) / n)
+                                        a_bottom = sumx2 - ((sumx * sumx) / n)
+                                        a = float(a_top) / float(a_bottom)
+                                        b = (sumy - (a * sumx)) / n
+
+                                        timedelta = target_time - i['TsTime'][0]
+                                        timevalue = a * timedelta + b
+                                        if timevalue < aquifermin or timevalue > 0:
+                                            timevalue = i['TsValue'][0]
+                                    else:
+                                        timevalue=i['TsValue'][0]
+                                else:
+                                    timevalue = 9999
+
+                            else:
+                                timevalue = 9999
+                            # for the case where the target time is after
+                        if tlocation == -999:
+                            if listlength > min_samples:
+                                consistent=False
+                                if listlength>10:
+                                    consistent=True
+                                    for step in range(listlength-1,listlength-6,-1):
+                                        if (i['TsTime'][step]-i['TsTime'][step-1])>(fiveyears/2.5):
+                                            consistent=False
+                                            break
+                                if (target_time - i['TsTime'][listlength - 1])<(fiveyears/5):
+                                    timevalue=i['TsValue'][listlength-1]
+                                elif (target_time - i['TsTime'][listlength - 1]) < fiveyears or (consistent and (target_time - i['TsTime'][listlength - 1]) < (fiveyears*3)):
+                                    sumx = 0
+                                    sumxy = 0
+                                    sumy = 0
+                                    sumx2 = 0
+                                    interp = 0
+                                    for x in range(0, listlength):
+                                        delta = i['TsTime'][x] - i['TsTime'][0]
+                                        if delta != 0:
+                                            sumxy += delta * i['TsValue'][x]
+                                            sumx += delta
+                                            sumy += i['TsValue'][x]
+                                            sumx2 += delta * delta
+                                            interp = 1
+                                    if interp == 1:
+                                        n = x + 1
+                                        a_top = sumxy - ((sumx * sumy) / n)
+                                        a_bottom = sumx2 - ((sumx * sumx) / n)
+                                        a = float(a_top) / float(a_bottom)
+                                        b = (sumy - (a * sumx)) / n
+
+                                        timedelta = target_time - i['TsTime'][0]
+                                        timevalue = a * timedelta + b
+                                        if timevalue > 0:
+                                            timevalue = i['TsValue'][listlength - 1]
+                                        if timevalue < aquifermin:
+                                            timevalue = aquifermin
+                                    else:
+                                        timevalue = i['TsValue'][listlength - 1]
+                                else:
+                                    timevalue = 9999
+                            else:
+                                timevalue = 9999
+
+                        if timevalue != 9999:
+                            the_elevation = i['properties']['LandElev'] + timevalue
+                            myelevations.append(the_elevation)
+                            myvalues.append(timevalue)
+                            myspots.append(i['geometry']['coordinates'])
+                            mylons.append(i['geometry']['coordinates'][0])
+                            mylats.append(i['geometry']['coordinates'][1])
+            values.append(myvalues)
+            elevations.append(myelevations)
+            spots.append(myspots)
+            lons.append(mylons)
+            lats.append(mylats)
+            print len(myvalues)
+        lons = np.array(lons)
+        lats = np.array(lats)
+        values = np.array(values)
+        elevations = np.array(elevations)
 
     lonmin = 360.0
     latmin = 90.0
@@ -500,7 +632,22 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
         b = np.array(b)
         c = np.array(c)
         d = np.array(d)
-        if interpolation_type == 'IDW':
+        krigeable=True
+        interpolatable=True
+        if len(c)<3 or len(d) <3:
+            krigeable=False
+            if len(c)<1 or len(d)<1:
+                interpolatable=False
+        if interpolatable==False:
+            timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+            year += interval
+            time[i] = timearray[i]
+            for x in range(0, len(longrid)):
+                for y in range(0, len(latgrid)):
+                    depth[i, x, y] = -9999
+                    elevation[i,x,y]=-9999
+                    drawdown[i,x,y]=-9999
+        elif interpolation_type == 'IDW' or krigeable==False:
             grids = gms(a, b, c, grid, 2)
             timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
             year += interval
@@ -511,7 +658,11 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                     if i == 0:
                         drawdown[i, x, y] = 0
                     else:
-                        drawdown[i, x, y] = depth[i, x, y] - depth[0, x, y]
+                        for f in range(0, i):
+                            if depth[f, x, y] != -9999:
+                                drawdown[i, x, y] = depth[i, x, y] - depth[f, x, y]
+                            else:
+                                drawdown[i, x, y] = 0
 
             grid2 = gms(a, b, d, grid, 2)
             for x in range(0, len(longrid)):
@@ -520,9 +671,9 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
 
 
         elif interpolation_type == 'Kriging':
-            OK = OrdinaryKriging(a, b, c, variogram_model='power', verbose=False, enable_plotting=False)
-            EK = OrdinaryKriging(a, b, d, variogram_model='power', verbose=False, enable_plotting=False)
-            if len(a) > 30:
+            OK = OrdinaryKriging(a, b, c, variogram_model='gaussian', coordinates_type='geographic', verbose=True, enable_plotting=False)
+            EK = OrdinaryKriging(a, b, d, variogram_model='gaussian', coordinates_type='geographic')
+            if len(a) > 500:
                 elev, error = EK.execute('grid', longrid, latgrid, backend='C', n_closest_points=25)
                 krig, ss = OK.execute('grid', longrid, latgrid, backend='C', n_closest_points=25)
             else:
@@ -538,7 +689,11 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                     if i == 0:
                         drawdown[i, x, y] = 0
                     else:
-                        drawdown[i, x, y] = depth[i, x, y] - depth[0, x, y]
+                        for f in range(0,i):
+                            if depth[f,x,y]!=-9999:
+                                drawdown[i, x, y] = depth[i, x, y] - depth[f, x, y]
+                            else:
+                                drawdown[i,x,y]=0
 
     h.close()
 
@@ -891,3 +1046,57 @@ def getaquiferlist(app_workspace,region):
             }
             aquiferlist.append(myaquifer)
     return aquiferlist
+
+def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, overwrite, min_samples, min_ratio):
+    interpolate = 1
+
+    serverpath = '/home/tethys/Thredds/groundwater/'+region
+    #serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/" + region
+
+    aquiferlist = getaquiferlist(app_workspace, region)
+
+    for i in aquiferlist:
+        if i['Id'] == aquiferid:
+            myaquifer = i
+    name = myaquifer['Name'].replace(' ', '_')
+
+    netcdfpath = os.path.join(serverpath, interpolation_type)
+    netcdfpath = os.path.join(netcdfpath, name + '.nc')
+
+    if os.path.exists(netcdfpath) and overwrite!=1:
+        interpolate = 0
+
+    start = t.time()
+
+    # Check whether the region has been divided. If not, then divide it
+    directory = os.path.join(app_workspace.path, region + '/aquifers')
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    filename = name + '.json'
+    filename = os.path.join(app_workspace.path, region + '/aquifers/' + filename)
+    well_file = os.path.join(app_workspace.path, region + '/Wells.json')
+    if not os.path.exists(filename):
+
+        for i in range(1, len(aquiferlist) + 1):
+            if os.path.exists(well_file):
+                divideaquifers(region, app_workspace, i)
+            else:
+                subdivideaquifers(region, app_workspace, i)
+    with open(filename, 'r') as f:
+        allwells = ''
+        wells = f.readlines()
+        for i in range(0, len(wells)):
+            allwells += wells[i]
+    points = json.loads(allwells)
+    print len(points['features'])
+
+    # Execute the following function to interpolate groundwater levels and create a netCDF File and upload it to the server
+    if interpolate == 1:
+        upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type, start_date, end_date,
+                      interval, resolution, min_samples, min_ratio)
+
+    end = t.time()
+    print(end - start)
+
+    return points
