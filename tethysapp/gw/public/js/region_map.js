@@ -557,8 +557,8 @@ function displayallwells(aquifer_number,well_points,required){
 
     well_group.addTo(map);
 
-    //var url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+region+'/'+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities";
-    var url = "http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities"
+    var url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+region+'/'+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities";
+    //var url = "http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities"
 
     var oReq = new XMLHttpRequest();
     oReq.addEventListener("load", (function(xhr) {
