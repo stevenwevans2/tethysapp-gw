@@ -661,6 +661,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                         for f in range(0, i):
                             if depth[f, x, y] != -9999:
                                 drawdown[i, x, y] = depth[i, x, y] - depth[f, x, y]
+                                break
                             else:
                                 drawdown[i, x, y] = 0
 
@@ -692,6 +693,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                         for f in range(0,i):
                             if depth[f,x,y]!=-9999:
                                 drawdown[i, x, y] = depth[i, x, y] - depth[f, x, y]
+                                break
                             else:
                                 drawdown[i,x,y]=0
 

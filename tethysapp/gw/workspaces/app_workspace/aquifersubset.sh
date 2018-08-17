@@ -32,6 +32,7 @@ d='/home/tethys/Thredds/groundwater/'
 
 destination=$d$4'/'$3
 
+rm shapefile.json
 rm Aquifer.nc
 rm temp3.nc
 rm temp2.nc
