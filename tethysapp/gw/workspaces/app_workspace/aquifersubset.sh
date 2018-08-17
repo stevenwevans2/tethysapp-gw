@@ -32,13 +32,13 @@ d='/home/tethys/Thredds/groundwater/'
 
 destination=$d$4'/'$3
 
-sudo rm Aquifer.nc
-sudo rm temp3.nc
-sudo rm temp2.nc
-sudo rm temp1.nc
-sudo rm Region2.nc
-sudo rm Region25.nc
-sudo rm $1
-sudo mv temp.nc $1
-sudo mv $1 $destination
+rm Aquifer.nc
+rm temp3.nc
+rm temp2.nc
+rm temp1.nc
+rm Region2.nc
+rm Region25.nc
+rm $1
+mv temp.nc $1
+mv $1 $destination
 
