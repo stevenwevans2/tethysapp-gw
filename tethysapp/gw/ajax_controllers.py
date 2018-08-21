@@ -169,7 +169,7 @@ def defaultnetcdf(request):
         for filename in os.listdir(directory):
             if filename.startswith(aquifer+'.'):
                 nc_file = os.path.join(directory, filename)
-                os.chmod(nc_file, 0o777)
+                #os.chmod(nc_file, 0o777)
                 h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
                 if filename==name and h.default !=1:
                     h.default=1
@@ -1134,7 +1134,7 @@ def gettimelist(region,aquifer,interpolation_type):
             list.append(filename)
     for item in list:
         nc_file = os.path.join(directory, item)
-        os.chmod(nc_file, 0o777)
+        #os.chmod(nc_file, 0o777)
         h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
         components = item.split('.')
         mytime={
@@ -1206,14 +1206,14 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
             interpolate=0
             if make_default==1:
                 nc_file = os.path.join(netcdf_directory, filename)
-                os.chmod(nc_file, 0o777)
+                #os.chmod(nc_file, 0o777)
                 h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
                 h.default=1
                 h.close()
         elif filename.startswith(name+'.'):
             if make_default==1:
                 nc_file = os.path.join(netcdf_directory, filename)
-                os.chmod(nc_file, 0o777)
+                #os.chmod(nc_file, 0o777)
                 h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
                 if h.default==1:
                     h.default=0
