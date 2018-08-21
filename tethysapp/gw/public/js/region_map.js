@@ -1,3 +1,6 @@
+var thredds_url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/";
+//var thredds_url = "http://localhost:8080/thredds/wms/testAll/groundwater/";
+
 //Get a CSRF cookie for request
 function getCookie(name) {
     var cookieValue = null;
@@ -36,19 +39,21 @@ $(function() {
 //The function clears the displayed Raster layers and then adds new raster layers for the specified interpolation and data type.
 //The function calls the getLayerMinMax function to determine the bounds of the new raster and adjust the symbology and legend accordingly.
 function changeWMS(){
-    var name=$("#select_aquifer").find('option:selected').text();
+
+    var name=$("#available_dates").find('option:selected').val();
     name=name.replace(/ /g,"_");
     clearwaterlevels();
     var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var region=$("#select_region").find('option:selected').val();
 
-    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+region+'/'+interpolation_type+"/"+name+".nc";
-    //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc";
+
+    var testWMS=thredds_url+region+'/'+interpolation_type+'/'+name;
 
     var colormin=$("#col_min").val();
     var colormax=$("#col_max").val();
     var opac = $("#opacity_val").val();
     var wmsLayer=$("#select_view").find('option:selected').val();
+    var palette=$("#select_symbology").find('option:selected').val();
 
 
     var testLayer = L.tileLayer.wms(testWMS, {
@@ -56,7 +61,7 @@ function changeWMS(){
         format: 'image/png',
         transparent: true,
         opacity:opac,
-        styles:'boxfill/grace',
+        styles:'boxfill/'+palette,
         colorscalerange:colormin+','+colormax,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
@@ -65,14 +70,14 @@ function changeWMS(){
         format: 'image/png',
         transparent: true,
         colorscalerange:colormin+','+colormax,
-        styles:'contour/grace',
+        styles:'contour/'+palette,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer, {
-
+        cache:20
     });
-    var url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+region+'/'+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities";
-    //var url = "http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities";
+
+    var url=thredds_url+region+'/'+interpolation_type+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
 
     var oReq = new XMLHttpRequest();
     oReq.addEventListener("load", (function(xhr) {
@@ -96,27 +101,26 @@ function changeWMS(){
 //This function is called when the min, max, and opacity boxes are adjusted on the app Regional Map page. This function clears the netCDF rasters and legend
 // and then reloads the rasters and legend from the Thredds Server with the specified changes to the symbology.
 function updateWMS(){
-    var name=$("#select_aquifer").find('option:selected').text();
+    var name=$("#available_dates").find('option:selected').val();
     name=name.replace(/ /g,"_");
     clearwaterlevels();
     var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var region=$("#select_region").find('option:selected').val();
 
-    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+region+'/'+interpolation_type+"/"+name+".nc";
-    //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc";
+    var testWMS=thredds_url+region+'/'+interpolation_type+'/'+name;
 
     var colormin=$("#col_min").val();
     var colormax=$("#col_max").val();
     var opac = $("#opacity_val").val();
     var wmsLayer=$("#select_view").find('option:selected').val();
-
+    var palette=$("#select_symbology").find('option:selected').val();
 
     var testLayer = L.tileLayer.wms(testWMS, {
         layers: wmsLayer,
         format: 'image/png',
         transparent: true,
         opacity:opac,
-        styles:'boxfill/grace',
+        styles:'boxfill/'+palette,
         colorscalerange:colormin+','+colormax,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
@@ -125,27 +129,29 @@ function updateWMS(){
         format: 'image/png',
         transparent: true,
         colorscalerange:colormin+','+colormax,
-        styles:'contour/grace',
+        styles:'contour/'+palette,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer,{
-
+        cache:20
     });
+
     testLegend.onAdd = function(map) {
-                    var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER="+wmsLayer+"&PALETTE=grace&COLORSCALERANGE="+colormin+","+colormax;
+                    var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER="+wmsLayer+"&PALETTE="+palette+"&COLORSCALERANGE="+colormin+","+colormax;
                     var div = L.DomUtil.create('div', 'info legend');
                     div.innerHTML +=
                         '<img src="' + src + '" alt="legend">';
                     return div;
                 };
     testLegend.addTo(map);
-    var contourTimeLayer=L.timeDimension.layer.wms(contourLayer);
+    var contourTimeLayer=L.timeDimension.layer.wms(contourLayer,{
+        cache:20
+    });
     interpolation_group.addLayer(testTimeLayer);
     interpolation_group.addTo(map);
     contour_group.addLayer(contourTimeLayer);
 
-    var url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+region+'/'+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities";
-    //var url = "http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities"
+    var url=thredds_url+region+'/'+interpolation_type+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
 
     var oReq = new XMLHttpRequest();
     oReq.addEventListener("load", (function(xhr) {
@@ -165,15 +171,18 @@ function updateWMS(){
 
 //This function is called by the getLayerMinMax function and adds a legend to the map as well as contour symbology
 var addLegend=function(testWMS,contourLayer, testLayer,colormin,colormax,layer,testTimeLayer){
+    var palette=$("#select_symbology").find('option:selected').val();
     testLegend.onAdd = function(map) {
-                    var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER="+layer+"&PALETTE=grace&COLORSCALERANGE="+colormin+","+colormax;
+                    var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER="+layer+"&PALETTE="+palette+"&COLORSCALERANGE="+colormin+","+colormax;
                     var div = L.DomUtil.create('div', 'info legend');
                     div.innerHTML +=
                         '<img src="' + src + '" alt="legend">';
                     return div;
                 };
     testLegend.addTo(map);
-    var contourTimeLayer=L.timeDimension.layer.wms(contourLayer);
+    var contourTimeLayer=L.timeDimension.layer.wms(contourLayer,{
+        cache:20
+    });
     interpolation_group.addLayer(testTimeLayer);
     interpolation_group.addTo(map);
     contour_group.addLayer(contourTimeLayer);
@@ -231,7 +240,7 @@ var getLayerMinMax = function(layer,testLayer,contourWMS, testWMS, callback,test
 };
 
 
-
+document.getElementById('buttons').style.display="none"
 var regioncenter=[31.2,-100.0];
 var mychart=[]
 //add a map to the html div "map" with time dimension capabilities. Times are currently hard coded, but will need to be changed as new GRACE data comes
@@ -317,6 +326,12 @@ function change_aquifer(){
     clearwaterlevels();
 
     var aquifer_number=$("#select_aquifer").find('option:selected').val();
+    aq_name=$("#available_dates").find('option:selected').val();
+    if (typeof aq_name=="undefined"){
+        document.getElementById('waiting_output').innerHTML = '';
+        alert("The selected aquifer does not have any associated interpolation rasters .");
+        return
+    }
     aquifer_number=Number(aquifer_number);
     region=$("#select_region").find('option:selected').val();
     displaygeojson(aquifer_number,displayallwells);
@@ -364,12 +379,14 @@ function displaygeojson(aquifer_number, displayallwells) {
                 weight:1,
             }
             );
-            map.setView(aquifer_center,5.5);
+            //map.setView(aquifer_center,5.5);
             aquifer_group.addLayer(AquiferLayer);
+            map.fitBounds(aquifer_group.getBounds());
         }
         //if no aquifer is loaded, zoom to the Texas boundaries
         else{
-            map.setView(regioncenter,5);
+            //map.setView(regioncenter,5);
+            map.fitBounds(region_group.getBounds());
         }
 
         aquifer_group.addTo(map);
@@ -386,7 +403,7 @@ function displaygeojson(aquifer_number, displayallwells) {
             $.ajax({
                 url: '/apps/gw/loaddata/',
                 type: 'GET',
-                data: {'id':id, 'interpolation_type':interpolation_type,'region':region, 'overwrite':0},
+                data: {'id':id, 'interpolation_type':interpolation_type,'region':region, 'make_default':0, 'from_wizard':0},
                 contentType: 'application/json',
                 error: function (status) {
 
@@ -413,8 +430,9 @@ function displaygeojson(aquifer_number, displayallwells) {
 function displayallwells(aquifer_number,well_points,required){
 
     var color='blue';
-    var name=$("#select_aquifer").find('option:selected').text();
-    var aquifer=name;
+    var aquifer=$("#select_aquifer").find('option:selected').text();
+    var name=$("#available_dates").find('option:selected').val();
+
     var points='{"type":"FeatureCollection","features":[]}';
     points=JSON.parse(points);
     if (required>0){
@@ -434,8 +452,7 @@ function displayallwells(aquifer_number,well_points,required){
     var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var region=$("#select_region").find('option:selected').val();
 
-    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+region+'/'+interpolation_type+"/"+name+".nc";
-    //var testWMS="http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc";
+    var testWMS=thredds_url+region+'/'+interpolation_type+'/'+name;
 
     var colormin=-500;
     var colormax=0;
@@ -443,13 +460,14 @@ function displayallwells(aquifer_number,well_points,required){
           colormin=-1000;
     }
     var wmsLayer=$("#select_view").find('option:selected').val();
+    var palette=$("#select_symbology").find('option:selected').val();
 
     var testLayer = L.tileLayer.wms(testWMS, {
         layers: wmsLayer,
         format: 'image/png',
         transparent: true,
         opacity:0.5,
-        styles:'boxfill/grace',
+        styles:'boxfill/'+palette,
         colorscalerange:colormin+','+colormax,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
@@ -458,11 +476,11 @@ function displayallwells(aquifer_number,well_points,required){
         format: 'image/png',
         transparent: true,
         colorscalerange:colormin+','+colormax,
-        styles:'contour/grace',
+        styles:'contour/'+palette,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer, {
-
+        cache:20
     });
 
     getLayerMinMax(wmsLayer,testLayer,contourLayer,testWMS,addLegend,testTimeLayer);
@@ -557,8 +575,7 @@ function displayallwells(aquifer_number,well_points,required){
 
     well_group.addTo(map);
 
-    var url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/"+region+'/'+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities";
-    //var url = "http://localhost:8080/thredds/wms/testAll/groundwater/"+region+"/"+interpolation_type+"/"+name+".nc?service=WMS&version=1.3.0&request=GetCapabilities"
+    var url=thredds_url+region+'/'+interpolation_type+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
 
     var oReq = new XMLHttpRequest();
     oReq.addEventListener("load", (function(xhr) {
@@ -611,7 +628,8 @@ function list_aquifer(){
             region_group.addTo(map);
             regioncenter=aquifer_center;
 
-            map.setView(aquifer_center,5);
+            //map.setView(aquifer_center,5);
+            map.fitBounds(region_group.getBounds());
             size= map.getSize();
             bounds=map.getBounds().toBBoxString();
 
@@ -640,8 +658,91 @@ function list_aquifer(){
 
 }
 
+function list_dates(call_function){
+    var region=$("#select_region").find('option:selected').val()
+    //This ajax controller
+    var aquifer=$("#select_aquifer").find('option:selected').text()
+    var interpolation_type=$("#select_interpolation").find('option:selected').val();
+
+    $.ajax({
+        url: '/apps/gw/loadtimelist/',
+        type: 'GET',
+        data: {'region':region, 'aquifer':aquifer, 'interpolation_type':interpolation_type},
+        contentType: 'application/json',
+        error: function (status) {
+
+        }, success: function (response) {
+            timelist=response.timelist;
+            $("#available_dates").empty();
+            //$("#available_types").append('<option value="'+9999+'">'+''+'</option>');
+            for (i=0;i<timelist.length;i++){
+                number=timelist[i].Full_Name;
+                name=timelist[i].Aquifer+': '+timelist[i].Start_Date+'-'+timelist[i].End_Date+' ('+timelist[i].Interval+ " Year Increments, "+(timelist[i].Resolution)+" Degree Resolution, "+timelist[i].Min_Samples+" Min Samples, "+(timelist[i].Min_Ratio)+ " Min Ratio, "+timelist[i].Time_Tolerance+ " Year Time Tolerance)";
+                $("#available_dates").append('<option value="'+number+'">'+name+'</option>');
+                if (timelist.length==1){
+                    $("#available_dates").val(number);
+                }
+
+                if (timelist[i].Default==1){
+                    $("#available_dates").val(number);
+                }
+            }
+            if (timelist.length>1){
+                document.getElementById('buttons').style.display="block"
+            }
+            else{
+                document.getElementById('buttons').style.display="none"
+            }
+            if (call_function==1){
+                changeWMS();
+            }
+            if (call_function==2){
+                change_aquifer();
+            }
+        }
+    });
 
 
+}
 
+function confirm_delete(){
+    var region=$("#select_region").find('option:selected').val()
+    var aquifer=$("#select_aquifer").find('option:selected').text()
+    var interpolation_type=$("#select_interpolation").find('option:selected').val();
+    var name=$("#available_dates").find('option:selected').val();
+    var x =confirm("Are you sure you want to delete the current NetCDF Raster? ("+name+")");
+    if (x){
+        $.ajax({
+        url: '/apps/gw/deletenetcdf/',
+        type: 'GET',
+        data: {'region':region, 'aquifer':aquifer, 'interpolation_type':interpolation_type, 'name':name},
+        contentType: 'application/json',
+        error: function (status) {
 
+        }, success: function (response) {
+            list_dates(1);
+        }
+    });
+    }
+}
 
+function confirm_default(){
+    var region=$("#select_region").find('option:selected').val()
+    var aquifer=$("#select_aquifer").find('option:selected').text()
+    var interpolation_type=$("#select_interpolation").find('option:selected').val();
+    var name=$("#available_dates").find('option:selected').val();
+    var x =confirm("Are you sure you want to make the current NetCDF raster the default? ("+name+")");
+    if (x){
+        $.ajax({
+        url: '/apps/gw/defaultnetcdf/',
+        type: 'GET',
+        data: {'region':region, 'aquifer':aquifer, 'interpolation_type':interpolation_type, 'name':name},
+        contentType: 'application/json',
+        error: function (status) {
+
+        }, success: function (response) {
+            list_dates(1);
+        }
+    });
+    }
+}

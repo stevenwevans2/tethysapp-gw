@@ -74,14 +74,24 @@ class Gw(TethysAppBase):
                 controller='gw.ajax_controllers.loaddata'
             ),
             UrlMap(
-                name='checkdata',
-                url='gw/checkdata',
-                controller='gw.ajax_controllers.checkdata'
-            ),
-            UrlMap(
                 name='loadaquiferlist',
                 url='gw/loadaquiferlist',
                 controller='gw.ajax_controllers.loadaquiferlist'
+            ),
+            UrlMap(
+                name='loadtimelist',
+                url='gw/loadtimelist',
+                controller='gw.ajax_controllers.loadtimelist'
+            ),
+            UrlMap(
+                name='deletenetcdf',
+                url='gw/deletenetcdf',
+                controller='gw.ajax_controllers.deletenetcdf'
+            ),
+            UrlMap(
+                name='defaultnetcdf',
+                url='gw/defaultnetcdf',
+                controller='gw.ajax_controllers.defaultnetcdf'
             ),
         )
 

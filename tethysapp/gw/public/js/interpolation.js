@@ -34,13 +34,15 @@ function submit_form(){
     var resolution=$("#resolution").find('option:selected').val();
     var id=$("#select_aquifer option:selected").val()
     var length=$("#select_aquifer option").length-1;
-    var overwrite=$("#overwrite").find('option:selected').val();
+    var time_tolerance=$("#time_tolerance").find('option:selected').val();
+    var make_default=$("#default").find('option:selected').val();
+    console.log(make_default);
     var min_samples=$("#min_samples").find('option:selected').val();
     var min_ratio=$("#min_ratio").find('option:selected').val();
     $.ajax({
         url: '/apps/gw/loaddata/',
         type: 'GET',
-        data: {'id':id, 'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'overwrite':overwrite, 'min_samples':min_samples, 'min_ratio':min_ratio},
+        data: {'id':id, 'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1},
         contentType: 'application/json',
         error: function (status) {
 

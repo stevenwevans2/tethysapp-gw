@@ -4,6 +4,7 @@
 # $3 is the type of interpolation
 # $4 is the region
 # $5 is the grid resolution
+# $6 is the app_workspace
 echo "called shellscript"
 cd $2
 pwd
@@ -42,4 +43,7 @@ rm Region25.nc
 rm $1
 mv temp.nc $1
 mv $1 $destination
+
+cd $6
+python deletetemp.py $2
 

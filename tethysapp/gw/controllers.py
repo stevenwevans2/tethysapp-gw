@@ -39,7 +39,7 @@ def region_map(request):
                                         ('Sparta',27),('West Texas Bolsons',2),('Woodbine',29),('Yegua Jackson',31),('NA',22),('Texas',32)],
                                initial='',
                                attributes={
-                                   'onchange':'change_aquifer()'
+                                   'onchange':'list_dates(2)' #this calls list_dates, which then calls change_aquifer
                                }
     )
 
@@ -58,7 +58,7 @@ def region_map(request):
                                  options=[("IDW (Shepard's Method)", 'IDW'), ('Kriging', 'Kriging')],
                                  initial="IDW (Shepard's Method)",
                                  attributes={
-                                     'onchange': 'changeWMS()'
+                                     'onchange': 'list_dates(1)'#this calls list_dates, which then calls changeWMS
                                  }
     )
 
@@ -79,12 +79,48 @@ def region_map(request):
                                        }
                                        )
 
+    available_dates=SelectInput(display_text='Available Raster Animations',
+                                name='available_dates',
+                                multiple=False,
+                                options=[],
+                                attributes={
+                                    'onchange': 'changeWMS()'
+                                }
+    )
+    delete_button=Button(display_text='Delete Selected Raster Animation',
+                         name='delete_button',
+                         icon='glyphicon glyphicon-remove',
+                         style='danger',
+                         disabled=False,
+                         attributes={
+                             'data-toggle': 'tooltip',
+                             'data-placement': 'top',
+                             'title': 'Remove',
+                             'onclick':"confirm_delete()",
+                         }
+    )
+    default_button = Button(display_text='Set Selected Raster Animation as Default',
+                           name='default_button',
+                           icon='glyphicon glyphicon-menu-right',
+                           style='default',
+                           disabled=False,
+                           attributes={
+                               'data-toggle': 'tooltip',
+                               'data-placement': 'top',
+                               'title': 'Make Default',
+                               'onclick': "confirm_default()",
+                           }
+                           )
+
     context = {
         "select_region":select_region,
         "select_aquifer":select_aquifer,
         "required_data": required_data,
         "select_interpolation": select_interpolation,
         "select_view":select_view,
+        "available_dates":available_dates,
+        'delete_button':delete_button,
+        'default_button':default_button,
     }
 
     return render(request, 'gw/region_map.html', context)
@@ -127,9 +163,15 @@ def interpolation(request):
                                  }
     )
     dates=[]
-    for i in range(1800,2019):
+    for i in range(1850,2019):
         date=(i,i)
         dates.append(date)
+    tolerances=[("1 Year",1)]
+    for i in range(2,26):
+        tolerance=(str(i)+" Years",i)
+        tolerances.append(tolerance)
+    tolerances.append(("50 Years",50))
+    tolerances.append(("No Limit", 999))
     start_date = SelectInput(display_text='Interpolation Start Date',
                                 name='start_date',
                                 multiple=False,
@@ -156,16 +198,22 @@ def interpolation(request):
                             )
     min_samples=SelectInput(display_text='Minimum Water Level Samples per Well',
                             name='min_samples',
-                            options=[("1 Sample", 1),("2 Samples",2),("5 Samples",5),("10 Samples",10),("25 Samples",25),("50 Samples",50)]
+                            options=[("1 Sample", 1),("2 Samples",2),("5 Samples",5),("10 Samples",10),("25 Samples",25),("50 Samples",50)],
+                            initial="5 Samples"
                             )
     min_ratio=SelectInput(display_text='Percent of Time Frame Well Timeseries Must Span',
                             name='min_ratio',
                             options=[("No Minimum", 0),("25%",.25),("50%",.5),("75%",.75),("100%",1.0)],
                             initial="75%"
                             )
-
-    overwrite=SelectInput(display_text='Overwrite Existing Interpolation Files',
-                          name='overwrite',
+    time_tolerance = SelectInput(display_text='Temporal Extrapolation Limit',
+                           name='time_tolerance',
+                           multiple=False,
+                           options=tolerances,
+                           initial="5 Years"
+                           )
+    default=SelectInput(display_text='Set Interpolation as Default for the Aquifer',
+                          name='default',
                           multiple=False,
                           options=[("Yes",1),("No",0)],
                           initial="No"
@@ -191,9 +239,10 @@ def interpolation(request):
         "frequency":frequency,
         "resolution":resolution,
         "submit_button":submit_button,
-        "overwrite":overwrite,
+        "default":default,
         "min_samples":min_samples,
-        'min_ratio':min_ratio
+        'min_ratio':min_ratio,
+        'time_tolerance':time_tolerance
     }
 
     return render(request, 'gw/interpolation.html', context)

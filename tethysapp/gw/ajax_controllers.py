@@ -16,6 +16,11 @@ import urllib
 import pandas as pd
 from shapely.geometry import Point
 from shapely.geometry import shape
+import tempfile, shutil
+
+#global variables
+thredds_serverpath='/home/tethys/Thredds/groundwater/'
+#thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #displaygeojson is an Ajax function that reads a specified JSON File (geolayer) in a specified region (region)
 # and returns the JSON object from that file.
@@ -91,32 +96,7 @@ def loadjson(request):
         return_obj['aquifer']=myaquifer
     return JsonResponse(return_obj)
 
-#The checkdata Ajax function takes the name of an aquifer, a region, and the interpolation type. The function checks whether the
-#specified NetCDF file already exists on the server and returns a 1 if it exists and a 0 if not.
-def checkdata(request):
-    return_obj = {
-        'success': False
-    }
-    # Check if its an ajax post request
-    if request.is_ajax() and request.method == 'GET':
-        return_obj['success'] = True
-        name = request.GET.get('name')
-        region=request.GET.get('region')
-        interpolation_type=request.GET.get('interpolation_type')
-        return_obj['name'] = name
 
-        name=name.replace(' ','_')
-        serverpath='/home/tethys/Thredds/groundwater/'+region
-        #serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"+region
-
-        name = name + ".nc"
-        netcdfpath = os.path.join(serverpath, interpolation_type)
-        netcdfpath=os.path.join(netcdfpath,name)
-        exists=0
-        if os.path.exists(netcdfpath):
-            exists = 1
-        return_obj['exists']=exists
-    return JsonResponse(return_obj)
 
 #The loadaquiferlist ajax function takes a region as a parameter and returns a JSON object with the list of Aquifers in that region
 def loadaquiferlist(request):
@@ -132,6 +112,82 @@ def loadaquiferlist(request):
         app_workspace = app.get_app_workspace()
         aquiferlist=getaquiferlist(app_workspace,region)
         return_obj['aquiferlist']=aquiferlist
+    return JsonResponse(return_obj)
+
+#The loadaquiferlist ajax function takes a region as a parameter and returns a JSON object with the list of Aquifers in that region
+def loadtimelist(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        aquifer=request.GET.get('aquifer')
+        interpolation_type=request.GET.get('interpolation_type')
+
+        timelist=gettimelist(region,aquifer,interpolation_type)
+        return_obj['timelist']=timelist
+    return JsonResponse(return_obj)
+
+
+def deletenetcdf(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        aquifer=request.GET.get('aquifer')
+        interpolation_type=request.GET.get('interpolation_type')
+        name=request.GET.get('name')
+
+        directory = os.path.join(thredds_serverpath, region + '/' + interpolation_type)
+        file=os.path.join(directory,name)
+        os.remove(file)
+
+    return JsonResponse(return_obj)
+
+def defaultnetcdf(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        aquifer=request.GET.get('aquifer')
+        interpolation_type=request.GET.get('interpolation_type')
+        name=request.GET.get('name')
+
+        aquifer=aquifer.replace(" ","_")
+        directory = os.path.join(thredds_serverpath, region + '/' + interpolation_type)
+        for filename in os.listdir(directory):
+            if filename.startswith(aquifer+'.'):
+                nc_file = os.path.join(directory, filename)
+                os.chmod(nc_file, 0o777)
+                h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
+                if filename==name and h.default !=1:
+                    h.default=1
+                elif filename!=name:
+                    h.default=0
+                h.close()
+                # if filename==name and ".Default.nc" not in filename:
+                #     newname = filename[:-3] + ".Default.nc"
+                #     src = os.path.join(directory, filename)
+                #     dst = os.path.join(directory, newname)
+                #     os.rename(src, dst)
+                # elif ".Default" in filename and filename!=name:
+                #     newname = filename.replace(".Default", "")
+                #     src = os.path.join(directory, filename)
+                #     dst = os.path.join(directory, newname)
+                #     os.rename(src, dst)
+
+
     return JsonResponse(return_obj)
 
 #The loaddata ajax function takes id, name, interpolation type, and region as parameters.
@@ -154,15 +210,18 @@ def loaddata(request):
         resolution = request.GET.get('resolution')
         length=request.GET.get('length')
         interpolation_type=request.GET.get('interpolation_type')
-        overwrite=request.GET.get("overwrite")
+        make_default=request.GET.get("make_default")
         min_samples=request.GET.get("min_samples")
         min_ratio=request.GET.get("min_ratio")
+        time_tolerance=request.GET.get('time_tolerance')
+        from_wizard=request.GET.get("from_wizard")
         return_obj['id'] = aquiferid
         return_obj['interpolation_type']=interpolation_type
         app_workspace = app.get_app_workspace()
         aquiferid=int(aquiferid)
 
-        overwrite = int(overwrite)
+        make_default = int(make_default)
+        from_wizard=int(from_wizard)
         if start_date and end_date and interval and resolution:
             start_date=int(start_date)
             end_date=int(end_date)
@@ -171,13 +230,15 @@ def loaddata(request):
             length=int(length)
             min_samples=int(min_samples)
             min_ratio=float(min_ratio)
+            time_tolerance=int(time_tolerance)
         else:
             start_date=1950
             end_date=2015
             interval=5
             resolution=.05
-            overwrite=False
+            make_default=0
             min_samples=25
+            time_tolerance=5
             if interpolation_type=="IDW":
                 min_ratio=.75
             else:
@@ -186,9 +247,9 @@ def loaddata(request):
         if aquiferid==9999:
             for i in range(1,length):
                 aquiferid=i
-                points=interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, overwrite, min_samples, min_ratio)
+                points=interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard)
         else:
-            points=interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, overwrite, min_samples, min_ratio)
+            points=interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance,  from_wizard)
 
         return_obj['data']=points
     return JsonResponse(return_obj)
@@ -196,7 +257,7 @@ def loaddata(request):
 # This function takes a set of well points from a specified aquifer in a region and interpolates the data through time and space
 # and writes a NetCDF file for the interpolated data, clips the netCDF file to the boundaries of the specified aquifer,
 # and then uploads this file to the server.
-def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_type,start_date,end_date,interval,resolution, min_samples, min_ratio):
+def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_type,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default):
     # Execute the following code to interpolate groundwater levels and create a netCDF File and upload it to the server
 
     spots = []
@@ -317,7 +378,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
         for v in range(0, iterations):
             targetyear = start_date + interval * v
             target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-            fiveyears = 157766400
+            fiveyears = (157766400/5)*time_tolerance
             myspots = []
             mylons = []
             mylats = []
@@ -570,7 +631,10 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     if myaquifercaps == region or myaquifercaps == 'NONE':
         AquiferShape['features'].append(state['features'][0])
 
-    myshapefile = os.path.join(app_workspace.path, "shapefile.json")
+    temp_dir=tempfile.mkdtemp()
+
+
+    myshapefile = os.path.join(temp_dir, "shapefile.json")
     with open(myshapefile, 'w') as outfile:
         json.dump(AquiferShape, outfile)
     #end if statement
@@ -578,11 +642,22 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     latlen = len(latgrid)
     lonlen = len(longrid)
 
-    name=name.replace(' ','_')
-    name=name+'.nc'
-    filename = name
-    nc_file = os.path.join(app_workspace.path, filename)
+    # name=name.replace(' ','_')
+    # name=name+'.nc'
+    # filename = name
+    filename=date_name+".nc"
+    nc_file = os.path.join(temp_dir, filename)
     h = netCDF4.Dataset(nc_file, 'w', format="NETCDF4")
+
+    #Global Attributes
+    h.start_date=start_date
+    h.end_date=end_date
+    h.interval=interval
+    h.resolution=resolution
+    h.min_samples=min_samples
+    h.min_ratio=min_ratio
+    h.time_tolerance=time_tolerance
+    h.default=make_default
 
     time = h.createDimension("time", 0)
     lat = h.createDimension("lat", latlen)
@@ -605,7 +680,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     depth.coordinates = "time lat lon"
 
     drawdown = h.createVariable("drawdown", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
-    drawdown.long_name = "Well Drawdown"
+    drawdown.long_name = "Well Drawdown Since "+str(start_date)
     drawdown.units = "ft"
     drawdown.grid_mapping = "WGS84"
     drawdown.cell_measures = "area: area"
@@ -701,12 +776,10 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
 
     # Calls a shellscript that uses NCO to clip the NetCDF File created above to aquifer boundaries
     myshell = 'aquifersubset.sh'
-    directory = app_workspace.path
+    directory = temp_dir
+    print temp_dir
     shellscript = os.path.join(app_workspace.path, myshell)
-    subprocess.call([shellscript, filename, directory, interpolation_type, region, str(resolution)])
-    # serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater"
-    # destination = os.path.join(serverpath, filename)
-    # os.rename(nc_file, destination)
+    subprocess.call([shellscript, filename, directory, interpolation_type, region, str(resolution), app_workspace.path])
 
 
 #The pullnwis function pulls data from the web for a specified region and writes the data to a JSON file named Wells.JSON in the appropriate folder.
@@ -1049,11 +1122,73 @@ def getaquiferlist(app_workspace,region):
             aquiferlist.append(myaquifer)
     return aquiferlist
 
-def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, overwrite, min_samples, min_ratio):
-    interpolate = 1
+#This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
+def gettimelist(region,aquifer,interpolation_type):
 
-    serverpath = '/home/tethys/Thredds/groundwater/'+region
-    #serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/" + region
+    list = []
+    timelist=[]
+    directory=os.path.join(thredds_serverpath,region+'/'+interpolation_type)
+    aquifer=aquifer.replace(" ","_")
+    for filename in os.listdir(directory):
+        if filename.startswith(aquifer+"."):
+            list.append(filename)
+    for item in list:
+        nc_file = os.path.join(directory, item)
+        os.chmod(nc_file, 0o777)
+        h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
+        components = item.split('.')
+        mytime={
+            'Full_Name':item,
+            'Aquifer':components[0].replace("_"," "),
+            'Start_Date':h.start_date,
+            'End_Date':h.end_date,
+            'Interval':h.interval,
+            'Resolution':h.resolution,
+            'Min_Samples':h.min_samples,
+            'Min_Ratio':h.min_ratio,
+            'Time_Tolerance':h.time_tolerance,
+            'Default':h.default
+        }
+        h.close()
+        # components=item.split('.')
+        # if len(components)>4:
+        #     mytime={
+        #         'Full_Name':item,
+        #         'Aquifer':components[0].replace("_"," "),
+        #         'Start_Date':int(components[1]),
+        #         'End_Date':int(components[2]),
+        #         'Interval':int(components[3]),
+        #         'Resolution':float(components[4]),
+        #         'Min_Samples':int(components[5]),
+        #         'Min_Ratio':float(components[6]),
+        #         'Time_Tolerance':float(components[7])
+        #     }
+        #     if len(components)>9 or ".Default" in item:
+        #         mytime['Default']=True
+        # else:
+        #     mytime={
+        #         'Full_Name':item,
+        #         'Aquifer':components[0].replace("_"," "),
+        #         'Start_Date':1985,
+        #         'End_Date':2015,
+        #         'Interval':5,
+        #         'Resolution': "NA",
+        #         'Min_Samples': "NA",
+        #         'Min_Ratio': "NA",
+        #         'Time_Tolerance': "NA"
+        #     }
+        #     if ".Default" in item:
+        #         mytime['Default']=True
+        timelist.append(mytime)
+    return timelist
+
+def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard):
+    if from_wizard==True:
+        interpolate = 1
+    else:
+        interpolate=0
+
+
 
     aquiferlist = getaquiferlist(app_workspace, region)
 
@@ -1061,12 +1196,43 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
         if i['Id'] == aquiferid:
             myaquifer = i
     name = myaquifer['Name'].replace(' ', '_')
+    aquifer=name
+    date_name=aquifer+"."+str(start_date)+"."+str(end_date)+"."+str(interval)+"."+str(int(resolution*100))+"."+str(min_samples)+"."+str(int(min_ratio*100))+"."+str(time_tolerance)
 
-    netcdfpath = os.path.join(serverpath, interpolation_type)
-    netcdfpath = os.path.join(netcdfpath, name + '.nc')
+    netcdf_directory = os.path.join(thredds_serverpath, region + '/' + interpolation_type)
+    for filename in os.listdir(netcdf_directory):
+        #filename = str(filename)
+        if filename.startswith(date_name):
+            interpolate=0
+            if make_default==1:
+                nc_file = os.path.join(netcdf_directory, filename)
+                os.chmod(nc_file, 0o777)
+                h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
+                h.default=1
+                h.close()
+        elif filename.startswith(name+'.'):
+            if make_default==1:
+                nc_file = os.path.join(netcdf_directory, filename)
+                os.chmod(nc_file, 0o777)
+                h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
+                if h.default==1:
+                    h.default=0
+                h.close()
+    #         if make_default==1:
+    #             newname=filename[:-3]+".Default.nc"
+    #             src = os.path.join(netcdf_directory, filename)
+    #             dst = os.path.join(netcdf_directory, newname)
+    #             os.rename(src, dst)
+    #     elif make_default==1:
+    #         if ".Default" in filename:
+    #             newname=filename.replace(".Default","")
+    #             src=os.path.join(netcdf_directory,filename)
+    #             dst=os.path.join(netcdf_directory,newname)
+    #             os.rename(src,dst)
+    #
+    # if make_default==1:
+    #     date_name=date_name+".Default"
 
-    if os.path.exists(netcdfpath) and overwrite!=1:
-        interpolate = 0
 
     start = t.time()
 
@@ -1096,9 +1262,11 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
     # Execute the following function to interpolate groundwater levels and create a netCDF File and upload it to the server
     if interpolate == 1:
         upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type, start_date, end_date,
-                      interval, resolution, min_samples, min_ratio)
+                      interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default)
 
     end = t.time()
     print(end - start)
 
     return points
+
+
