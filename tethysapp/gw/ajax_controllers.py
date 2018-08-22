@@ -441,10 +441,17 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                     yrange = ymax - ymin
                                     toplim = y_data[0] + yrange / 2
                                     botlim = y_data[0] - yrange / 2
-                                    sp1 = UnivariateSpline(x_data, y_data, k=1)
+                                    #sp1 = UnivariateSpline(x_data, y_data, k=1)
+                                    if listlength<2:
+                                        slope=0
+                                    elif (i['TsTime'][1]-i['TsTime'][0])!=0:
+                                        slope=(i['TsValue'][1]-i['TsValue'][0])/(i['TsTime'][1]-i['TsTime'][0])
+                                    else:
+                                        slope=0
+                                    slope_val=i['TsValue'][0]+slope*(timevalue-i['TsValue'][0])
 
                                     average = y_data[0]
-                                    timevalue = (sp1(target_time) + 4 * average) / 5
+                                    timevalue = (slope_val + 4 * average) / 5
                                     if timevalue > toplim:
                                         timevalue = toplim
                                     if timevalue < botlim:
@@ -474,10 +481,16 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                     yrange = ymax - ymin
                                     toplim = y_data[listlength-1] + yrange / 2
                                     botlim = y_data[listlength-1] - yrange / 2
-                                    sp1 = UnivariateSpline(x_data, y_data, k=1)
+                                    if listlength<2:
+                                        slope=0
+                                    elif (i['TsTime'][listlength-1]-i['TsTime'][listlength-2])!=0:
+                                        slope=(i['TsValue'][listlength-1]-i['TsValue'][listlength-2])/(i['TsTime'][listlength-1]-i['TsTime'][listlength-2])
+                                    else:
+                                        slope=0
+                                    slope_val=i['TsValue'][listlength-1]+slope*(timevalue-i['TsValue'][listlength-1])
 
                                     average = y_data[listlength-1]
-                                    timevalue = (sp1(target_time) + 4 * average) / 5
+                                    timevalue = (slope_val + 4 * average) / 5
                                     if timevalue > toplim:
                                         timevalue = toplim
                                     if timevalue < botlim:
