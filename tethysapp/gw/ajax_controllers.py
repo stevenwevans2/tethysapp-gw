@@ -448,7 +448,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                         slope=float((i['TsValue'][1]-i['TsValue'][0])/(i['TsTime'][1]-i['TsTime'][0]))
                                     else:
                                         slope=0.0
-                                    slope_val=i['TsValue'][0]+slope*(timevalue-i['TsValue'][0])
+                                    slope_val=i['TsValue'][0]+slope*(target_time-i['TsValue'][0])
 
                                     average = y_data[0]
                                     timevalue = (slope_val + 4 * average) / 5
@@ -487,7 +487,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                         slope=float((i['TsValue'][listlength-1]-i['TsValue'][listlength-2])/(i['TsTime'][listlength-1]-i['TsTime'][listlength-2]))
                                     else:
                                         slope=0.0
-                                    slope_val=i['TsValue'][listlength-1]+slope*(timevalue-i['TsValue'][listlength-1])
+                                    slope_val=i['TsValue'][listlength-1]+slope*(target_time-i['TsValue'][listlength-1])
 
                                     average = y_data[listlength-1]
                                     timevalue = (slope_val + 4 * average) / 5

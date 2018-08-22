@@ -42,7 +42,7 @@
         <counts>
           <entry key="html" value="956" />
           <entry key="js" value="6629" />
-          <entry key="py" value="18527" />
+          <entry key="py" value="18550" />
           <entry key="sh" value="152" />
         </counts>
       </usages-collector>
@@ -51,7 +51,7 @@
           <entry key="HTML" value="956" />
           <entry key="JavaScript" value="6629" />
           <entry key="PLAIN_TEXT" value="152" />
-          <entry key="Python" value="18527" />
+          <entry key="Python" value="18550" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -98,8 +98,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="206">
-              <caret line="452" column="55" lean-forward="true" selection-start-line="452" selection-start-column="55" selection-end-line="452" selection-end-column="55" />
+            <state relative-caret-position="526">
+              <caret line="483" column="52" lean-forward="true" selection-start-line="483" selection-start-column="52" selection-end-line="483" selection-end-column="52" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -483,8 +483,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="206">
-          <caret line="452" column="55" lean-forward="true" selection-start-line="452" selection-start-column="55" selection-end-line="452" selection-end-column="55" />
+        <state relative-caret-position="526">
+          <caret line="483" column="52" lean-forward="true" selection-start-line="483" selection-start-column="52" selection-end-line="483" selection-end-column="52" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
           </folding>
