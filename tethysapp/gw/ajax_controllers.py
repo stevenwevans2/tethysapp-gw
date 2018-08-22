@@ -17,6 +17,7 @@ import pandas as pd
 from shapely.geometry import Point
 from shapely.geometry import shape
 import tempfile, shutil
+from scipy.interpolate import UnivariateSpline
 
 #global variables
 thredds_serverpath='/home/tethys/Thredds/groundwater/'
@@ -433,33 +434,21 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                             consistent = False
                                             break
                                 if (i['TsTime'][0] - target_time) < fiveyears or (consistent and (i['TsTime'][0]-target_time)<(fiveyears*3)):
+                                    y_data = np.array(i['TsValue'])
+                                    x_data = np.array(i['TsTime'])
+                                    ymax = np.amax(y_data)
+                                    ymin = np.amin(y_data)
+                                    yrange = ymax - ymin
+                                    toplim = y_data[0] + yrange / 2
+                                    botlim = y_data[0] - yrange / 2
+                                    sp1 = UnivariateSpline(x_data, y_data, k=1)
 
-                                    sumx = 0
-                                    sumxy = 0
-                                    sumy = 0
-                                    sumx2 = 0
-                                    interp = 0
-                                    for x in range(0, listlength):
-                                        delta = i['TsTime'][x] - i['TsTime'][0]
-                                        if delta != 0:
-                                            sumxy += delta * i['TsValue'][x]
-                                            sumx += delta
-                                            sumy += i['TsValue'][x]
-                                            sumx2 += delta * delta
-                                            interp = 1
-                                    if interp == 1:
-                                        n = x + 1
-                                        a_top = sumxy - ((sumx * sumy) / n)
-                                        a_bottom = sumx2 - ((sumx * sumx) / n)
-                                        a = float(a_top) / float(a_bottom)
-                                        b = (sumy - (a * sumx)) / n
-
-                                        timedelta = target_time - i['TsTime'][0]
-                                        timevalue = a * timedelta + b
-                                        if timevalue < aquifermin or timevalue > 0:
-                                            timevalue = i['TsValue'][0]
-                                    else:
-                                        timevalue=i['TsValue'][0]
+                                    average = y_data[0]
+                                    timevalue = (sp1(target_time) + 4 * average) / 5
+                                    if timevalue > toplim:
+                                        timevalue = toplim
+                                    if timevalue < botlim:
+                                        timevalue = botlim
                                 else:
                                     timevalue = 9999
 
@@ -478,39 +467,27 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                 if (target_time - i['TsTime'][listlength - 1])<(fiveyears/5):
                                     timevalue=i['TsValue'][listlength-1]
                                 elif (target_time - i['TsTime'][listlength - 1]) < fiveyears or (consistent and (target_time - i['TsTime'][listlength - 1]) < (fiveyears*3)):
-                                    sumx = 0
-                                    sumxy = 0
-                                    sumy = 0
-                                    sumx2 = 0
-                                    interp = 0
-                                    for x in range(0, listlength):
-                                        delta = i['TsTime'][x] - i['TsTime'][0]
-                                        if delta != 0:
-                                            sumxy += delta * i['TsValue'][x]
-                                            sumx += delta
-                                            sumy += i['TsValue'][x]
-                                            sumx2 += delta * delta
-                                            interp = 1
-                                    if interp == 1:
-                                        n = x + 1
-                                        a_top = sumxy - ((sumx * sumy) / n)
-                                        a_bottom = sumx2 - ((sumx * sumx) / n)
-                                        a = float(a_top) / float(a_bottom)
-                                        b = (sumy - (a * sumx)) / n
+                                    y_data = np.array(i['TsValue'])
+                                    x_data = np.array(i['TsTime'])
+                                    ymax = np.amax(y_data)
+                                    ymin = np.amin(y_data)
+                                    yrange = ymax - ymin
+                                    toplim = y_data[listlength-1] + yrange / 2
+                                    botlim = y_data[listlength-1] - yrange / 2
+                                    sp1 = UnivariateSpline(x_data, y_data, k=1)
 
-                                        timedelta = target_time - i['TsTime'][0]
-                                        timevalue = a * timedelta + b
-                                        if timevalue > 0:
-                                            timevalue = i['TsValue'][listlength - 1]
-                                        if timevalue < aquifermin:
-                                            timevalue = aquifermin
-                                    else:
-                                        timevalue = i['TsValue'][listlength - 1]
+                                    average = y_data[listlength-1]
+                                    timevalue = (sp1(target_time) + 4 * average) / 5
+                                    if timevalue > toplim:
+                                        timevalue = toplim
+                                    if timevalue < botlim:
+                                        timevalue = botlim
                                 else:
                                     timevalue = 9999
                             else:
                                 timevalue = 9999
-
+                        if i['properties']['HydroID']==403900112022701:
+                            print timevalue, targetyear
                         if timevalue != 9999:
                             the_elevation = i['properties']['LandElev'] + timevalue
                             myelevations.append(the_elevation)
