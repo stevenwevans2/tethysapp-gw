@@ -16,6 +16,7 @@ function update_aquifers(){
                             number=aquiferlist[i].Id;
                             $("#select_aquifer").append('<option value="'+number+'">'+name+'</option>');
                         }
+                        document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
                     }
                 });
 }
@@ -36,7 +37,6 @@ function submit_form(){
     var length=$("#select_aquifer option").length-1;
     var time_tolerance=$("#time_tolerance").find('option:selected').val();
     var make_default=$("#default").find('option:selected').val();
-    console.log(make_default);
     var min_samples=$("#min_samples").find('option:selected').val();
     var min_ratio=$("#min_ratio").find('option:selected').val();
     $.ajax({

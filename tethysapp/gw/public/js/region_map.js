@@ -74,7 +74,7 @@ function changeWMS(){
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer, {
-        cache:20
+        cache:50
     });
 
     var url=thredds_url+region+'/'+interpolation_type+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
@@ -133,7 +133,7 @@ function updateWMS(){
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer,{
-        cache:20
+        cache:50
     });
 
     testLegend.onAdd = function(map) {
@@ -145,10 +145,9 @@ function updateWMS(){
                 };
     testLegend.addTo(map);
     var contourTimeLayer=L.timeDimension.layer.wms(contourLayer,{
-        cache:20
+        cache:50
     });
     interpolation_group.addLayer(testTimeLayer);
-    interpolation_group.addTo(map);
     contour_group.addLayer(contourTimeLayer);
 
     var url=thredds_url+region+'/'+interpolation_type+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
@@ -181,11 +180,12 @@ var addLegend=function(testWMS,contourLayer, testLayer,colormin,colormax,layer,t
                 };
     testLegend.addTo(map);
     var contourTimeLayer=L.timeDimension.layer.wms(contourLayer,{
-        cache:20
+        cache:50
     });
     interpolation_group.addLayer(testTimeLayer);
     interpolation_group.addTo(map);
     contour_group.addLayer(contourTimeLayer);
+    contour_group.addTo(map);
     toggle.removeLayer(contour_group, "Contours");
     toggle.addOverlay(contour_group, "Contours");
 }
@@ -275,6 +275,8 @@ var wmsLayer = L.tileLayer.wms('https://demo.boundlessgeo.com/geoserver/ows?', {
 var region_group=L.featureGroup();
 var well_group=L.featureGroup();
 var aquifer_group=L.featureGroup();
+var minor_group=L.featureGroup();
+var major_group=L.featureGroup();
 var interpolation_group=L.layerGroup();
 var contour_group=L.layerGroup();
 var overlayMaps={
@@ -293,7 +295,7 @@ $.ajax({
     error: function (status) {
 
     }, success: function (response) {
-        texasboundary=response.features;
+        texasboundary=response['state'].features;
         texasborder=L.geoJSON(texasboundary,{
             color:"red",
             weight:1,
@@ -301,6 +303,52 @@ $.ajax({
         })
         region_group.addLayer(texasborder);
         region_group.addTo(map);
+        if (response['major']){
+            major=response['major'];
+            majoraquifers=L.geoJSON(major,{
+                weight:1,
+                fillOpacity:0.2,
+                onEachFeature: function (feature, layer){
+                    //map.doubleClickZoom.disable();
+                    tooltip_content="Major Aquifer: "+feature.properties.Name;
+                    layer.bindTooltip(tooltip_content,{sticky:true});
+                    layer.on({
+                        click: function jumpaquifer(){
+                            $("#select_aquifer").val(feature.properties.Id);
+                            document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                            list_dates(2)
+                        }
+                    });
+
+                }
+            });
+            majoraquifers.addTo(major_group);
+            major_group.addTo(map);
+            toggle.addOverlay(major_group, "Major Aquifers");
+        }
+        if (response['minor']){
+            minor=response['minor'];
+            minoraquifers=L.geoJSON(minor,{
+                color:'green',
+                weight:1,
+                fillOpacity:0.2,
+                onEachFeature: function (feature, layer){
+                    tooltip_content="Minor Aquifer: "+feature.properties.Name;
+                    layer.bindTooltip(tooltip_content,{sticky:true});
+                    layer.on({
+                        click: function jumpaquifer(){
+                            $("#select_aquifer").val(feature.properties.Id);
+                            document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                            list_dates(2)
+                        }
+                    });
+
+                }
+            });
+            minoraquifers.addTo(minor_group);
+            minor_group.addTo(map);
+            toggle.addOverlay(minor_group, "Minor Aquifers");
+        }
     }
 });
 
@@ -325,7 +373,7 @@ function change_aquifer(){
     clearwells();
     clearwaterlevels();
 
-    var aquifer_number=$("#select_aquifer").find('option:selected').val();
+    aquifer_number=$("#select_aquifer").find('option:selected').val();
     aq_name=$("#available_dates").find('option:selected').val();
     if (typeof aq_name=="undefined"){
         document.getElementById('waiting_output').innerHTML = '';
@@ -341,6 +389,8 @@ function clearwells(){
     well_group.clearLayers();
     aquifer_group.clearLayers();
     document.getElementById("chart").innerHTML="";
+    minor_group.clearLayers();
+    major_group.clearLayers();
 }
 
 function clearwaterlevels(){
@@ -480,7 +530,7 @@ function displayallwells(aquifer_number,well_points,required){
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer, {
-        cache:20
+        cache:50
     });
 
     getLayerMinMax(wmsLayer,testLayer,contourLayer,testWMS,addLegend,testTimeLayer);
@@ -600,6 +650,10 @@ function list_aquifer(){
     region_group.clearLayers();
     clearwells();
     clearwaterlevels();
+    toggle.remove();
+    toggle=L.control.layers(null,null).addTo(map);
+    minor_group.clearLayers();
+    major_group.clearLayers();
     //This ajax controller loads the JSON file for the Texas State boundary and adds it to the map
     var geolayer = region+'_State_Boundary.json';
     var region=$("#select_region").find('option:selected').val();
@@ -611,7 +665,8 @@ function list_aquifer(){
         error: function (status) {
 
         }, success: function (response) {
-            texasboundary=response.features;
+
+            texasboundary=response['state'].features;
             var aquifer_center=regioncenter
             texasborder=L.geoJSON(texasboundary,{
                 color:"red",
@@ -623,12 +678,56 @@ function list_aquifer(){
                     var loncenter=(feature.properties.bounds_calculated._northEast.lng+feature.properties.bounds_calculated._southWest.lng)/2;
                     aquifer_center=[latcenter,loncenter];
                 },
-            })
+            });
             region_group.addLayer(texasborder);
             region_group.addTo(map);
             regioncenter=aquifer_center;
+            if (response['major']){
+                major=response['major'];
+                majoraquifers=L.geoJSON(major,{
+                    weight:1,
+                    fillOpacity:0.2,
+                    onEachFeature: function (feature, layer){
+                        tooltip_content="Major Aquifer: "+feature.properties.Name;
+                        layer.bindTooltip(tooltip_content,{sticky:true});
+                        layer.on({
+                            click: function jumpaquifer(){
+                                $("#select_aquifer").val(feature.properties.Id);
+                                document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                                list_dates(2)//,feature.properties.Name,feature.properties.Id)
+                            }
+                        });
 
-            //map.setView(aquifer_center,5);
+                    }
+                });
+                majoraquifers.addTo(major_group);
+                major_group.addTo(map);
+                toggle.addOverlay(major_group, "Major Aquifers");
+            }
+            if (response['minor']){
+                minor=response['minor'];
+                minoraquifers=L.geoJSON(minor,{
+                    color:'green',
+                    weight:1,
+                    fillOpacity:0.2,
+                    onEachFeature: function (feature, layer){
+                        tooltip_content="Minor Aquifer: "+feature.properties.Name;
+                        layer.bindTooltip(tooltip_content,{sticky:true});
+                        layer.on({
+                            click: function jumpaquifer(){
+                                $("#select_aquifer").val(feature.properties.Id);
+                                document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                                list_dates(2)//,feature.properties.Name,feature.properties.Id)
+                            }
+                        });
+
+                    }
+                });
+                minoraquifers.addTo(minor_group);
+                minor_group.addTo(map);
+                toggle.addOverlay(minor_group, "Minor Aquifers");
+            }
+
             map.fitBounds(region_group.getBounds());
             size= map.getSize();
             bounds=map.getBounds().toBBoxString();
@@ -649,6 +748,9 @@ function list_aquifer(){
                         number=aquiferlist[i].Id;
                         $("#select_aquifer").append('<option value="'+number+'">'+name+'</option>');
                     }
+                    document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                    $("#available_dates").empty();
+                    document.getElementById("select2-available_dates-container").innerHTML='';
                 }
             });
 
@@ -661,7 +763,9 @@ function list_aquifer(){
 function list_dates(call_function){
     var region=$("#select_region").find('option:selected').val()
     //This ajax controller
-    var aquifer=$("#select_aquifer").find('option:selected').text()
+
+    aquifer=$("#select_aquifer").find('option:selected').text();
+
     var interpolation_type=$("#select_interpolation").find('option:selected').val();
 
     $.ajax({
@@ -686,6 +790,7 @@ function list_dates(call_function){
                 if (timelist[i].Default==1){
                     $("#available_dates").val(number);
                 }
+                document.getElementById("select2-available_dates-container").innerHTML=$("#available_dates").find('option:selected').text();
             }
             if (timelist.length>1){
                 document.getElementById('buttons').style.display="block"
@@ -746,3 +851,4 @@ function confirm_default(){
     });
     }
 }
+

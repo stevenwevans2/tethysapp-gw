@@ -38,12 +38,52 @@ def displaygeojson(request):
         return_obj['geolayer'] = geolayer
         app_workspace = app.get_app_workspace()
         geofile = os.path.join(app_workspace.path, region+"/"+geolayer)
-        with open(geofile, 'r') as f:
-            allwells = ''
-            wells = f.readlines()
-            for i in range(0, len(wells)):#len(wells)
-                allwells += wells[i]
-        return_obj = json.loads(allwells)
+        aquiferlist = getaquiferlist(app_workspace, region)
+        fieldnames=[]
+        for i in aquiferlist:
+            fieldnames.append(i['FieldName'])
+        if os.path.exists(geofile):
+            with open(geofile, 'r') as f:
+                allwells = ''
+                wells = f.readlines()
+                for i in range(0, len(wells)):#len(wells)
+                    allwells += wells[i]
+                return_obj['state'] = json.loads(allwells)
+        minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
+        majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
+        if os.path.exists(minorfile):
+            with open(minorfile, 'r') as f:
+                minor=''
+                entry=f.readlines()
+                for i in range(0, len(entry)):
+                    minor += entry[i]
+                minoraquifers = json.loads(minor)
+                for j in fieldnames:
+                    if j in minoraquifers['features'][0]['properties']:
+                        fieldname=j
+                for k in minoraquifers['features']:
+                    for l in aquiferlist:
+                        if k['properties'][fieldname]==l['CapsName']:
+                            k['properties']['Id']=l['Id']
+                            k['properties']['Name']=l["Name"]
+            return_obj['minor'] = minoraquifers
+        if os.path.exists(majorfile):
+            with open(majorfile, 'r') as f:
+                major=''
+                entry=f.readlines()
+                for i in range(0, len(entry)):
+                    major += entry[i]
+                majoraquifers = json.loads(major)
+                for j in fieldnames:
+                    if j in majoraquifers['features'][0]['properties']:
+                        fieldname=j
+                for k in majoraquifers['features']:
+                    for l in aquiferlist:
+                        if k['properties'][fieldname]==l['CapsName']:
+                            k['properties']['Id']=l['Id']
+                            k['properties']['Name']=l['Name']
+            return_obj['major']=majoraquifers
+
     return JsonResponse(return_obj)
 
 #loadjson Ajax function takes an aquifer_id number (aquifer_number) and a region (region) and opens the aquifer JSON files for that region
