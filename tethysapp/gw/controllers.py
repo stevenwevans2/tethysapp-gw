@@ -172,6 +172,10 @@ def interpolation(request):
         tolerances.append(tolerance)
     tolerances.append(("50 Years",50))
     tolerances.append(("No Limit", 999))
+    ratios=[("No Minimum",0)]
+    for i in range(5,105,5):
+        ratio=(str(i)+"%",float(i)/100)
+        ratios.append(ratio)
     start_date = SelectInput(display_text='Interpolation Start Date',
                                 name='start_date',
                                 multiple=False,
@@ -203,7 +207,7 @@ def interpolation(request):
                             )
     min_ratio=SelectInput(display_text='Percent of Time Frame Well Timeseries Must Span',
                             name='min_ratio',
-                            options=[("No Minimum", 0),("25%",.25),("50%",.5),("75%",.75),("100%",1.0)],
+                            options=ratios,
                             initial="75%"
                             )
     time_tolerance = SelectInput(display_text='Temporal Extrapolation Limit',
