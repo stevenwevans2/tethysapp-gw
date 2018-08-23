@@ -431,7 +431,12 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                 if listlength > 10:
                                     consistent = True
                                     for step in range(0, 6):
-                                        slope=(i['TsValue'][step+1]-i['TsValue'][step])/(i['TsTime'][step+1]-i['TsTime'][step])
+                                        timechange = i['TsTime'][step+1] - i['TsTime'][step]
+                                        if timechange != 0:
+                                            slope = (i['TsValue'][step+1] - i['TsValue'][step]) / timechange
+                                        else:
+                                            consistent = False
+                                            break
                                         consistent_slope=5.0/oneyear #5 ft/year
                                         if abs(slope)>consistent_slope:
                                             consistent=False
@@ -474,8 +479,12 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                 if listlength>10:
                                     consistent=True
                                     for step in range(listlength-1,listlength-6,-1):
-                                        slope = (i['TsValue'][step] - i['TsValue'][step-1]) / (
-                                                    i['TsTime'][step] - i['TsTime'][step-1])
+                                        timechange=i['TsTime'][step] - i['TsTime'][step-1]
+                                        if timechange!=0:
+                                            slope = (i['TsValue'][step] - i['TsValue'][step-1]) / timechange
+                                        else:
+                                            consistent=False
+                                            break
                                         consistent_slope = 5.0 / oneyear  # 5 ft/year
                                         if abs(slope) > consistent_slope:
                                             consistent = False
