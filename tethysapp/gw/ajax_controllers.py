@@ -380,6 +380,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
             targetyear = start_date + interval * v
             target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
             fiveyears = (157766400/5)*time_tolerance
+            oneyear=(157766400/5)
             myspots = []
             mylons = []
             mylats = []
@@ -430,7 +431,12 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                 if listlength > 10:
                                     consistent = True
                                     for step in range(0, 6):
-                                        if (i['TsTime'][step+1] - i['TsTime'][step]) > (fiveyears / 2.5):
+                                        slope=(i['TsValue'][step+1]-i['TsValue'][step])/(i['TsTime'][step+1]-i['TsTime'][step])
+                                        consistent_slope=5.0/oneyear #5 ft/year
+                                        if abs(slope)>consistent_slope:
+                                            consistent=False
+                                            break
+                                        if (i['TsTime'][step+1] - i['TsTime'][step]) > (oneyear*2):
                                             consistent = False
                                             break
                                 if (i['TsTime'][0] - target_time) < fiveyears or (consistent and (i['TsTime'][0]-target_time)<(fiveyears*3)):
@@ -468,7 +474,13 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                 if listlength>10:
                                     consistent=True
                                     for step in range(listlength-1,listlength-6,-1):
-                                        if (i['TsTime'][step]-i['TsTime'][step-1])>(fiveyears/2.5):
+                                        slope = (i['TsValue'][step] - i['TsValue'][step-1]) / (
+                                                    i['TsTime'][step] - i['TsTime'][step-1])
+                                        consistent_slope = 5.0 / oneyear  # 5 ft/year
+                                        if abs(slope) > consistent_slope:
+                                            consistent = False
+                                            break
+                                        if (i['TsTime'][step]-i['TsTime'][step-1])>(oneyear*2):
                                             consistent=False
                                             break
                                 if (target_time - i['TsTime'][listlength - 1])<(fiveyears/5):
