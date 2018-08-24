@@ -63,15 +63,16 @@ function changeWMS(){
         opacity:opac,
         styles:'boxfill/'+palette,
         colorscalerange:colormin+','+colormax,
-        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+        attribution: '<a href="https://ceen.et.byu.edu/">BYU</a>'
     });
     var contourLayer=L.tileLayer.wms(testWMS,{
         layers: wmsLayer,
+        crs: L.CRS.EPSG4326,
         format: 'image/png',
         transparent: true,
         colorscalerange:colormin+','+colormax,
         styles:'contour/'+palette,
-        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+        attribution: '<a href="https://ceen.et.byu.edu/">BYU</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer, {
         cache:50
@@ -122,15 +123,16 @@ function updateWMS(){
         opacity:opac,
         styles:'boxfill/'+palette,
         colorscalerange:colormin+','+colormax,
-        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+        attribution: '<a href="https://ceen.et.byu.edu/">BYU</a>'
     });
     var contourLayer=L.tileLayer.wms(testWMS,{
         layers: wmsLayer,
+        crs: L.CRS.EPSG4326,
         format: 'image/png',
         transparent: true,
         colorscalerange:colormin+','+colormax,
         styles:'contour/'+palette,
-        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+        attribution: '<a href="https://ceen.et.byu.edu/">BYU</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer,{
         cache:50
@@ -195,7 +197,7 @@ var addLegend=function(testWMS,contourLayer, testLayer,colormin,colormax,layer,t
 var getLayerMinMax = function(layer,testLayer,contourWMS, testWMS, callback,testTimeLayer) {
     var url = testWMS + '?service=WMS&version=1.1.1&request=GetMetadata&item=minmax';
     url = url + '&layers=' + testLayer.options.layers;
-    url = url + '&srs=EPSG:4326';
+    url = url + '&srs=EPSG:4326';//4326
     //size is a global variable obtained from var size = map.getSize();
     bounds=region_group.getBounds().toBBoxString();
 
@@ -245,7 +247,7 @@ var regioncenter=[31.2,-100.0];
 var mychart=[]
 //add a map to the html div "map" with time dimension capabilities. Times are currently hard coded, but will need to be changed as new GRACE data comes
 var map = L.map('map', {
-    crs: L.CRS.EPSG4326,
+    crs: L.CRS.EPSG3857,//4326
     zoom: 5,
     fullscreenControl: true,
     timeDimension: true,
@@ -267,10 +269,18 @@ var region=$("#select_region").find('option:selected').val();
 var size= map.getSize();
 var bounds=map.getBounds().toBBoxString();
 //add the background imagery
-var wmsLayer = L.tileLayer.wms('https://demo.boundlessgeo.com/geoserver/ows?', {
-    //layers: 'nasa:bluemarble'
-    layers:'ne:NE1_HR_LC_SR_W_DR'
+//var wmsLayer = L.tileLayer.wms('https://demo.boundlessgeo.com/geoserver/ows?', {
+//    //layers: 'nasa:bluemarble'
+//    layers:'ne:NE1_HR_LC_SR_W_DR'
+//}).addTo(map);
+var StreetMap = L.tileLayer('https://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}', {
+	maxZoom: 20,
+	attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
+var TopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+	maxZoom: 17,
+	attribution: 'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+});
 
 var region_group=L.featureGroup();
 var well_group=L.featureGroup();
@@ -281,7 +291,7 @@ var interpolation_group=L.layerGroup();
 var contour_group=L.layerGroup();
 var overlayMaps={
 
-    };
+};
 var toggle=L.control.layers(null,overlayMaps).addTo(map);
 
 //This ajax controller loads the JSON file for the Texas State boundary and adds it to the map
@@ -516,18 +526,19 @@ function displayallwells(aquifer_number,well_points,required){
         layers: wmsLayer,
         format: 'image/png',
         transparent: true,
-        opacity:0.5,
+        opacity:0.7,
         styles:'boxfill/'+palette,
         colorscalerange:colormin+','+colormax,
-        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+        attribution: '<a href="https://ceen.et.byu.edu/>BYU</a>'
     });
     var contourLayer=L.tileLayer.wms(testWMS,{
         layers: wmsLayer,
+        crs: L.CRS.EPSG4326,
         format: 'image/png',
         transparent: true,
         colorscalerange:colormin+','+colormax,
         styles:'contour/'+palette,
-        attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
+        attribution: '<a href="https://ceen.et.byu.edu/">BYU</a>'
     });
     var testTimeLayer=L.timeDimension.layer.wms(testLayer, {
         cache:50

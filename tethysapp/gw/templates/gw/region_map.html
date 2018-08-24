@@ -31,7 +31,7 @@
                 Max:
                     <input type="number" name="leg_max" id="col_max" min="-50000" max="50000" step="50" value="0" onchange=updateWMS()>
                 Opacity:
-                    <input type="number" name="opacity" id="opacity_val" min="0.1" max="1" step="0.1" value="0.5" onchange=updateWMS()>
+                    <input type="number" name="opacity" id="opacity_val" min="0.1" max="1" step="0.1" value="0.7" onchange=updateWMS()>
         </span>
         <div id="map" style="height: 500px; width: 100%"></div>
         <div id="buttons">{% gizmo delete_button %}{% gizmo default_button %}</div>
@@ -69,6 +69,55 @@
 
 {% endblock %}
 
+
+{% block after_app_content %}
+  <!-- Help Modal -->
+  <div class="modal fade" id="help-modal" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h2>Select Region</h2>
+          <ul>
+            <li>Click the "Select Region" dropdown and select the region of interest. The map will display the region and its aquifers.</li>
+          </ul>
+          <h2>Select Aquifer</h2>
+          <ul>
+            <li>Click the "Select Aquifer" dropdown and select the desired aquifer, or click on an aquifer in the map interface. The data for the specified aquifer will appear on the map.</li>
+          </ul>
+          <h2>Specify Required Data</h2>
+          <ul>
+            <li>Select the interpolation method for the interpolated water level surface.</li>
+            <li>Select the data type to display: Depth to Groundwater, Elevation of Groundwater, or Well Drawdown.</li>
+            <li>Slect the raster animation to display for the specified aquifer.</li>
+            <li>Adjust the slider below the heading "Minimum Samples per Well"</li>
+            <li>This slider adjusts how many wells will be dislayed. Only wells with at least the minimum specified number of samples will be mapped.</li>
+          </ul>
+          <h2>Click on individual wells</h2>
+          <ul>
+            <li>When clicked, each well will display timeseries data and well metadata.</li>
+          </ul>
+          <h2>Display Surface</h2>
+          <ul>
+            <li>Use the slider at the bottom of the map to view the interpolated surface at different timesteps.</li>
+          </ul>
+          <h2>Adjust Symbology</h2>
+          <ul>
+            <li>Use the menu in the top right corner to adjust visisbility of map elements.</li>
+            <li>Use the inputs in the top right to adjust the symbology of the raster animation.</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
 
 {% block app_actions %}
 

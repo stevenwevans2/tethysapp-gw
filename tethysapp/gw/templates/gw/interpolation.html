@@ -33,6 +33,50 @@
     <div id="waiting_output"></div><br>
 {% endblock %}
 
+
+{% block after_app_content %}
+  <!-- Help Modal -->
+  <div class="modal fade" id="help-modal" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h3>Select Region</h3>
+          <ul>
+            <li>Click the "Select Region" dropdown and select the region of interest. The Select Aquifer dropdown will populate with the appropriate entries.</li>
+          </ul>
+          <h3>Select Aquifer</h3>
+          <ul>
+            <li>Click the "Select Aquifer" dropdown and select the desired aquifer, or choose all aquifers.</li>
+          </ul>
+          <h3>Specify Start Date, End Date, and Time Increment</h3>
+          <ul>
+            <li>The Wizard will create a raster animation for the specified years</li>
+          </ul>
+          <h3>Specify Raster Resolution</h3>
+          <ul>
+            <li>The Wizard will create a raster animation with the specified resolution</li>
+          </ul>
+          <h3>Specify Interpolation Method and Options</h3>
+          <ul>
+            <li>The interpolation process will only use data from wells with the minimum number of water samples, with timeseries data spanning at least the specified percentage of the chosen time frame.</li>
+            <li>The interpolation process wil extrapolate time series data within the specified tolerance of the Temporal Extrapolation Limit.</li>
+          </ul>
+          <h3>Specify whether to set this animation as the default animation for the aquifer.</h3>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
 {% block app_actions %}
 
 {% endblock %}

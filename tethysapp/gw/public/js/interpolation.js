@@ -39,6 +39,7 @@ function submit_form(){
     var make_default=$("#default").find('option:selected').val();
     var min_samples=$("#min_samples").find('option:selected').val();
     var min_ratio=$("#min_ratio").find('option:selected').val();
+
     $.ajax({
         url: '/apps/gw/loaddata/',
         type: 'GET',
@@ -51,5 +52,6 @@ function submit_form(){
             document.getElementById('chart').innerHTML='Finished Interpolation';
         }
     })
+
 
 }
