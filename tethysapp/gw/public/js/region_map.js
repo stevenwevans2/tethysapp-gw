@@ -594,7 +594,7 @@ function displayallwells(aquifer_number,well_points,required){
             if (feature.TsTime){
                 for (i=0;i<feature.TsTime.length;i++){
                     data[i]=[feature.TsTime[i]*1000,feature.TsValue[i]];
-                    elevation[i]=[feature.TsTime[i]*1000,feature.TsValue[i]-feature.properties.LandElev];
+                    elevation[i]=[feature.TsTime[i]*1000,feature.TsValue[i]+feature.properties.LandElev];
                     drawdown[i]=[feature.TsTime[i]*1000,feature.TsValue[i]-feature.TsValue[0]];
                 }
             }
