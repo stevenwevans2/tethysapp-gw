@@ -273,9 +273,9 @@ var bounds=map.getBounds().toBBoxString();
 //    //layers: 'nasa:bluemarble'
 //    layers:'ne:NE1_HR_LC_SR_W_DR'
 //}).addTo(map);
-var StreetMap = L.tileLayer('https://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}', {
-	maxZoom: 20,
-	attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+var StreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	maxZoom: 19,
+	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 var TopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
 	maxZoom: 17,
@@ -546,82 +546,265 @@ function displayallwells(aquifer_number,well_points,required){
 
     getLayerMinMax(wmsLayer,testLayer,contourLayer,testWMS,addLegend,testTimeLayer);
 
-
     var well_layer=L.geoJSON(points,{
         onEachFeature: function (feature, layer){
+            function getpopup_content(){
+                var popup_content="Hydro ID: "+feature.properties.HydroID;
+                var type=feature.properties.FType;
+                if (type=="W"){
+                    type="Water Withdrawal";
+                }
+                else if (type=="P"){
+                    type="Petroleum";
+                }
+                else if (type=="O"){
+                    type="Observation";
+                }
+                else if (type=="M"){
+                    type="Mine";
+                }
+                popup_content+="<br>"+"Well Type: "+type;
+                popup_content+="<br>"+"Aquifer: "+aquifer;
+                popup_content+="<br>"+"Elevation: "+feature.properties.LandElev + " feet";
+                popup_content+="<br>"+"Well Depth: "+feature.properties.WellDepth + " feet";
+                if (!feature.properties.Outlier || feature.properties.Outlier==false){
+                    var container ='<a href="#" class='+feature.properties.HydroID+'>Flag as Outlier</a>';
+                    layer.setStyle({
+                        color:"blue"
+                    })
+                }
+                else{
+                    var warning="Outlier";
+                    warning=warning.fontcolor("red").bold();
+                    var container ='<a href="#" class='+feature.properties.HydroID+'>Unflag as Outlier</a>'+"<br>"+warning;
+                    layer.setStyle({
+                        color:"red"
+                    })
+                }
+                popup_content+="<br>"+container
+                return popup_content
+            }
+            popup_content=getpopup_content();
 
-            var popup_content="Hydro ID: "+feature.properties.HydroID;
-            var type=feature.properties.FType;
-            if (type=="W"){
-                type="Water Withdrawal";
-            }
-            else if (type=="P"){
-                type="Petroleum";
-            }
-            else if (type=="O"){
-                type="Observation";
-            }
-            else if (type=="M"){
-                type="Mine";
-            }
-            popup_content+="<br>"+"Well Type: "+type;
-            popup_content+="<br>"+"Aquifer: "+aquifer;
-            popup_content+="<br>"+"Elevation: "+feature.properties.LandElev + " feet";
-            popup_content+="<br>"+"Well Depth: "+feature.properties.WellDepth + " feet";
+
 
             var data=[];
+            var elevation=[];
+            var drawdown=[];
             if (feature.TsTime){
                 for (i=0;i<feature.TsTime.length;i++){
-                    data[i]=[feature.TsTime[i]*1000,feature.TsValue[i]]
+                    data[i]=[feature.TsTime[i]*1000,feature.TsValue[i]];
+                    elevation[i]=[feature.TsTime[i]*1000,feature.TsValue[i]-feature.properties.LandElev];
+                    drawdown[i]=[feature.TsTime[i]*1000,feature.TsValue[i]-feature.TsValue[0]];
                 }
             }
             //make a high charts
             layer.on({
                 click: function showResultsInDiv() {
+                    count=0;
+                    map.on('popupopen', function() {
+                        $('.'+feature.properties.HydroID).click(function() {
+                            if (count==0){
+                                if (!feature.properties.Outlier || feature.properties.Outlier==false){
+                                    feature.properties.Outlier=true;
+                                    popup_content=getpopup_content();
+                                    var edit="add";
+                                    $.ajax({
+                                        url: '/apps/gw/addoutlier/',
+                                        type: 'GET',
+                                        data: {'region':region, 'aquifer':aquifer, 'hydroId':feature.properties.HydroID, 'edit':edit},
+                                        contentType: 'application/json',
+                                        error: function (status) {
+
+                                        }, success: function (response) {
+                                            layer._popup.setContent(popup_content);
+                                        }
+                                    });
+                                }
+                                else{
+                                    feature.properties.Outlier=false;
+                                    popup_content=getpopup_content();
+                                    var edit="remove";
+                                    $.ajax({
+                                        url: '/apps/gw/addoutlier/',
+                                        type: 'GET',
+                                        data: {'region':region, 'aquifer':aquifer, 'hydroId':feature.properties.HydroID, 'edit':edit},
+                                        contentType: 'application/json',
+                                        error: function (status) {
+
+                                        }, success: function (response) {
+                                            layer._popup.setContent(popup_content);
+                                        }
+                                    });
+                                }
+                                count+=1;
+                                map.closePopup();
+                            }
+                        });
+                    });
                     mychart=Highcharts.chart('chart',{
                         chart: {
                             type: 'spline'
                         },
                         title: {
-                            text: 'Depth to Water Table at Well ' +feature.properties.HydroID+", located at "+feature.geometry.coordinates
+                            text: (function(){
+                                //'Depth to Water Table (ft)'}
+                                    type=$("#select_view").find('option:selected').val();
+                                    if (type=="elevation"){
+                                        type="Elevation of Water Table ";
+                                    }
+                                    else if(type=="drawdown"){
+                                        type="Drawdown ";
+                                    }
+                                    else{
+                                        type="Depth to Water Table ";
+                                    }
+                                    type+='at Well ' +feature.properties.HydroID+", located at "+feature.geometry.coordinates
+                                    return type;
+                                    })()
                         },
+                        tooltip:{valueDecimals:2},
                         xAxis: {
                             type: 'datetime',
 
                             title: {
                                 text: 'Date'
                             },
-                plotLines: [{
-                        color: 'red',
-                        dashStyle: 'solid',
-                        value: new Date(testTimeLayer._timeDimension.getCurrentTime()),
-                        width: 2,
-                        id: 'pbCurrentTime'
-                    }]
+                            plotLines: [{
+                                color: 'red',
+                                dashStyle: 'solid',
+                                value: new Date(testTimeLayer._timeDimension.getCurrentTime()),
+                                width: 2,
+                                id: 'pbCurrentTime'
+                            }]
                         },
                         yAxis:{
                             title: {
-                                text: 'Depth to Water Table (ft)'}
+                                text: (function(){
+                                //'Depth to Water Table (ft)'}
+                                    type=$("#select_view").find('option:selected').val();
+                                    if (type=="elevation"){
+                                        type="Elevation of Water Table (ft)";
+                                    }
+                                    else if(type=="drawdown"){
+                                        type="Drawdown (ft)";
+                                    }
+                                    else{
+                                        type="Depth to Water Table (ft)";
+                                    }
+                                    return type;
+                                    })()
+                                }
                         },
                         series: [{
                             data: data,
-                            name: "Depth to Water Table (ft)"
+                            name: "Depth to Water Table (ft)",
+                            marker:{enabled: true},
+                            visible:(function(){
+                                    type=$("#select_view").find('option:selected').val();
+                                    if (type=="elevation"){
+                                        type="Elevation of Water Table (ft)";
+                                    }
+                                    else if(type=="drawdown"){
+                                        type="Drawdown (ft)";
+                                    }
+                                    else{
+                                        type="Depth to Water Table (ft)";
+                                    }
+                                    visible=false
+                                    if (type=="Depth to Water Table (ft)"){
+                                        visible=true;
+                                    }
+                                    return visible;
+                                })()
+                            },
+                            {
+                            data:elevation,
+                            name: "Elevation of Water Table (ft)",
+                            marker:{enabled: true},
+                            color:'blue',
+                            visible:(function(){
+                                    type=$("#select_view").find('option:selected').val();
+                                    if (type=="elevation"){
+                                        type="Elevation of Water Table (ft)";
+                                    }
+                                    else if(type=="drawdown"){
+                                        type="Drawdown (ft)";
+                                    }
+                                    else{
+                                        type="Depth to Water Table (ft)";
+                                    }
+                                    visible=false
+                                    if (type=="Elevation of Water Table (ft)"){
+                                        visible=true;
+                                    }
+                                    return visible;
+                                })()
+                            },
+                            {
+                            data:drawdown,
+                            name: "Drawdown (ft)",
+                            marker:{enabled: true},
+                            color:'#1A429E',
+                            visible:(function(){
+                                    type=$("#select_view").find('option:selected').val();
+                                    if (type=="elevation"){
+                                        type="Elevation of Water Table (ft)";
+                                    }
+                                    else if(type=="drawdown"){
+                                        type="Drawdown (ft)";
+                                    }
+                                    else{
+                                        type="Depth to Water Table (ft)";
+                                    }
+                                    visible=false
+                                    if (type=="Drawdown (ft)"){
+                                        visible=true;
+                                    }
+                                    return visible;
+                                })()
+                            }]
+                    });
+                    testTimeLayer._timeDimension.on('timeload', (function() {
+                        if (!mychart){
+                            return;
+                        }
+                        mychart.xAxis[0].removePlotBand("pbCurrentTime");
+                        mychart.xAxis[0].addPlotLine({
+                            color: 'red',
+                            dashStyle: 'solid',
+                            value: new Date(testTimeLayer._timeDimension.getCurrentTime()),
+                            width: 2,
+                            id: 'pbCurrentTime'
+                        });
+                    }).bind(this));
+                    $("#select_view").bind("change", (function() {
+                        if (!mychart){
+                            return;
+                        }
+                        type=$("#select_view").find('option:selected').val();
+                        if (type=="elevation"){
+                            type="Elevation of Water Table (ft)";
+                        }
+                        else if(type=="drawdown"){
+                            type="Drawdown (ft)";
+                        }
+                        else{
+                            type="Depth to Water Table (ft)";
+                        }
+                        for (var i=0;i<mychart.series.length;i++){
+                            if (mychart.series[i].name==type){
+                                mychart.series[i].show();
+                            }
+                            else{
+                                mychart.series[i].hide();
+                            }
+                        }
+                        mychart.yAxis[0].setTitle({text: type});
+                        type=type.substring(0,type.length-4)
+                        mychart.setTitle({text:type +'at Well ' +feature.properties.HydroID+", located at "+feature.geometry.coordinates})
 
-                        }]
-                    });
-                testTimeLayer._timeDimension.on('timeload', (function() {
-                    if (!mychart){
-                        return;
-                    }
-                    mychart.xAxis[0].removePlotBand("pbCurrentTime");
-                    mychart.xAxis[0].addPlotLine({
-                        color: 'red',
-                        dashStyle: 'solid',
-                        value: new Date(testTimeLayer._timeDimension.getCurrentTime()),
-                        width: 2,
-                        id: 'pbCurrentTime'
-                    });
-                        }).bind(this));
+                    }).bind(this));
                 }
 
             });

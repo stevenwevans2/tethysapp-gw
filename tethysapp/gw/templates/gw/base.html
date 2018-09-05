@@ -16,10 +16,12 @@
   {% url 'gw:region_map' as region_map %}
   {% url 'gw:home' as home %}
   {% url 'gw:interpolation' as interpolation %}
+  {% url 'gw:addregion' as addregion %}
   <br>
   <li class="{% if request.path == home %}active{% endif %}"><a href="{% url 'gw:home' %}">Home</a></li>
   <li class="{% if request.path == region_map %}active{% endif %}"><a href="{% url 'gw:region_map' %}">Regional Map</a></li>
   <li class="{% if request.path == interpolation %}active{% endif %}"><a href="{% url 'gw:interpolation' %}">Interpolation Wizard</a></li>
+  <li class="{% if request.path == addregion %}active{% endif %}"><a href="{% url 'gw:addregion' %}">Add Region</a></li>
 {% endblock %}
 
 {% block app_content %}

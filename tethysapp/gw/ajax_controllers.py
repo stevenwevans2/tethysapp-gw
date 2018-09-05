@@ -139,6 +139,7 @@ def loadjson(request):
 
 
 
+
 #The loadaquiferlist ajax function takes a region as a parameter and returns a JSON object with the list of Aquifers in that region
 def loadaquiferlist(request):
     return_obj = {
@@ -192,6 +193,42 @@ def deletenetcdf(request):
 
     return JsonResponse(return_obj)
 
+def addoutlier(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        aquifer=request.GET.get('aquifer')
+        hydroId=request.GET.get('hydroId')
+        edit=request.GET.get('edit')
+
+        app_workspace=app.get_app_workspace()
+
+        aquifer=aquifer.replace(" ","_")
+        file = os.path.join(app_workspace.path, region + '/aquifers/'+aquifer+'.json')
+        print file
+        if os.path.exists(file):
+            with open(file, 'r') as f:
+                wells = ''
+                entry = f.readlines()
+                for i in range(0, len(entry)):
+                    wells += entry[i]
+            wells = json.loads(wells)
+            for i in wells['features']:
+                if i['properties']['HydroID']==int(hydroId):
+                    if edit=="add":
+                        i['properties']['Outlier']=True
+                    elif edit=="remove":
+                        i['properties']['Outlier']=False
+            with open(file, 'w') as outfile:
+                json.dump(wells, outfile)
+
+    return JsonResponse(return_obj)
+
 def defaultnetcdf(request):
     return_obj = {
         'success': False
@@ -217,17 +254,6 @@ def defaultnetcdf(request):
                 elif filename!=name:
                     h.default=0
                 h.close()
-                # if filename==name and ".Default.nc" not in filename:
-                #     newname = filename[:-3] + ".Default.nc"
-                #     src = os.path.join(directory, filename)
-                #     dst = os.path.join(directory, newname)
-                #     os.rename(src, dst)
-                # elif ".Default" in filename and filename!=name:
-                #     newname = filename.replace(".Default", "")
-                #     src = os.path.join(directory, filename)
-                #     dst = os.path.join(directory, newname)
-                #     os.rename(src, dst)
-
 
     return JsonResponse(return_obj)
 
@@ -428,8 +454,9 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
             myelevations = []
             timevalue = 0
 
+
             for i in points['features']:
-                if 'TsTime' in i and 'LandElev' in i['properties']:
+                if 'TsTime' in i and 'LandElev' in i['properties'] and ('Outlier' not in i['properties'] or i['properties']['Outlier']==False):
                     listlength = len(i['TsTime'])
                     length_time = end_time - start_time
                     mylength_time = min(i['TsTime'][listlength - 1] - i['TsTime'][0], i['TsTime'][listlength - 1] - start_time, end_time-i['TsTime'][0])
@@ -680,7 +707,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     state = json.loads(allwells)
 
     if myaquifercaps == region or myaquifercaps == 'NONE':
-        AquiferShape['features'].append(state['features'][0])
+        AquiferShape=state
 
     temp_dir=tempfile.mkdtemp()
 
@@ -833,114 +860,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     subprocess.call([shellscript, filename, directory, interpolation_type, region, str(resolution), app_workspace.path])
 
 
-#The pullnwis function pulls data from the web for a specified region and writes the data to a JSON file named Wells.JSON in the appropriate folder.
-def pullnwis(state, app_workspace,region):
-    link = "https://waterservices.usgs.gov/nwis/gwlevels/?format=json&stateCd=ut&startDT=1800-01-01&endDT=2018-7-31&parameterCd=72019&siteStatus=all"
-    f = urllib.urlopen(link)
-    myfile = f.read()
-    myfile = json.loads(myfile)
-    print len(myfile['value']['timeSeries'])
 
-    aquifermin = 0.0
-    points = {
-        'type': 'FeatureCollection',
-        'features': []
-    }
-    for i in range(0, len(myfile['value']['timeSeries'])):
-        times = []
-        values = []
-        for j in myfile['value']['timeSeries'][i]['values'][0]['value']:
-            if float(j['value']) != 999999.0 and float(j['value']) != -999999.0:
-                time = j['dateTime']
-                value = float(j['value']) * -1
-                times.append(time)
-                values.append(value)
-                if value < aquifermin:
-                    aquifermin = value
-        id_name = myfile['value']['timeSeries'][i]['name']
-        pos = id_name.find(":")
-        pos2 = id_name.find(":", pos + 1)
-        id_name = id_name[pos + 1:pos2]
-        latitude = float(
-            myfile['value']['timeSeries'][i]['sourceInfo']['geoLocation']['geogLocation']['latitude'])
-        longitude = float(
-            myfile['value']['timeSeries'][i]['sourceInfo']['geoLocation']['geogLocation']['longitude'])
-        if len(times) > 0:
-            feature = {
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [longitude, latitude]
-                },
-                'TsTime': times,
-                'TsValue': values,
-                'properties': {
-                    'HydroID': int(id_name)
-                }
-            }
-        else:
-            feature = {
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [longitude, latitude]
-                },
-                'properties': {
-                    'HydroID': int(id_name)
-                }
-            }
-        points['features'].append(feature)
-
-    url = "https://waterservices.usgs.gov/nwis/site/?format=rdb&stateCd=ut&siteType=GW&siteStatus=all"
-    f = pd.read_csv(url, skiprows=29, sep='\t')
-    length = len(f['site_no'])
-    i = 1
-    for p in points['features']:
-        newstart = i
-        while i < length:
-            if p['properties']['HydroID'] == int(f['site_no'][i]):
-                empty = pd.isnull(f['alt_va'][i])
-                if empty == False:
-                    p['properties']['LandElev'] = float(f['alt_va'][i])
-                break
-            i += 1
-        if i == length:
-            i = newstart
-            continue
-
-    count = 0
-    for i in points['features']:
-        if 'TsValue' in i:
-            array = []
-            for j in range(0, len(i['TsTime'])):
-                this_time = i['TsTime'][j]
-                pos = this_time.find("-")
-                pos2 = this_time.find("-", pos + 1)
-                pos3 = this_time.find("T")
-                year = this_time[0:pos]
-                month = this_time[pos + 1:pos2]
-                day = this_time[pos2 + 1:pos3]
-                month = int(month)
-                year = int(year)
-                day = int(day)
-                this_time = calendar.timegm(datetime.datetime(year, month, day).timetuple())
-                i['TsTime'][j] = this_time
-            # The following code sorts the timeseries entries for each well so they are in chronological order
-            length = len(i['TsTime'])
-            for j in range(0, len(i['TsTime'])):
-                array.append((i['TsTime'][j], i['TsValue'][j]))
-            array.sort(key=itemgetter(0))
-            i['TsTime'] = []
-            i['TsValue'] = []
-            for j in range(0, length):
-                i['TsTime'].append(array[j][0])
-                i['TsValue'].append(array[j][1])
-            count += 1
-
-    points['aquifermin']=aquifermin
-    mywellsfile = os.path.join(app_workspace.path, region + "/Wells.json")
-    with open(mywellsfile, 'w') as outfile:
-        json.dump(points, outfile)
 
 #This function takes a region and aquiferid number and writes a new JSON file with data for the specified aquifer
 #This function uses data from the Wells.json file for the region.

@@ -54,6 +54,11 @@ class Gw(TethysAppBase):
                 controller='gw.controllers.interpolation'
             ),
             UrlMap(
+                name='addregion',
+                url='addregion',
+                controller='gw.controllers.addregion'
+            ),
+            UrlMap(
                 name='create_wells',
                 url='gw/displaygeojson',
                 controller='gw.ajax_controllers.displaygeojson'
@@ -92,6 +97,11 @@ class Gw(TethysAppBase):
                 name='defaultnetcdf',
                 url='gw/defaultnetcdf',
                 controller='gw.ajax_controllers.defaultnetcdf'
+            ),
+            UrlMap(
+                name='addoutlier',
+                url='gw/addoutlier',
+                controller='gw.ajax_controllers.addoutlier'
             ),
         )
 
