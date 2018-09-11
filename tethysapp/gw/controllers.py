@@ -181,6 +181,16 @@ def region_map(request):
                                      'onchange':'list_aquifer()'
                                  }
     )
+    region_home=Button(display_text='Region Home',
+                         name='region_home',
+                         icon='glyphicon glyphicon-home',
+                         attributes={
+                             'data-toggle': 'tooltip',
+                             'data-placement': 'top',
+                             'title': 'Jump to Home View for Region',
+                             'onclick':"list_aquifer()",
+                         }
+    )
 
     select_aquifer=SelectInput(display_text='Select Aquifer',
                                name='select_aquifer',
@@ -241,7 +251,7 @@ def region_map(request):
                                     'onchange': 'changeWMS()'
                                 }
     )
-    delete_button=Button(display_text='Delete Selected Raster Animation',
+    delete_button=Button(display_text='Delete Raster',
                          name='delete_button',
                          icon='glyphicon glyphicon-remove',
                          style='danger',
@@ -249,11 +259,11 @@ def region_map(request):
                          attributes={
                              'data-toggle': 'tooltip',
                              'data-placement': 'top',
-                             'title': 'Remove',
+                             'title': 'Delete Selected Raster Animation',
                              'onclick':"confirm_delete()",
                          }
     )
-    default_button = Button(display_text='Set Selected Raster Animation as Default',
+    default_button = Button(display_text='Make Raster Default',
                            name='default_button',
                            icon='glyphicon glyphicon-menu-right',
                            style='default',
@@ -261,7 +271,7 @@ def region_map(request):
                            attributes={
                                'data-toggle': 'tooltip',
                                'data-placement': 'top',
-                               'title': 'Make Default',
+                               'title': 'Set Selected Raster Animation as Default',
                                'onclick': "confirm_default()",
                            }
                            )
@@ -275,6 +285,7 @@ def region_map(request):
         "available_dates":available_dates,
         'delete_button':delete_button,
         'default_button':default_button,
+        'region_home':region_home
     }
 
     return render(request, 'gw/region_map.html', context)

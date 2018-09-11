@@ -1121,35 +1121,7 @@ def gettimelist(region,aquifer,interpolation_type):
             'Default':h.default
         }
         h.close()
-        # components=item.split('.')
-        # if len(components)>4:
-        #     mytime={
-        #         'Full_Name':item,
-        #         'Aquifer':components[0].replace("_"," "),
-        #         'Start_Date':int(components[1]),
-        #         'End_Date':int(components[2]),
-        #         'Interval':int(components[3]),
-        #         'Resolution':float(components[4]),
-        #         'Min_Samples':int(components[5]),
-        #         'Min_Ratio':float(components[6]),
-        #         'Time_Tolerance':float(components[7])
-        #     }
-        #     if len(components)>9 or ".Default" in item:
-        #         mytime['Default']=True
-        # else:
-        #     mytime={
-        #         'Full_Name':item,
-        #         'Aquifer':components[0].replace("_"," "),
-        #         'Start_Date':1985,
-        #         'End_Date':2015,
-        #         'Interval':5,
-        #         'Resolution': "NA",
-        #         'Min_Samples': "NA",
-        #         'Min_Ratio': "NA",
-        #         'Time_Tolerance': "NA"
-        #     }
-        #     if ".Default" in item:
-        #         mytime['Default']=True
+
         timelist.append(mytime)
     return timelist
 
@@ -1189,20 +1161,7 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
                 if h.default==1:
                     h.default=0
                 h.close()
-    #         if make_default==1:
-    #             newname=filename[:-3]+".Default.nc"
-    #             src = os.path.join(netcdf_directory, filename)
-    #             dst = os.path.join(netcdf_directory, newname)
-    #             os.rename(src, dst)
-    #     elif make_default==1:
-    #         if ".Default" in filename:
-    #             newname=filename.replace(".Default","")
-    #             src=os.path.join(netcdf_directory,filename)
-    #             dst=os.path.join(netcdf_directory,newname)
-    #             os.rename(src,dst)
-    #
-    # if make_default==1:
-    #     date_name=date_name+".Default"
+
 
 
     start = t.time()
