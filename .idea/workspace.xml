@@ -7,8 +7,8 @@
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lake_Superior.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lake_Superior.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Wisconsin.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Wisconsin.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Beryl-Enterprise.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Beryl-Enterprise.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Milford.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Milford.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,14 +21,15 @@
     <session id="-1321769087">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="42" />
-          <entry key="project.open.time.10" value="10" />
-          <entry key="project.open.time.11" value="10" />
+          <entry key="project.closed" value="45" />
+          <entry key="project.open.time.10" value="11" />
+          <entry key="project.open.time.11" value="11" />
           <entry key="project.open.time.12" value="4" />
           <entry key="project.open.time.13" value="3" />
           <entry key="project.open.time.14" value="3" />
-          <entry key="project.open.time.15" value="3" />
+          <entry key="project.open.time.15" value="4" />
           <entry key="project.open.time.16" value="3" />
+          <entry key="project.open.time.17" value="1" />
           <entry key="project.open.time.18" value="3" />
           <entry key="project.open.time.2" value="2" />
           <entry key="project.open.time.21" value="1" />
@@ -44,23 +45,23 @@
           <entry key="project.open.time.73" value="1" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="4" />
-          <entry key="project.opened" value="58" />
+          <entry key="project.opened" value="62" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="html" value="3706" />
-          <entry key="js" value="16207" />
-          <entry key="py" value="25984" />
-          <entry key="sh" value="159" />
+          <entry key="js" value="17303" />
+          <entry key="py" value="26364" />
+          <entry key="sh" value="162" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="HTML" value="3706" />
-          <entry key="JavaScript" value="16207" />
-          <entry key="PLAIN_TEXT" value="159" />
-          <entry key="Python" value="25984" />
+          <entry key="JavaScript" value="17303" />
+          <entry key="PLAIN_TEXT" value="162" />
+          <entry key="Python" value="26364" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -79,6 +80,7 @@
           <entry key="Python" value="2" />
         </counts>
       </usages-collector>
+      <usages-collector id="statistics.vcs.git.usages" />
     </session>
   </component>
   <component name="FileEditorManager">
@@ -86,8 +88,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/controllers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1426">
-              <caret line="270" column="39" selection-start-line="270" selection-start-column="39" selection-end-line="270" selection-end-column="39" />
+            <state relative-caret-position="390">
+              <caret line="114" column="28" lean-forward="true" selection-start-line="114" selection-start-column="28" selection-end-line="114" selection-end-column="28" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
@@ -108,7 +110,7 @@
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="245">
-              <caret line="136" column="28" selection-start-line="136" selection-start-column="19" selection-end-line="136" selection-end-column="28" />
+              <caret line="626" column="23" selection-start-line="626" selection-start-column="20" selection-end-line="626" selection-end-column="23" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -119,13 +121,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="530">
-              <caret line="45" column="31" selection-start-line="45" selection-start-column="31" selection-end-line="45" selection-end-column="31" />
-              <folding>
-                <element signature="e#800#839#0" expanded="true" />
-                <element signature="e#1958#1997#0" expanded="true" />
-                <element signature="e#2036#2072#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="1800">
+              <caret line="100" column="44" selection-start-line="100" selection-start-column="44" selection-end-line="100" selection-end-column="44" />
             </state>
           </provider>
         </entry>
@@ -133,8 +130,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="318">
-              <caret line="391" column="2" lean-forward="true" selection-start-line="391" selection-start-column="2" selection-end-line="391" selection-end-column="2" />
+            <state relative-caret-position="18">
+              <caret line="1" column="2" selection-start-line="1" selection-start-column="2" selection-end-line="1" selection-end-column="2" />
             </state>
           </provider>
         </entry>
@@ -142,8 +139,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="486">
-              <caret line="27" selection-start-line="27" selection-end-line="27" />
+            <state relative-caret-position="558">
+              <caret line="31" lean-forward="true" selection-start-line="31" selection-end-line="31" />
             </state>
           </provider>
         </entry>
@@ -186,17 +183,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>submit_region</find>
-      <find>region-file</find>
-      <find>csv</find>
-      <find>pullnwis</find>
-      <find>print</find>
-      <find>thredds_url</find>
-      <find>state_boundary</find>
-      <find>state_bound</find>
-      <find>displaygeojson</find>
-      <find>confirm</find>
-      <find>json.dump</find>
       <find>#(</find>
       <find>tethys</find>
       <find>button</find>
@@ -210,12 +196,23 @@
       <find>testWMS</find>
       <find>blank.nc</find>
       <find>landelev</find>
-      <find>'aquifer'</find>
       <find>displayallwells</find>
       <find>testLegend</find>
-      <find>buttons</find>
       <find>toggle</find>
       <find>div</find>
+      <find>redwell</find>
+      <find>'aquifer'</find>
+      <find>time_tolerance</find>
+      <find>timelist</find>
+      <find>loadtimelist</find>
+      <find>deletenetcdf</find>
+      <find>interpolation_type</find>
+      <find>date_name</find>
+      <find>interp_wizard</find>
+      <find>color:&quot;red&quot;</find>
+      <find>'chart'</find>
+      <find>buttons</find>
+      <find>IDW</find>
     </findStrings>
     <replaceStrings>
       <replace>h3</replace>
@@ -235,11 +232,11 @@
         <option value="$PROJECT_DIR$/tethysapp/gw/public/js/addregion.js" />
         <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" />
         <option value="$PROJECT_DIR$/tethysapp/gw/app.py" />
+        <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" />
+        <option value="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" />
         <option value="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" />
         <option value="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" />
         <option value="$PROJECT_DIR$/tethysapp/gw/controllers.py" />
-        <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" />
-        <option value="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" />
       </list>
     </option>
   </component>
@@ -450,6 +447,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1800">
+          <caret line="100" column="44" selection-start-line="100" selection-start-column="44" selection-end-line="100" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/app.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1854">
@@ -471,49 +475,37 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/controllers.py">
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1426">
-          <caret line="270" column="39" selection-start-line="270" selection-start-column="39" selection-end-line="270" selection-end-column="39" />
-          <folding>
-            <element signature="e#0#35#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="558">
+          <caret line="31" lean-forward="true" selection-start-line="31" selection-end-line="31" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="245">
-          <caret line="136" column="28" selection-start-line="136" selection-start-column="19" selection-end-line="136" selection-end-column="28" />
+          <caret line="626" column="23" selection-start-line="626" selection-start-column="20" selection-end-line="626" selection-end-column="23" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/controllers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="486">
-          <caret line="27" selection-start-line="27" selection-end-line="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="530">
-          <caret line="45" column="31" selection-start-line="45" selection-start-column="31" selection-end-line="45" selection-end-column="31" />
+        <state relative-caret-position="390">
+          <caret line="114" column="28" lean-forward="true" selection-start-line="114" selection-start-column="28" selection-end-line="114" selection-end-column="28" />
           <folding>
-            <element signature="e#800#839#0" expanded="true" />
-            <element signature="e#1958#1997#0" expanded="true" />
-            <element signature="e#2036#2072#0" expanded="true" />
+            <element signature="e#0#35#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="318">
-          <caret line="391" column="2" lean-forward="true" selection-start-line="391" selection-start-column="2" selection-end-line="391" selection-end-column="2" />
+        <state relative-caret-position="18">
+          <caret line="1" column="2" selection-start-line="1" selection-start-column="2" selection-end-line="1" selection-end-column="2" />
         </state>
       </provider>
     </entry>

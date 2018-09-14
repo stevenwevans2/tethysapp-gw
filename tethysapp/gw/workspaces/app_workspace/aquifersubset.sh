@@ -31,7 +31,7 @@ ncap2 -s 'drawdown=Band1*drawdown;' temp1.nc temp.nc
 #d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
 d='/home/tethys/Thredds/groundwater/'
 
-destination=$d$4'/'$3
+destination=$d$4
 
 rm shapefile.json
 rm Aquifer.nc

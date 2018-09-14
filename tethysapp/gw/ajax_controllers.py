@@ -17,7 +17,7 @@ import pandas as pd
 from shapely.geometry import Point
 from shapely.geometry import shape
 import tempfile, shutil
-from scipy.interpolate import UnivariateSpline
+import scipy
 
 #global variables
 thredds_serverpath='/home/tethys/Thredds/groundwater/'
@@ -167,9 +167,8 @@ def loadtimelist(request):
         return_obj['success'] = True
         region=request.GET.get('region')
         aquifer=request.GET.get('aquifer')
-        interpolation_type=request.GET.get('interpolation_type')
 
-        timelist=gettimelist(region,aquifer,interpolation_type)
+        timelist=gettimelist(region,aquifer)
         return_obj['timelist']=timelist
     return JsonResponse(return_obj)
 
@@ -183,11 +182,9 @@ def deletenetcdf(request):
     if request.is_ajax() and request.method == 'GET':
         return_obj['success'] = True
         region=request.GET.get('region')
-        aquifer=request.GET.get('aquifer')
-        interpolation_type=request.GET.get('interpolation_type')
         name=request.GET.get('name')
 
-        directory = os.path.join(thredds_serverpath, region + '/' + interpolation_type)
+        directory = os.path.join(thredds_serverpath, region)
         file=os.path.join(directory,name)
         os.remove(file)
 
@@ -239,11 +236,10 @@ def defaultnetcdf(request):
         return_obj['success'] = True
         region=request.GET.get('region')
         aquifer=request.GET.get('aquifer')
-        interpolation_type=request.GET.get('interpolation_type')
         name=request.GET.get('name')
 
         aquifer=aquifer.replace(" ","_")
-        directory = os.path.join(thredds_serverpath, region + '/' + interpolation_type)
+        directory = os.path.join(thredds_serverpath, region)
         for filename in os.listdir(directory):
             if filename.startswith(aquifer+'.'):
                 nc_file = os.path.join(directory, filename)
@@ -283,13 +279,13 @@ def loaddata(request):
         time_tolerance=request.GET.get('time_tolerance')
         from_wizard=request.GET.get("from_wizard")
         return_obj['id'] = aquiferid
-        return_obj['interpolation_type']=interpolation_type
         app_workspace = app.get_app_workspace()
         aquiferid=int(aquiferid)
 
         make_default = int(make_default)
         from_wizard=int(from_wizard)
-        if start_date and end_date and interval and resolution:
+
+        if interpolation_type:
             start_date=int(start_date)
             end_date=int(end_date)
             interval=int(interval)
@@ -298,18 +294,7 @@ def loaddata(request):
             min_samples=int(min_samples)
             min_ratio=float(min_ratio)
             time_tolerance=int(time_tolerance)
-        else:
-            start_date=1950
-            end_date=2015
-            interval=5
-            resolution=.05
-            make_default=0
-            min_samples=25
-            time_tolerance=5
-            if interpolation_type=="IDW":
-                min_ratio=.75
-            else:
-                min_ratio=1
+
 
         if aquiferid==9999:
             for i in range(1,length):
@@ -336,11 +321,6 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     iterations=int((end_date-start_date)/interval+1)
     start_time=calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple())
     end_time=calendar.timegm(datetime.datetime(end_date, 1, 1).timetuple())
-    # min_ratio=1.0
-    # if interpolation_type=="IDW":
-    #     min_ratio=0.75
-    # if min_samples<30:
-    #     min_ratio=0.0
 
 
     #old method of interpolation that uses all data
@@ -481,11 +461,13 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                         # for the case where the target time is in the middle
                         if tlocation > 0:
                             if listlength > min_samples and listlength > 1:
-
-                                timedelta = target_time - i['TsTime'][tlocation - 1]
-                                slope = (i['TsValue'][tlocation] - i['TsValue'][tlocation - 1]) / (
-                                        i['TsTime'][tlocation] - i['TsTime'][tlocation - 1])
-                                timevalue = i['TsValue'][tlocation - 1] + slope * timedelta
+                                y_data = np.array(i['TsValue'])
+                                x_data = np.array(i['TsTime'])
+                                timevalue=scipy.interpolate.pchip_interpolate(x_data,y_data,target_time)
+                                # timedelta = target_time - i['TsTime'][tlocation - 1]
+                                # slope = (i['TsValue'][tlocation] - i['TsValue'][tlocation - 1]) / (
+                                #         i['TsTime'][tlocation] - i['TsTime'][tlocation - 1])
+                                # timevalue = i['TsValue'][tlocation - 1] + slope * timedelta
 
 
                             else:
@@ -511,7 +493,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                         if (i['TsTime'][step+1] - i['TsTime'][step]) > (oneyear*2):
                                             consistent = False
                                             break
-                                if (i['TsTime'][0] - target_time) < fiveyears or (consistent and (i['TsTime'][0]-target_time)<(fiveyears*3)):
+                                if (i['TsTime'][0] - target_time) < fiveyears/2 or (consistent and (i['TsTime'][0]-target_time)<(fiveyears)):
                                     y_data = np.array(i['TsValue'])
                                     x_data = np.array(i['TsTime'])
                                     ymax = np.amax(y_data)
@@ -559,9 +541,9 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                         if (i['TsTime'][step]-i['TsTime'][step-1])>(oneyear*2):
                                             consistent=False
                                             break
-                                if (target_time - i['TsTime'][listlength - 1])<(fiveyears/5):
+                                if (target_time - i['TsTime'][listlength - 1])<(oneyear/2):
                                     timevalue=i['TsValue'][listlength-1]
-                                elif (target_time - i['TsTime'][listlength - 1]) < fiveyears or (consistent and (target_time - i['TsTime'][listlength - 1]) < (fiveyears*3)):
+                                elif (target_time - i['TsTime'][listlength - 1]) < fiveyears/2 or (consistent and (target_time - i['TsTime'][listlength - 1]) < fiveyears):
                                     y_data = np.array(i['TsValue'])
                                     x_data = np.array(i['TsTime'])
                                     ymax = np.amax(y_data)
@@ -587,8 +569,6 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                     timevalue = 9999
                             else:
                                 timevalue = 9999
-                        if i['properties']['HydroID']==403900112022701:
-                            print timevalue, targetyear
                         if timevalue != 9999:
                             the_elevation = i['properties']['LandElev'] + timevalue
                             myelevations.append(the_elevation)
@@ -736,6 +716,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     h.min_ratio=min_ratio
     h.time_tolerance=time_tolerance
     h.default=make_default
+    h.interpolation=interpolation_type
 
     time = h.createDimension("time", 0)
     lat = h.createDimension("lat", latlen)
@@ -1094,11 +1075,11 @@ def getaquiferlist(app_workspace,region):
     return aquiferlist
 
 #This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
-def gettimelist(region,aquifer,interpolation_type):
+def gettimelist(region,aquifer):
 
     list = []
     timelist=[]
-    directory=os.path.join(thredds_serverpath,region+'/'+interpolation_type)
+    directory=os.path.join(thredds_serverpath,region)
     aquifer=aquifer.replace(" ","_")
     for filename in os.listdir(directory):
         if filename.startswith(aquifer+"."):
@@ -1118,7 +1099,8 @@ def gettimelist(region,aquifer,interpolation_type):
             'Min_Samples':h.min_samples,
             'Min_Ratio':h.min_ratio,
             'Time_Tolerance':h.time_tolerance,
-            'Default':h.default
+            'Default':h.default,
+            'Interpolation':h.interpolation,
         }
         h.close()
 
@@ -1140,9 +1122,11 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
             myaquifer = i
     name = myaquifer['Name'].replace(' ', '_')
     aquifer=name
-    date_name=aquifer+"."+str(start_date)+"."+str(end_date)+"."+str(interval)+"."+str(int(resolution*100))+"."+str(min_samples)+"."+str(int(min_ratio*100))+"."+str(time_tolerance)
-
-    netcdf_directory = os.path.join(thredds_serverpath, region + '/' + interpolation_type)
+    if interpolation_type:
+        date_name=aquifer+"."+str(start_date)+"."+str(end_date)+"."+str(interval)+"."+str(int(resolution*100))+"."+str(min_samples)+"."+str(int(min_ratio*100))+"."+str(time_tolerance)+"."+interpolation_type[0]
+    else:
+        date_name="Nothing will be named this"
+    netcdf_directory = os.path.join(thredds_serverpath, region)
     for filename in os.listdir(netcdf_directory):
         #filename = str(filename)
         if filename.startswith(date_name):

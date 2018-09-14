@@ -111,10 +111,6 @@ def addregion(request):
                 thredds_folder=os.path.join(thredds_serverpath,region)
                 if not os.path.exists(thredds_folder):
                     os.mkdir(thredds_folder)
-                    idw=os.path.join(thredds_folder,"IDW")
-                    os.mkdir(idw)
-                    kriging=os.path.join(thredds_folder,"Kriging")
-                    os.mkdir(kriging)
 
                 success=True
 
@@ -216,16 +212,6 @@ def region_map(request):
                                  }
     )
 
-    select_interpolation = SelectInput(display_text='Select Interpolation Method',
-                                 name='select_interpolation',
-                                 multiple=False,
-                                 options=[("IDW (Shepard's Method)", 'IDW'), ('Kriging', 'Kriging')],
-                                 initial="IDW (Shepard's Method)",
-                                 attributes={
-                                     'onchange': 'list_dates(1)'#this calls list_dates, which then calls changeWMS
-                                 }
-    )
-
     required_data = SelectInput(display_text='Minimum Samples per Well',
                                        name='required_data',
                                        multiple=False,
@@ -248,7 +234,7 @@ def region_map(request):
                                 multiple=False,
                                 options=[],
                                 attributes={
-                                    'onchange': 'changeWMS()'
+                                    'onchange': 'changeWMS();toggleButtons()'
                                 }
     )
     delete_button=Button(display_text='Delete Raster',
@@ -280,7 +266,6 @@ def region_map(request):
         "select_region":select_region,
         "select_aquifer":select_aquifer,
         "required_data": required_data,
-        "select_interpolation": select_interpolation,
         "select_view":select_view,
         "available_dates":available_dates,
         'delete_button':delete_button,

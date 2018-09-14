@@ -43,11 +43,10 @@ function changeWMS(){
     var name=$("#available_dates").find('option:selected').val();
     name=name.replace(/ /g,"_");
     clearwaterlevels();
-    var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var region=$("#select_region").find('option:selected').val();
 
 
-    var testWMS=thredds_url+region+'/'+interpolation_type+'/'+name;
+    var testWMS=thredds_url+region+'/'+name;
     if (name=='Blank.nc'){
         testWMS=thredds_url+'/'+name;
     }
@@ -81,7 +80,7 @@ function changeWMS(){
         cache:50
     });
 
-    var url=thredds_url+region+'/'+interpolation_type+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
+    var url=thredds_url+region+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
     if (name=='Blank.nc'){
         url=thredds_url+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
     }
@@ -111,10 +110,9 @@ function updateWMS(){
     var name=$("#available_dates").find('option:selected').val();
     name=name.replace(/ /g,"_");
     clearwaterlevels();
-    var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var region=$("#select_region").find('option:selected').val();
 
-    var testWMS=thredds_url+region+'/'+interpolation_type+'/'+name;
+    var testWMS=thredds_url+region+'/'+name;
     if (name=='Blank.nc'){
         testWMS=thredds_url+'/'+name;
     }
@@ -161,7 +159,7 @@ function updateWMS(){
     interpolation_group.addLayer(testTimeLayer);
     contour_group.addLayer(contourTimeLayer);
 
-    var url=thredds_url+region+'/'+interpolation_type+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
+    var url=thredds_url+region+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
     if (name=="Blank.nc"){
         url=thredds_url+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
     }
@@ -402,7 +400,8 @@ map.on('overlayadd', function(e){
     if (e.name==="Wells"){
         legend.addTo(map);
     }
-    if (e.name==="Water Table Surface"){
+    var aq=$("#available_dates").find('option:selected').val();
+    if (e.name==="Water Table Surface" && aq!='Blank.nc'){
         testLegend.addTo(map);
     }
 })
@@ -499,13 +498,12 @@ function displaygeojson(aquifer_number, displayallwells) {
         var name=myaquifer.Name;
         name=name.replace(/ /g,"_");
 
-        var interpolation_type=$("#select_interpolation").find('option:selected').val();
         var region=$("#select_region").find('option:selected').val();
 
             $.ajax({
                 url: '/apps/gw/loaddata/',
                 type: 'GET',
-                data: {'id':id, 'interpolation_type':interpolation_type,'region':region, 'make_default':0, 'from_wizard':0},
+                data: {'id':id,'region':region, 'make_default':0, 'from_wizard':0},
                 contentType: 'application/json',
                 error: function (status) {
 
@@ -553,10 +551,9 @@ function displayallwells(aquifer_number,well_points,required){
     }
 
     name=name.replace(/ /g,"_");
-    var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var region=$("#select_region").find('option:selected').val();
 
-    var testWMS=thredds_url+region+'/'+interpolation_type+'/'+name;
+    var testWMS=thredds_url+region+'/'+name;
     if (name=="Blank.nc"){
         testWMS=thredds_url+'/'+name;
     }
@@ -595,6 +592,7 @@ function displayallwells(aquifer_number,well_points,required){
 
     var well_layer=L.geoJSON(points,{
         onEachFeature: function (feature, layer){
+
             function getpopup_content(){
                 var popup_content="Hydro ID: "+feature.properties.HydroID;
                 if (feature.properties.FType){
@@ -663,6 +661,7 @@ function displayallwells(aquifer_number,well_points,required){
                             fillColor:"#ffffff",
                             radius:2,
                             fillOpacity:.9
+
                         })
                     }
                     else{
@@ -674,7 +673,8 @@ function displayallwells(aquifer_number,well_points,required){
                 }
                 else{
                     layer.setStyle({
-                            color:"red"
+                            color:"red",
+                            radius:1
                         })
                 }
             }
@@ -769,6 +769,8 @@ function displayallwells(aquifer_number,well_points,required){
                                 }
                             });
                         });
+                        $('#chart').hide();
+                        $('#chart').show();
                         mychart=Highcharts.chart('chart',{
                             chart: {
                                 type: 'spline'
@@ -905,6 +907,7 @@ function displayallwells(aquifer_number,well_points,required){
                                     })()
                                 }]
                         });
+
                         testTimeLayer._timeDimension.on('timeload', (function() {
                             if (!mychart){
                                 return;
@@ -973,6 +976,14 @@ function displayallwells(aquifer_number,well_points,required){
             }
             set_content();
             set_color();
+            //option for highlighting selected point
+            layer.on('popupopen', function(e){
+                e.target.setStyle({color:"white", radius:8, fillColor:"red"});
+                map.on('popupopen', function(){
+                    set_color();
+                })
+            });
+
             $("#available_dates").on("change", (function(){set_color()}));
         },
         pointToLayer:function(geoJsonPoint, latlng){
@@ -984,7 +995,7 @@ function displayallwells(aquifer_number,well_points,required){
     well_group.addTo(map);
 
 
-    var url=thredds_url+region+'/'+interpolation_type+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
+    var url=thredds_url+region+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
     if (name=='Blank.nc'){
         url=thredds_url+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
     }
@@ -1123,18 +1134,27 @@ function list_aquifer(){
 
 }
 
+function toggleButtons(){
+    animation=$("#available_dates").find('option:selected').val();
+    if (animation!='Blank.nc'){
+        document.getElementById('buttons').style.display="block";
+    }
+    else{
+        document.getElementById('buttons').style.display="none";
+    }
+}
+
 function list_dates(call_function){
     var region=$("#select_region").find('option:selected').val()
     //This ajax controller
 
     aquifer=$("#select_aquifer").find('option:selected').text();
 
-    var interpolation_type=$("#select_interpolation").find('option:selected').val();
 
     $.ajax({
         url: '/apps/gw/loadtimelist/',
         type: 'GET',
-        data: {'region':region, 'aquifer':aquifer, 'interpolation_type':interpolation_type},
+        data: {'region':region, 'aquifer':aquifer},
         contentType: 'application/json',
         error: function (status) {
 
@@ -1145,7 +1165,7 @@ function list_dates(call_function){
             $("#available_dates").val('Blank.nc');
             for (i=0;i<timelist.length;i++){
                 number=timelist[i].Full_Name;
-                name=timelist[i].Aquifer+': '+timelist[i].Start_Date+'-'+timelist[i].End_Date+' ('+timelist[i].Interval+ " Year Increments, "+(timelist[i].Resolution)+" Degree Resolution, "+timelist[i].Min_Samples+" Min Samples, "+(timelist[i].Min_Ratio)+ " Min Ratio, "+timelist[i].Time_Tolerance+ " Year Time Tolerance)";
+                name=timelist[i].Aquifer+' '+ timelist[i].Interpolation+': '+timelist[i].Start_Date+'-'+timelist[i].End_Date+' ('+timelist[i].Interval+ " Year Increments, "+(timelist[i].Resolution)+" Degree Resolution, "+timelist[i].Min_Samples+" Min Samples, "+(timelist[i].Min_Ratio)+ " Min Ratio, "+timelist[i].Time_Tolerance+ " Year Time Tolerance)";
                 $("#available_dates").append('<option value="'+number+'">'+name+'</option>');
                 if (timelist.length==1){
                     $("#available_dates").val(number);
@@ -1156,7 +1176,7 @@ function list_dates(call_function){
                 }
             }
             document.getElementById("select2-available_dates-container").innerHTML=$("#available_dates").find('option:selected').text();
-            if (timelist.length>1){
+            if ($("#available_dates").find('option:selected').val()!='Blank.nc'){
                 document.getElementById('buttons').style.display="block"
             }
             else{
@@ -1176,15 +1196,13 @@ function list_dates(call_function){
 
 function confirm_delete(){
     var region=$("#select_region").find('option:selected').val()
-    var aquifer=$("#select_aquifer").find('option:selected').text()
-    var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var name=$("#available_dates").find('option:selected').val();
     var x =confirm("Are you sure you want to delete the current NetCDF Raster? ("+name+")");
     if (x){
         $.ajax({
         url: '/apps/gw/deletenetcdf/',
         type: 'GET',
-        data: {'region':region, 'aquifer':aquifer, 'interpolation_type':interpolation_type, 'name':name},
+        data: {'region':region, 'name':name},
         contentType: 'application/json',
         error: function (status) {
 
@@ -1198,14 +1216,13 @@ function confirm_delete(){
 function confirm_default(){
     var region=$("#select_region").find('option:selected').val()
     var aquifer=$("#select_aquifer").find('option:selected').text()
-    var interpolation_type=$("#select_interpolation").find('option:selected').val();
     var name=$("#available_dates").find('option:selected').val();
     var x =confirm("Are you sure you want to make the current NetCDF raster the default? ("+name+")");
     if (x){
         $.ajax({
         url: '/apps/gw/defaultnetcdf/',
         type: 'GET',
-        data: {'region':region, 'aquifer':aquifer, 'interpolation_type':interpolation_type, 'name':name},
+        data: {'region':region, 'aquifer':aquifer, 'name':name},
         contentType: 'application/json',
         error: function (status) {
 
