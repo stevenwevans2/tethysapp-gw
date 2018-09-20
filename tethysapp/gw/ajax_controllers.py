@@ -20,8 +20,8 @@ import tempfile, shutil
 import scipy
 
 #global variables
-thredds_serverpath='/home/tethys/Thredds/groundwater/'
-#thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+#thredds_serverpath='/home/tethys/Thredds/groundwater/'
+thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #displaygeojson is an Ajax function that reads a specified JSON File (geolayer) in a specified region (region)
 # and returns the JSON object from that file.
@@ -44,11 +44,12 @@ def displaygeojson(request):
             fieldnames.append(i['FieldName'])
         if os.path.exists(geofile):
             with open(geofile, 'r') as f:
-                allwells = ''
-                wells = f.readlines()
-                for i in range(0, len(wells)):#len(wells)
-                    allwells += wells[i]
-                return_obj['state'] = json.loads(allwells)
+                return_obj['state']=json.load(f)
+            #     allwells = ''
+            #     wells = f.readlines()
+            #     for i in range(0, len(wells)):#len(wells)
+            #         allwells += wells[i]
+            # return_obj['state'] = json.loads(allwells)
         minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
         majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
         if os.path.exists(minorfile):
@@ -288,7 +289,7 @@ def loaddata(request):
         if interpolation_type:
             start_date=int(start_date)
             end_date=int(end_date)
-            interval=int(interval)
+            interval=float(interval)
             resolution=float(resolution)
             length=int(length)
             min_samples=int(min_samples)
@@ -321,13 +322,25 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     iterations=int((end_date-start_date)/interval+1)
     start_time=calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple())
     end_time=calendar.timegm(datetime.datetime(end_date, 1, 1).timetuple())
-
-
+    sixmonths=False
+    if interval==.5:
+        sixmonths=True
+        iterations+=1
     #old method of interpolation that uses all data
     if min_samples==1 and min_ratio==0:
         for v in range(0, iterations):
-            targetyear = start_date + interval * v
-            target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+            if sixmonths==False:
+                targetyear = int(start_date + interval * v)
+                target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+            else:
+                monthyear=start_date+interval*v
+                doubleyear=monthyear*2
+                if doubleyear%2==0:
+                    targetyear=int(monthyear)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+                else:
+                    targetyear=int(monthyear-.5)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
             fiveyears = 157766400 * 2
             myspots = []
             mylons = []
@@ -340,6 +353,8 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
 
             for i in points['features']:
                 if 'TsTime' in i and 'LandElev' in i['properties']:
+                    if i['properties']['LandElev']==-9999:
+                        i['properties']['LandElev']=0
                     tlocation = 0
                     stop_location = 0
                     listlength = len(i['TsTime'])
@@ -423,8 +438,18 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     #New method for interpolation that uses least squares fit and filters data
     else:
         for v in range(0, iterations):
-            targetyear = start_date + interval * v
-            target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+            if sixmonths==False:
+                targetyear = int(start_date + interval * v)
+                target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+            else:
+                monthyear=start_date+interval*v
+                doubleyear=monthyear*2
+                if doubleyear%2==0:
+                    targetyear=int(monthyear)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+                else:
+                    targetyear=int(monthyear-.5)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
             fiveyears = (157766400/5)*time_tolerance
             oneyear=(157766400/5)
             myspots = []
@@ -437,6 +462,8 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
 
             for i in points['features']:
                 if 'TsTime' in i and 'LandElev' in i['properties'] and ('Outlier' not in i['properties'] or i['properties']['Outlier']==False):
+                    if i['properties']['LandElev']==-9999:
+                        i['properties']['LandElev']=0
                     listlength = len(i['TsTime'])
                     length_time = end_time - start_time
                     mylength_time = min(i['TsTime'][listlength - 1] - i['TsTime'][0], i['TsTime'][listlength - 1] - start_time, end_time-i['TsTime'][0])
@@ -773,7 +800,18 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
             if len(c)<1 or len(d)<1:
                 interpolatable=False
         if interpolatable==False:
-            timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+            if sixmonths==False:
+                year=int(year)
+                timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+            else:
+                monthyear=start_date+interval*i
+                doubleyear=monthyear*2
+                if doubleyear%2==0:
+                    monthyear=int(monthyear)
+                    timearray.append(datetime.datetime(monthyear, 1, 1).toordinal() - 1)
+                else:
+                    monthyear=int(monthyear-.5)
+                    timearray.append(datetime.datetime(monthyear, 7, 1).toordinal() - 1)
             year += interval
             time[i] = timearray[i]
             for x in range(0, len(longrid)):
@@ -783,7 +821,18 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                     drawdown[i,x,y]=-9999
         elif interpolation_type == 'IDW' or krigeable==False:
             grids = gms(a, b, c, grid, 2)
-            timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+            if sixmonths==False:
+                year=int(year)
+                timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+            else:
+                monthyear=start_date+interval*i
+                doubleyear=monthyear*2
+                if doubleyear%2==0:
+                    monthyear=int(monthyear)
+                    timearray.append(datetime.datetime(monthyear, 1, 1).toordinal() - 1)
+                else:
+                    monthyear=int(monthyear-.5)
+                    timearray.append(datetime.datetime(monthyear, 7, 1).toordinal() - 1)
             year += interval
             time[i] = timearray[i]
             for x in range(0, len(longrid)):
@@ -814,7 +863,18 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
             else:
                 elev, error = EK.execute('grid', longrid, latgrid)
                 krig, ss = OK.execute('grid', longrid, latgrid)
-            timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+            if sixmonths==False:
+                year=int(year)
+                timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+            else:
+                monthyear=start_date+interval*i
+                doubleyear=monthyear*2
+                if doubleyear%2==0:
+                    monthyear=int(monthyear)
+                    timearray.append(datetime.datetime(monthyear, 1, 1).toordinal() - 1)
+                else:
+                    monthyear=int(monthyear-.5)
+                    timearray.append(datetime.datetime(monthyear, 7, 1).toordinal() - 1)
             year += interval
             time[i] = timearray[i]
             for x in range(0, len(longrid)):
@@ -947,19 +1007,20 @@ def subdivideaquifers(region,app_workspace,aquiferid):
             'features': []
         }
         for feature in wells_json['features']:
+            feature['properties']['HydroID']=str(feature['properties']['HydroID'])
             if feature['properties']['AquiferID'] == aquifer:
                 points['features'].append(feature)
         points['features'].sort(key=lambda x: x['properties']['HydroID'])
         time_csv = []
         aquifer = str(aquifer)
-        mycsv=region+'/csv/Wells_Master.csv'
+        mycsv=region+'/Wells_Master.csv'
         the_csv=os.path.join(app_workspace.path,mycsv)
         with open(the_csv) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if row['AquiferID'] == aquifer:
                     if row['TsValue_normalized'] != '':
-                        timestep = (int(row['FeatureID']), (row['TsTime']), (float(row['TsValue'])),
+                        timestep = (row['FeatureID'], (row['TsTime']), (float(row['TsValue'])),
                                     (float(row['TsValue_normalized'])))
                         time_csv.append(timestep)
         aquifer=int(aquifer)
@@ -980,21 +1041,22 @@ def subdivideaquifers(region,app_workspace,aquiferid):
         print len(points['features'])
 
         time_csv = []
-        mycsv = region+'/csv/Wells_Master.csv'
+        mycsv = region+'/Wells_Master.csv'
         the_csv = os.path.join(app_workspace.path, mycsv)
         with open(the_csv) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if row['TsValue_normalized'] != '':
-                    timestep = (int(row['FeatureID']), (row['TsTime']), (float(row['TsValue'])),
+                    timestep = (row['FeatureID'], (row['TsTime']), (float(row['TsValue'])),
                                 (float(row['TsValue_normalized'])))
                     time_csv.append(timestep)
     time_csv.sort(key=lambda x:x[0])
 
     number = 0
     aquifermin = 0.0
+    max_number = len(points['features'])
     for i in time_csv:
-        while number < len(points['features']):
+        while number < max_number:
             if i[0] == points['features'][number]['properties']['HydroID']:
                 if 'TsTime' not in points['features'][number]:
                     points['features'][number]['TsTime'] = []
@@ -1008,10 +1070,16 @@ def subdivideaquifers(region,app_workspace,aquiferid):
                     aquifermin = i[2]
                 break
             number += 1
+        if number==max_number:
+            number=0
+            continue
+
 
 
 
     for i in points['features']:
+        if 'LandElev' not in i['properties']:
+            i['properties']['LandElev']=-9999
         if 'TsValue' in i:
             array = []
             for j in range(0, len(i['TsTime'])):
@@ -1040,6 +1108,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
                 i['TsValue_norm'].append(array[j][2])
 
     points['aquifermin']=aquifermin
+
 
     print myaquifer
     name = myaquifer['Name']

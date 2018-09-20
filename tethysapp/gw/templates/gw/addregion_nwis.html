@@ -1,0 +1,44 @@
+{% extends "gw/base.html" %}
+{% load tethys_gizmos %}
+{% load staticfiles %}
+
+{% block header_buttons %}
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="Help">
+    <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
+  </div>
+{% endblock %}
+
+{% block app_content %}
+  <h1>Add Region</h1>
+  <form id="add-region-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% gizmo region_name %}
+    <div class="form-group{% if file_error %} has-error{% endif %}">
+      <label class="control-label">CSV File</label>
+      <input type="file" name="csv-file">
+      {% if file_error %}<p class="help-block">{{ file_error }}</p>{% endif %}
+    </div>
+    <div class="form-group{% if border_error %} has-error{% endif %}">
+      <label class="control-label">Border JSON File</label>
+      <input type="file" name="border-file">
+      {% if border_error %}<p class="help-block">{{ border_error }}</p>{% endif %}
+    </div>
+    <div class="form-group{% if major_error %} has-error{% endif %}">
+      <label class="control-label">Major Aquifers JSON File</label>
+      <input type="file" name="major-file">
+      {% if major_error %}<p class="help-block">{{ major_error }}</p>{% endif %}
+    </div>
+    <div class="form-group">
+      <label class="control-label">Minor Aquifers JSON File</label>
+      <input type="file" name="minor-file">
+    </div>
+    {% gizmo stateId %}
+  </form>
+
+{% endblock %}
+
+
+
+{% block app_actions %}
+  {% gizmo add_button %}
+{% endblock %}

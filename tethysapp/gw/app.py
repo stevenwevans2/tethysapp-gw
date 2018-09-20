@@ -54,6 +54,11 @@ class Gw(TethysAppBase):
                 controller='gw.controllers.interpolation'
             ),
             UrlMap(
+                name='addregion_nwis',
+                url='addregion_nwis',
+                controller='gw.controllers.addregion_nwis'
+            ),
+            UrlMap(
                 name='addregion',
                 url='addregion',
                 controller='gw.controllers.addregion'

@@ -3,17 +3,18 @@ from django.shortcuts import redirect, reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput
-import csv
-import os
-import tempfile
-import shutil
-from .app import Gw as app
-import urllib
-import json
-import calendar
-import datetime
+# import csv
+# import os
+# import tempfile
+# import shutil
+# from .app import Gw as app
+# import urllib
+# import json
+# import calendar
+# import datetime
 import pandas as pd
-from operator import itemgetter
+# from operator import itemgetter
+from ajax_controllers import *
 
 #global variables
 #thredds_serverpath='/home/tethys/Thredds/groundwater/'
@@ -32,7 +33,7 @@ def home(request):
     return render(request, 'gw/home.html', context)
 
 @login_required()
-def addregion(request):
+def addregion_nwis(request):
     """
     Controller for the addregion page.
     """
@@ -112,7 +113,16 @@ def addregion(request):
                 if not os.path.exists(thredds_folder):
                     os.mkdir(thredds_folder)
 
-                success=True
+                #Addition
+                aquiferlist = getaquiferlist(app_workspace, region)
+
+                well_file = os.path.join(app_workspace.path, region + '/Wells.json')
+
+                for i in range(1, len(aquiferlist) + 1):
+                    if os.path.exists(well_file):
+                        divideaquifers(region, app_workspace, i)
+                #End Addition
+                success = True
 
             except Exception as e:
                 print e
@@ -153,6 +163,150 @@ def addregion(request):
         'file_error':file_error,
         'border_error':border_error,
         'major_error':major_error
+    }
+
+    return render(request, 'gw/addregion_nwis.html', context)
+
+@login_required()
+def addregion(request):
+    """
+    Controller for the addregion page.
+    """
+    file_error=''
+    region_error=''
+    border_error=''
+    major_error=''
+    wells_error=''
+    time_error=''
+
+    region=None
+    csv_file=None
+    border_file=None
+    major_file=None
+    minor_file=None
+    wells_file=None
+    time_file=None
+
+    if request.POST and 'add_button' in request.POST:
+        has_errors=False
+        region=request.POST.get('region_name')
+        if not region:
+            has_errors=True
+            region_error='Region name is required.'
+
+        if request.FILES and 'csv-file' in request.FILES:
+            csv_file=request.FILES.getlist('csv-file')
+        if request.FILES and 'border-file' in request.FILES:
+            border_file=request.FILES.getlist('border-file')
+        if request.FILES and 'major-file' in request.FILES:
+            major_file=request.FILES.getlist('major-file')
+        if request.FILES and 'minor-file' in request.FILES:
+            minor_file=request.FILES.getlist('minor-file')
+        if request.FILES and 'wells-file' in request.FILES:
+            wells_file=request.FILES.getlist('wells-file')
+        if request.FILES and 'time-file' in request.FILES:
+            time_file=request.FILES.getlist('time-file')
+
+        if not csv_file or len(csv_file)<1:
+            has_errors=True
+            file_error='CSV file of aquifer information is required.'
+        if not border_file or len(border_file)<1:
+            has_errors=True
+            border_error='JSON file for the region boundary is required.'
+        if not major_file or len(major_file)<1:
+            has_errors=True
+            major_error='JSON file for the major aquifers is required.'
+        if not wells_file or len(wells_file)<1:
+            has_errors=True
+            wells_error='JSON file of well locations is required.'
+        if not time_file or len(time_file)<1:
+            has_errors=True
+            time_error='CSV of well time series information is required.'
+
+        if not has_errors:
+            csv_file=csv_file[0]
+            border_file = border_file[0]
+            major_file=major_file[0]
+            wells_file=wells_file[0]
+            time_file=time_file[0]
+
+            app_workspace = app.get_app_workspace()
+            # Function to write the file from the uploaded file
+            def writefile(input, output):
+                lines = []
+                for line in input:
+                    lines.append(line)
+
+                directory = os.path.join(app_workspace.path, region)
+                if not os.path.exists(directory):
+                    os.mkdir(directory)
+                the_csv = os.path.join(directory, output)
+                with open(the_csv, 'w') as f:
+                    for line in lines:
+                        f.write(line)
+            try:
+                writefile(csv_file,region+"_Aquifers.csv")
+                writefile(border_file,region+"_State_Boundary.json")
+                writefile(major_file,"MajorAquifers.json")
+                writefile(wells_file, "Wells1.json")
+                writefile(time_file, "Wells_Master.csv")
+                if minor_file:
+                    minor_file=minor_file[0]
+                    writefile(minor_file, "MinorAquifers.json")
+
+                #Set up the appropriate folders on the Thredds server
+                thredds_folder=os.path.join(thredds_serverpath,region)
+                if not os.path.exists(thredds_folder):
+                    os.mkdir(thredds_folder)
+
+                # Addition
+                aquiferlist = getaquiferlist(app_workspace, region)
+
+                well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
+                times_file=os.path.join(app_workspace.path, region + '/Wells_Master.csv')
+
+                for i in range(1, len(aquiferlist) + 1):
+                    if os.path.exists(well_file) and os.path.exists(times_file):
+                        subdivideaquifers(region, app_workspace, i)
+                # End Addition
+                success=True
+
+            except Exception as e:
+                print e
+                success=False
+
+            if success:
+                messages.info(request, 'Successfully added region')
+                return redirect(reverse('gw:region_map'))
+            else:
+                messages.info(request, 'Unable to add region.')
+                return redirect(reverse('gw:addregion'))
+
+        messages.error(request, "Please fix errors.")
+
+
+    #Define form gizmos
+    region_name = TextInput(display_text='Enter a name for the region:',
+                           name='region_name',
+                           placeholder='e.g.: Texas',
+                            error=region_error)
+    add_button=Button(
+        display_text='Add Region',
+        name='add_button',
+        icon='glyphicon-plus',
+        style='success',
+        attributes={'form':'add-region-form'},
+        submit=True
+    )
+
+    context = {
+        'region_name':region_name,
+        'add_button':add_button,
+        'file_error':file_error,
+        'border_error':border_error,
+        'major_error':major_error,
+        'wells_error':wells_error,
+        'time_error':time_error
     }
 
     return render(request, 'gw/addregion.html', context)
@@ -348,7 +502,7 @@ def interpolation(request):
     frequency = SelectInput(display_text='Time Increment',
                            name='frequency',
                            multiple=False,
-                           options=[("1 year",1),("2 years",2),("5 years",5),("10 years",10),("25 years",25)],
+                           options=[("6 months",.5),("1 year",1),("2 years",2),("5 years",5),("10 years",10),("25 years",25)],
                            initial="5 years"
                            )
     resolution = SelectInput(display_text='Raster Resolution',

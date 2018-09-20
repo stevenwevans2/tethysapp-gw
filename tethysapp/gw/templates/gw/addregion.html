@@ -13,6 +13,7 @@
   <form id="add-region-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% gizmo region_name %}
+    <h2>Region and Aquifer Polygon Data</h2>
     <div class="form-group{% if file_error %} has-error{% endif %}">
       <label class="control-label">CSV File</label>
       <input type="file" name="csv-file">
@@ -32,7 +33,15 @@
       <label class="control-label">Minor Aquifers JSON File</label>
       <input type="file" name="minor-file">
     </div>
-    {% gizmo stateId %}
+    <h2>Well Data</h2>
+    <div class="form-group{% if wells_error %} has-error{% endif %}">
+      <label class="control-label">Well Locations JSON File</label>
+      <input type="file" name="wells-file">
+    </div>
+    <div class="form-group{% if time_error %} has-error{% endif %}">
+      <label class="control-label">Time Series CSV File</label>
+      <input type="file" name="time-file">
+    </div>
   </form>
 
 {% endblock %}
