@@ -28,8 +28,8 @@ ncap2 -s 'elevation=Band1*elevation;' temp2.nc temp1.nc
 
 ncap2 -s 'drawdown=Band1*drawdown;' temp1.nc temp.nc
 
-d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
-#d='/home/tethys/Thredds/groundwater/'
+#d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
+d='/home/tethys/Thredds/groundwater/'
 
 destination=$d$4
 

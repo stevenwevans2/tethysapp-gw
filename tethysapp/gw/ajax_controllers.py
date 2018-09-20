@@ -20,8 +20,8 @@ import tempfile, shutil
 import scipy
 
 #global variables
-#thredds_serverpath='/home/tethys/Thredds/groundwater/'
-thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+thredds_serverpath='/home/tethys/Thredds/groundwater/'
+#thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #displaygeojson is an Ajax function that reads a specified JSON File (geolayer) in a specified region (region)
 # and returns the JSON object from that file.
