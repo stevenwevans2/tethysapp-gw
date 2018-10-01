@@ -10,41 +10,236 @@
 
 {% block app_content %}
   <h1>Add Region</h1>
+  <h6>Use this page to add data for regions with well data stored in a JSON and CSV file</h6>
   <form id="add-region-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% gizmo region_name %}
     <h2>Region and Aquifer Polygon Data</h2>
     <div class="form-group{% if file_error %} has-error{% endif %}">
-      <label class="control-label">CSV File</label>
+      <label class="control-label">
+        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">CSV File listing Region Aquifers
+          <a data-toggle="modal" data-target="#help-modal1"><span class="glyphicon glyphicon-question-sign"></span></a>
+        </div>
+      </label>
       <input type="file" name="csv-file">
       {% if file_error %}<p class="help-block">{{ file_error }}</p>{% endif %}
     </div>
     <div class="form-group{% if border_error %} has-error{% endif %}">
-      <label class="control-label">Border JSON File</label>
+      <label class="control-label">
+        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">Region Boundary JSON File
+          <a data-toggle="modal" data-target="#help-modal2"><span class="glyphicon glyphicon-question-sign"></span></a>
+        </div>
+      </label>
       <input type="file" name="border-file">
       {% if border_error %}<p class="help-block">{{ border_error }}</p>{% endif %}
     </div>
     <div class="form-group{% if major_error %} has-error{% endif %}">
-      <label class="control-label">Major Aquifers JSON File</label>
+      <label class="control-label">
+        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">Major Aquifers JSON File
+          <a data-toggle="modal" data-target="#help-modal3"><span class="glyphicon glyphicon-question-sign"></span></a>
+        </div>
+      </label>
       <input type="file" name="major-file">
       {% if major_error %}<p class="help-block">{{ major_error }}</p>{% endif %}
     </div>
     <div class="form-group">
-      <label class="control-label">Minor Aquifers JSON File</label>
+      <label class="control-label">
+        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">Minor Aquifers JSON File
+          <a data-toggle="modal" data-target="#help-modal4"><span class="glyphicon glyphicon-question-sign"></span></a>
+        </div>
+      </label>
       <input type="file" name="minor-file">
     </div>
     <h2>Well Data</h2>
     <div class="form-group{% if wells_error %} has-error{% endif %}">
-      <label class="control-label">Well Locations JSON File</label>
+      <label class="control-label">
+        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">Well Locations JSON File
+          <a data-toggle="modal" data-target="#help-modal5"><span class="glyphicon glyphicon-question-sign"></span></a>
+        </div>
+      </label>
       <input type="file" name="wells-file">
     </div>
     <div class="form-group{% if time_error %} has-error{% endif %}">
-      <label class="control-label">Time Series CSV File</label>
+      <label class="control-label">
+        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">Time Series CSV File
+          <a data-toggle="modal" data-target="#help-modal6"><span class="glyphicon glyphicon-question-sign"></span></a>
+        </div>
+      </label>
       <input type="file" name="time-file">
     </div>
   </form>
 
 {% endblock %}
+
+
+{% block after_app_content %}
+  <!-- Help Modal for Aquifer CSV File-->
+  <div class="modal fade" id="help-modal1" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label1">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h2>CSV File Listing Region Aquifers</h2>
+          <h6>The CSV file must have the following headings </h6>
+          <ul>
+            <li>ID: The id number for each aquifer (this corresponds to the AquiferID attribute in the wells JSON file)</li>
+            <li>Name: The desired display name for each aquifer (this may not contain parenthesis)</li>
+            <li>NameField: The name of the attribute in the aquifers JSON file that holds the aquifer name</li>
+            <li>CapsName: The name of the aquifer as identified in the NameField attribute of the aquifer JSON file</li>
+          </ul>
+          <h6>Example Formatting</h6>
+          <img src="{% static 'gw/images/example_csv.png' %}">
+
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ <!-- Help Modal for Border JSON File-->
+  <div class="modal fade" id="help-modal2" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label2">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h2>Region Boundary JSON File</h2>
+          <ul>
+            <li>Upload a GeoJSON file of the region boundary</li>
+          </ul>
+          <h6>Example Boundary</h6>
+          <img src="{% static 'gw/images/example_border.png' %}">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Help Modal for the Major Aquifers JSON File-->
+  <div class="modal fade" id="help-modal3" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label3">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h2>Major Aquifers JSON File</h2>
+          <ul>
+            <li>Upload a GeoJSON file of the region major aquifers</li>
+            <li>Each aquifer must have a name stored in the attribute indicated in the aquifer csv file</li>
+          </ul>
+          <h6>Example aquifers</h6>
+          <img src="{% static 'gw/images/example_major.png' %}" width="500px" height="400px">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Help Modal for the Minor Aquifers JSON File-->
+  <div class="modal fade" id="help-modal4" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label4">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h2>Minor Aquifers JSON File</h2>
+          <ul>
+            <li>Upload a GeoJSON file of the region minor aquifers</li>
+            <li>Each aquifer must have a name stored in the attribute indicated in the aquifer csv file</li>
+            <li>This step is not required. If the region has no minor aquifers, then do not upload a file.</li>
+          </ul>
+          <h6>Example aquifers</h6>
+          <img src="{% static 'gw/images/example_minor.png' %}" width="500px" height="400px">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Help Modal for the Well Locations JSON File-->
+  <div class="modal fade" id="help-modal5" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document" style="width:100%">
+      <div class="modal-content" >
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label5">Instructions</h5>
+        </div>
+        <div class="modal-body" >
+          <h2>Well Locations JSON File</h2>
+          <ul>
+            <li>Upload a GeoJSON file containing the region's wells as point features with properties</li>
+            <li>Each feature <strong>must</strong> include the following attributes within properties:</li>
+            <ol>
+              <li>HydroID: each feature must have a unique HydroID which will link the well to its time series data.</li>
+              <li>AquiferID: each feature must have an AquiferID corresponding to the appropriate ID in the aquifer csv file. </li>
+            </ol>
+            <ol>Additionally, each feature may include the following attibutes:
+              <li>LandElev: the elevation of the land surface at the well location (ft above sea level).</li>
+              <li>FType: the type of well (water withdrawal, monitoring, petroleum, etc.)</li>
+              <li>WellDepth: the depth of the well (ft)</li>
+            </ol>
+          </ul>
+          <h6>Example format of Well Locations JSON File</h6>
+          <img src="{% static 'gw/images/example_wells.png' %}" width="100%">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Help Modal for the Wells CSV File-->
+  <div class="modal fade" id="help-modal6" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label6">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h2>Time Series CSV File</h2>
+          <ul>
+            <li>Upload a CSV file of time series data for each well</li>
+            <li>The CSV file <strong>must</strong> include the following headers:</li>
+            <ol>
+              <li>FeatureID: Each entry must include a FeatureID, which links the data to the well with the corresponding HydroID</li>
+              <li>TsTime: the date of the well sampling in format 1/22/1975 (month/day/year)</li>
+              <li>TsValue: the measured depth to groundwater in ft. (negative number indicates water level below well surface)</li>
+              <li>TsValue_normalized: the height of the water table above sea level (ft)</li>
+              <li>AquiferID: this id corresponds to the appropriate ID in the aquifer csv file</li>
+            </ol>
+          </ul>
+          <h6>Example Time Series CSV</h6>
+          <img src="{% static 'gw/images/example_master.png' %}">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
 
 
 

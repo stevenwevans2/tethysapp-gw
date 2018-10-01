@@ -94,6 +94,16 @@ class Gw(TethysAppBase):
                 controller='gw.ajax_controllers.loadtimelist'
             ),
             UrlMap(
+                name='gettotalvolume',
+                url='gw/gettotalvolume',
+                controller='gw.ajax_controllers.gettotalvolume'
+            ),
+            UrlMap(
+                name='checktotalvolume',
+                url='gw/checktotalvolume',
+                controller='gw.ajax_controllers.checktotalvolume'
+            ),
+            UrlMap(
                 name='deletenetcdf',
                 url='gw/deletenetcdf',
                 controller='gw.ajax_controllers.deletenetcdf'

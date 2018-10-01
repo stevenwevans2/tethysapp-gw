@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import redirect, reverse
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,user_passes_test
 from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput
 # import csv
 # import os
@@ -16,9 +16,7 @@ import pandas as pd
 # from operator import itemgetter
 from ajax_controllers import *
 
-#global variables
-#thredds_serverpath='/home/tethys/Thredds/groundwater/'
-thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+
 
 @login_required()
 def home(request):
@@ -32,7 +30,7 @@ def home(request):
 
     return render(request, 'gw/home.html', context)
 
-@login_required()
+@user_passes_test(user_permission_test)
 def addregion_nwis(request):
     """
     Controller for the addregion page.
@@ -167,7 +165,7 @@ def addregion_nwis(request):
 
     return render(request, 'gw/addregion_nwis.html', context)
 
-@login_required()
+@user_passes_test(user_permission_test)
 def addregion(request):
     """
     Controller for the addregion page.
@@ -415,6 +413,18 @@ def region_map(request):
                                'onclick': "confirm_default()",
                            }
                            )
+    volume_button=Button(display_text='Aquifer Storage',
+                           name='default_button',
+                           icon='glyphicon glyphicon-stats',
+                           style='default',
+                           disabled=False,
+                           attributes={
+                               'data-toggle': 'tooltip',
+                               'data-placement': 'top',
+                               'title': 'Display Change in Aquifer Storage',
+                               'onclick': "totalvolume()",
+                           }
+                           )
 
     context = {
         "select_region":select_region,
@@ -424,7 +434,8 @@ def region_map(request):
         "available_dates":available_dates,
         'delete_button':delete_button,
         'default_button':default_button,
-        'region_home':region_home
+        'region_home':region_home,
+        'volume_button':volume_button
     }
 
     return render(request, 'gw/region_map.html', context)

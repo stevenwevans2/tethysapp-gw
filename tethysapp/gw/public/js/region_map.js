@@ -35,6 +35,16 @@ $(function() {
     });
 }); //document ready
 
+L.LayerGroup.include({
+    customGetLayer: function (id) {
+        for (var i in this._layers) {
+            if (this._layers[i].id == id) {
+               return this._layers[i];
+            }
+        }
+    }
+});
+
 //This function is called when the interpolation method or the data type is adjusted on the app Regional Map page.
 //The function clears the displayed Raster layers and then adds new raster layers for the specified interpolation and data type.
 //The function calls the getLayerMinMax function to determine the bounds of the new raster and adjust the symbology and legend accordingly.
@@ -156,6 +166,7 @@ function updateWMS(){
     var contourTimeLayer=L.timeDimension.layer.wms(contourLayer,{
         cache:50
     });
+    testTimeLayer.id='timelayer';
     interpolation_group.addLayer(testTimeLayer);
     contour_group.addLayer(contourTimeLayer);
 
@@ -196,6 +207,7 @@ var addLegend=function(testWMS,contourLayer, testLayer,colormin,colormax,layer,t
     var contourTimeLayer=L.timeDimension.layer.wms(contourLayer,{
         cache:50
     });
+    testTimeLayer.id='timelayer';
     interpolation_group.addLayer(testTimeLayer);
     interpolation_group.addTo(map);
     contour_group.addLayer(contourTimeLayer);
@@ -254,7 +266,8 @@ var getLayerMinMax = function(layer,testLayer,contourWMS, testWMS, callback,test
 };
 
 
-document.getElementById('buttons').style.display="none"
+document.getElementById('buttons').style.display="none";
+document.getElementById('volbut').style.display="none";
 var regioncenter=[31.2,-100.0];
 var mychart=[]
 //add a map to the html div "map" with time dimension capabilities. Times are currently hard coded, but will need to be changed as new GRACE data comes
@@ -1181,7 +1194,8 @@ function displayallwells(aquifer_number,well_points,required){
 }
 
 function list_aquifer(){
-    document.getElementById('buttons').style.display="none"
+    document.getElementById('buttons').style.display="none";
+    document.getElementById('volbut').style.display="none";
     region=$("#select_region").find('option:selected').val()
     region_group.clearLayers();
     clearwells();
@@ -1297,6 +1311,7 @@ function list_aquifer(){
 }
 
 function toggleButtons(){
+
     animation=$("#available_dates").find('option:selected').val();
     if (animation!='Blank.nc'){
         document.getElementById('buttons').style.display="block";
@@ -1304,6 +1319,24 @@ function toggleButtons(){
     else{
         document.getElementById('buttons').style.display="none";
     }
+    region=$("#select_region").find('option:selected').val();
+    $.ajax({
+        url: '/apps/gw/checktotalvolume/',
+        type: 'GET',
+        data: {'region':region, 'name':animation},
+        contentType: 'application/json',
+        error: function (status) {
+
+        }, success: function (response) {
+            var exists=response.exists;
+            if (exists==true){
+                document.getElementById('volbut').style.display="block";
+            }
+            else{
+                document.getElementById('volbut').style.display="none";document.getElementById('volbut').style.display="none";
+            }
+        }
+    });
 }
 
 function list_dates(call_function){
@@ -1321,7 +1354,7 @@ function list_dates(call_function){
         error: function (status) {
 
         }, success: function (response) {
-            timelist=response.timelist;
+            var timelist=response.timelist;
             $("#available_dates").empty();
             $("#available_dates").append('<option value="'+'Blank.nc'+'">'+'No Raster'+'</option>');
             $("#available_dates").val('Blank.nc');
@@ -1338,12 +1371,7 @@ function list_dates(call_function){
                 }
             }
             document.getElementById("select2-available_dates-container").innerHTML=$("#available_dates").find('option:selected').text();
-            if ($("#available_dates").find('option:selected').val()!='Blank.nc'){
-                document.getElementById('buttons').style.display="block"
-            }
-            else{
-                document.getElementById('buttons').style.display="none"
-            }
+            toggleButtons();
             if (call_function==1){
                 changeWMS(); //clears only raster layers and updates them
             }
@@ -1395,3 +1423,94 @@ function confirm_default(){
     }
 }
 
+
+function totalvolume(){
+    region=$("#select_region").find('option:selected').val();
+    name=$("#available_dates").find('option:selected').val();
+    $.ajax({
+        url: '/apps/gw/gettotalvolume/',
+        type: 'GET',
+        data: {'region':region, 'name':name},
+        contentType: 'application/json',
+        error: function (status) {
+
+        }, success: function (response) {
+            //add data to highchart
+            volumelist=response['volumelist'];
+            timelist=response['timelist'];
+            var length=timelist.length;
+            var data=[];
+            var oneday=24*60*60*1000;
+            var UTCconversion=280*24*60*60*1000;
+            var oneyear= 24*60*60*1000*365.2
+            for (var i=0; i<length; i++){
+                timelist[i]=timelist[i]*oneday-oneyear*1970+UTCconversion;
+                timelist[i]=new Date(timelist[i]).getTime();
+                data[i] = [timelist[i],volumelist[i]];
+            }
+            document.getElementById('chart').innerHTML='';
+            var TimeLayer=interpolation_group.customGetLayer('timelayer');
+            mychart=Highcharts.chart('chart',{
+                chart: {
+                    type: 'area',
+                },
+                title: {
+                    text: (function(){
+                    var type="Change in Aquifer Storage Volume "
+                    var since='';
+                    var blank_raster=$("#available_dates").find('option:selected').val();
+                    var min=data[0][0];
+                    min=new Date(min)
+                    year=min.getFullYear();
+                    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    var month = months[min.getMonth()];
+                    since="since "+month+", "+year+" ";
+                    type+=since+'(Acre-ft)';
+                    return type;
+                    })()
+                },
+                tooltip:{valueDecimals:0},
+                xAxis: {
+                    type: 'datetime',
+
+                    title: {
+                        text: 'Date'
+                    },
+                    plotLines: [{
+                        color: 'red',
+                        dashStyle: 'solid',
+                        value: new Date(TimeLayer._timeDimension.getCurrentTime()),
+                        width: 2,
+                        id: 'pbCurrentTime'
+                    }],
+                },
+                yAxis:{
+                    title: {
+                        text: (function(){
+                        //'Depth to Water Table (ft)'}
+                            type="Change in aquifer storage volume (Acre-ft)";
+                            return type;
+                            })()
+                        }
+                },
+                series: [{
+                    data: data,
+                    name: "Change in aquifer storage volume (Acre-ft)"
+                }]
+            })
+            TimeLayer._timeDimension.on('timeload', (function() {
+                if (!mychart){
+                    return;
+                }
+                mychart.xAxis[0].removePlotBand("pbCurrentTime");
+                mychart.xAxis[0].addPlotLine({
+                    color: 'red',
+                    dashStyle: 'solid',
+                    value: new Date(TimeLayer._timeDimension.getCurrentTime()),
+                    width: 2,
+                    id: 'pbCurrentTime'
+                });
+            }).bind(this));
+        }
+    });
+}

@@ -80,7 +80,7 @@
                 </span>
         </span>
         <div id="map" style="height: 500px; width: 100%"></div>
-        <span><span>{% gizmo region_home %}</span><span id="buttons" style="white-space:nowrap;float:right;">{% gizmo delete_button %}{% gizmo default_button %}</span></span>
+        <span><span style="white-space:nowrap;float:left;">{% gizmo region_home %}<span id="volbut" style="white-space:nowrap;float:right;">{% gizmo volume_button %}</span></span><span id="buttons" style="white-space:nowrap;float:right;">{% if user.is_superuser or user.is_staff %}{% gizmo delete_button %}{% gizmo default_button %}{% endif %}</span></span>
         <div id="chart" style="width: 100%; height: 400px; "></div>
 
 	    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>

@@ -18,10 +18,17 @@ from shapely.geometry import Point
 from shapely.geometry import shape
 import tempfile, shutil
 import scipy
+from django.contrib.auth.decorators import login_required,user_passes_test
+import math
 
+porosity=0.3
 #global variables
 thredds_serverpath='/home/tethys/Thredds/groundwater/'
 #thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+
+#Check if the user is superuser or staff. Only the superuser or staff have the permission to add and manage watersheds.
+def user_permission_test(user):
+    return user.is_superuser or user.is_staff
 
 #displaygeojson is an Ajax function that reads a specified JSON File (geolayer) in a specified region (region)
 # and returns the JSON object from that file.
@@ -173,6 +180,48 @@ def loadtimelist(request):
         return_obj['timelist']=timelist
     return JsonResponse(return_obj)
 
+def gettotalvolume(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        name=request.GET.get('name')
+        directory = os.path.join(thredds_serverpath, region)
+        nc_file=os.path.join(directory,name)
+        h = netCDF4.Dataset(nc_file, 'r+')
+        volumelist=np.array(h.variables['totalvolume'][:]).tolist()
+        timelist=np.array(h.variables['time'][:]).tolist()
+        h.close()
+
+        return_obj['volumelist']=volumelist
+        return_obj['timelist']=timelist
+    return JsonResponse(return_obj)
+
+def checktotalvolume(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        name=request.GET.get('name')
+        exists=False
+        directory = os.path.join(thredds_serverpath, region)
+        nc_file=os.path.join(directory,name)
+        if os.path.exists(nc_file):
+            h = netCDF4.Dataset(nc_file, 'r+')
+            if 'totalvolume' in h.variables:
+                exists=True
+            h.close()
+
+        return_obj['exists']=exists
+    return JsonResponse(return_obj)
 
 def deletenetcdf(request):
     return_obj = {
@@ -208,7 +257,6 @@ def addoutlier(request):
 
         aquifer=aquifer.replace(" ","_")
         file = os.path.join(app_workspace.path, region + '/aquifers/'+aquifer+'.json')
-        print file
         if os.path.exists(file):
             with open(file, 'r') as f:
                 wells = ''
@@ -772,6 +820,13 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     drawdown.cell_measures = "area: area"
     drawdown.coordinates = "time lat lon"
 
+    volume = h.createVariable("volume", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
+    volume.long_name = "Change in aquifer storage volume since " + str(start_date)
+    volume.units = "Acre-ft"
+    volume.grid_mapping = "WGS84"
+    volume.cell_measures = "area: area"
+    volume.coordinates = "time lat lon"
+
     latitude.long_name = "Latitude"
     latitude.units = "degrees_north"
     latitude.axis = "Y"
@@ -847,6 +902,11 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                 break
                             else:
                                 drawdown[i, x, y] = 0
+                    mylatmin=math.radians(latitude[y]-resolution/2)
+                    mylatmax=math.radians(latitude[y]+resolution/2)
+                    area=3959.0 * math.radians(resolution) * 3959.0 * abs((math.sin(mylatmin)-math.sin(mylatmax))) #3959 is the radius of the earth in miles
+                    area=area*640.0 #convert from square miles to acres
+                    volume[i,x,y]=drawdown[i,x,y]*porosity*area
 
             grid2 = gms(a, b, d, grid, 2)
             for x in range(0, len(longrid)):
@@ -890,13 +950,18 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                                 break
                             else:
                                 drawdown[i,x,y]=0
+                    mylatmin = math.radians(latitude[y] - resolution / 2)
+                    mylatmax = math.radians(latitude[y] + resolution / 2)
+                    area = 3959 * math.radians(resolution) * 3959 * abs(
+                        (math.sin(mylatmin) - math.sin(mylatmax)))  # 3959 is the radius of the earth in miles
+                    area = area * 640  # convert from square miles to acres
+                    volume[i, x, y] = drawdown[i, x, y] * porosity * area
 
     h.close()
 
     # Calls a shellscript that uses NCO to clip the NetCDF File created above to aquifer boundaries
     myshell = 'aquifersubset.sh'
     directory = temp_dir
-    print temp_dir
     shellscript = os.path.join(app_workspace.path, myshell)
     subprocess.call([shellscript, filename, directory, interpolation_type, region, str(resolution), app_workspace.path])
 
@@ -1142,6 +1207,7 @@ def getaquiferlist(app_workspace,region):
             }
             aquiferlist.append(myaquifer)
     return aquiferlist
+
 
 #This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
 def gettimelist(region,aquifer):
