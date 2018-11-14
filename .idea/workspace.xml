@@ -2,42 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="97f68757-facc-4a7f-848b-c9ced2909061" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blaine.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blaine.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blossom.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blossom.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Bone_Spring-Victorio_Peak.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Bone_Spring-Victorio_Peak.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Brazos_River_Alluvium.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Brazos_River_Alluvium.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Capitan_Reef_Complex.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Capitan_Reef_Complex.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Carrizo.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Carrizo.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Dockum.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Dockum.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity-High_Plains.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity-High_Plains.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ellenburger-San_Saba.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ellenburger-San_Saba.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Gulf_Coast.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Gulf_Coast.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hickory.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hickory.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hueco_Bolson.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hueco_Bolson.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Igneous.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Igneous.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Lipan.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Lipan.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Marathon.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Marathon.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Marble_Falls.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Marble_Falls.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Nacatoch.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Nacatoch.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/None.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/None.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ogallala.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ogallala.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Pecos_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Pecos_Valley.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Queen_City.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Queen_City.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Rita_Blanca.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Rita_Blanca.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Rustler.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Rustler.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Seymour.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Seymour.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Sparta.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Sparta.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Trinity.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Trinity.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/West_Texas_Bolsons.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/West_Texas_Bolsons.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Woodbine.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Woodbine.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Yegua_Jackson.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Yegua_Jackson.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -83,19 +49,19 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="html" value="7529" />
-          <entry key="js" value="21213" />
+          <entry key="js" value="21215" />
           <entry key="json" value="7" />
-          <entry key="py" value="33725" />
-          <entry key="sh" value="745" />
+          <entry key="py" value="33726" />
+          <entry key="sh" value="746" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="HTML" value="7529" />
           <entry key="JSON" value="7" />
-          <entry key="JavaScript" value="21213" />
-          <entry key="PLAIN_TEXT" value="745" />
-          <entry key="Python" value="33725" />
+          <entry key="JavaScript" value="21215" />
+          <entry key="PLAIN_TEXT" value="746" />
+          <entry key="Python" value="33726" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -124,7 +90,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/controllers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4518">
+            <state relative-caret-position="4644">
               <caret line="258" selection-start-line="258" selection-end-line="258" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
@@ -133,41 +99,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="522">
-              <caret line="1005" column="37" lean-forward="true" selection-start-line="1005" selection-start-column="37" selection-end-line="1005" selection-end-column="37" />
-              <folding>
-                <element signature="e#0#38#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="252">
-              <caret line="14" column="20" selection-start-line="14" selection-start-column="20" selection-end-line="14" selection-end-column="20" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="216">
-              <caret line="12" column="2" selection-start-line="12" selection-start-column="2" selection-end-line="12" selection-end-column="83" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1530">
-              <caret line="85" column="118" selection-start-line="85" selection-start-column="118" selection-end-line="85" selection-end-column="118" />
+            <state relative-caret-position="396">
+              <caret line="22" column="16" lean-forward="true" selection-start-line="22" selection-start-column="16" selection-end-line="22" selection-end-column="16" />
             </state>
           </provider>
         </entry>
@@ -181,11 +117,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="684">
-              <caret line="38" column="43" selection-start-line="38" selection-start-column="43" selection-end-line="38" selection-end-column="43" />
+            <state relative-caret-position="738">
+              <caret line="41" column="37" lean-forward="true" selection-start-line="41" selection-start-column="37" selection-end-line="41" selection-end-column="37" />
             </state>
           </provider>
         </entry>
@@ -211,7 +147,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
+            <state relative-caret-position="360">
               <caret line="20" column="19" selection-start-line="20" selection-start-column="19" selection-end-line="20" selection-end-column="19" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
@@ -283,11 +219,11 @@
         <option value="$PROJECT_DIR$/tethysapp/gw/app.py" />
         <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" />
         <option value="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" />
-        <option value="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" />
         <option value="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/South_Africa_State_Boundary.json" />
         <option value="$PROJECT_DIR$/tethysapp/gw/controllers.py" />
         <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" />
+        <option value="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" />
       </list>
     </option>
   </component>
@@ -417,7 +353,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="64" y="-11" width="1857" height="987" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2319869" />
       <window_info id="Structure" order="1" weight="0.25" />
@@ -512,16 +447,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/controllers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4518">
-          <caret line="258" selection-start-line="258" selection-end-line="258" />
-          <folding>
-            <element signature="e#0#35#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="252">
@@ -533,27 +458,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="216">
           <caret line="12" column="2" selection-start-line="12" selection-start-column="2" selection-end-line="12" selection-end-column="83" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1530">
-          <caret line="85" column="118" selection-start-line="85" selection-start-column="118" selection-end-line="85" selection-end-column="118" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5850">
-          <caret line="325" column="33" selection-start-line="325" selection-start-column="19" selection-end-line="325" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="684">
-          <caret line="38" column="43" selection-start-line="38" selection-start-column="43" selection-end-line="38" selection-end-column="43" />
         </state>
       </provider>
     </entry>
@@ -573,7 +477,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/setup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
+        <state relative-caret-position="360">
           <caret line="20" column="19" selection-start-line="20" selection-start-column="19" selection-end-line="20" selection-end-column="19" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
@@ -581,13 +485,41 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="760">
+          <caret line="85" column="118" selection-start-line="85" selection-start-column="118" selection-end-line="85" selection-end-column="118" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/controllers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4644">
+          <caret line="258" selection-start-line="258" selection-end-line="258" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="522">
-          <caret line="1005" column="37" lean-forward="true" selection-start-line="1005" selection-start-column="37" selection-end-line="1005" selection-end-column="37" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="396">
+          <caret line="22" column="16" lean-forward="true" selection-start-line="22" selection-start-column="16" selection-end-line="22" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5850">
+          <caret line="325" column="33" selection-start-line="325" selection-start-column="19" selection-end-line="325" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="738">
+          <caret line="41" column="37" lean-forward="true" selection-start-line="41" selection-start-column="37" selection-end-line="41" selection-end-column="37" />
         </state>
       </provider>
     </entry>

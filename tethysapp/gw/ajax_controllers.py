@@ -32,8 +32,8 @@ import pygslib
 
 porosity=0.3
 #global variables
-#thredds_serverpath='/home/tethys/Thredds/groundwater/'
-thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+thredds_serverpath='/home/tethys/Thredds/groundwater/'
+#thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #Check if the user is superuser or staff. Only the superuser or staff have the permission to add and manage watersheds.
 def user_permission_test(user):
