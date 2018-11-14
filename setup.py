@@ -15,7 +15,10 @@ dependencies = [
         'ujson',
         'numpy',
         'netCDF4',
-        'cython'
+        'cython',
+        'pygslib',
+        'rasterio',
+        'elevation'
 ]
 
 setup(

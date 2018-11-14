@@ -1,4 +1,6 @@
+from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
 from pykrige.ok import OrdinaryKriging
 from django.http import Http404, HttpResponse, JsonResponse
 import os
@@ -18,17 +20,200 @@ from shapely.geometry import Point
 from shapely.geometry import shape
 import tempfile, shutil
 import scipy
+import elevation
+from rasterio.transform import from_bounds, from_origin
+from rasterio.warp import reproject, Resampling
+from scipy.spatial.distance import pdist, squareform, cdist
+from scipy.optimize import least_squares
+import rasterio
 from django.contrib.auth.decorators import login_required,user_passes_test
 import math
+import pygslib
 
 porosity=0.3
 #global variables
-thredds_serverpath='/home/tethys/Thredds/groundwater/'
-#thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+#thredds_serverpath='/home/tethys/Thredds/groundwater/'
+thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #Check if the user is superuser or staff. Only the superuser or staff have the permission to add and manage watersheds.
 def user_permission_test(user):
     return user.is_superuser or user.is_staff
+
+#The explode and bbox functions are used to get the bounding box of a geoJSON object
+def explode(coords):
+    """Explode a GeoJSON geometry's coordinates object and yield coordinate tuples.
+    As long as the input is conforming, the type of the geometry doesn't matter."""
+    for e in coords:
+        if isinstance(e, (float, int, long)):
+            yield coords
+            break
+        else:
+            for f in explode(e):
+                yield f
+
+def bbox(f):
+    x, y = zip(*list(explode(f['geometry']['coordinates'])))
+    return round(np.min(x)-.05,1), round(np.min(y)-.05,1), round(np.max(x)+.05,1), round(np.max(y)+.05,1)
+
+# The following functions are used to automatically fit a variogram to the input data
+def great_circle_distance(lon1, lat1, lon2, lat2):
+    """Calculate the great circle distance between one or multiple pairs of
+    points given in spherical coordinates. Spherical coordinates are expected
+    in degrees. Angle definition follows standard longitude/latitude definition.
+    This uses the arctan version of the great-circle distance function
+    (en.wikipedia.org/wiki/Great-circle_distance) for increased
+    numerical stability.
+    Parameters
+    ----------
+    lon1: float scalar or numpy array
+        Longitude coordinate(s) of the first element(s) of the point
+        pair(s), given in degrees.
+    lat1: float scalar or numpy array
+        Latitude coordinate(s) of the first element(s) of the point
+        pair(s), given in degrees.
+    lon2: float scalar or numpy array
+        Longitude coordinate(s) of the second element(s) of the point
+        pair(s), given in degrees.
+    lat2: float scalar or numpy array
+        Latitude coordinate(s) of the second element(s) of the point
+        pair(s), given in degrees.
+    Calculation of distances follows numpy elementwise semantics, so if
+    an array of length N is passed, all input parameters need to be
+    arrays of length N or scalars.
+    Returns
+    -------
+    distance: float scalar or numpy array
+        The great circle distance(s) (in degrees) between the
+        given pair(s) of points.
+    """
+    # Convert to radians:
+    lat1 = np.array(lat1)*np.pi/180.0
+    lat2 = np.array(lat2)*np.pi/180.0
+    dlon = (lon1-lon2)*np.pi/180.0
+
+    # Evaluate trigonometric functions that need to be evaluated more
+    # than once:
+    c1 = np.cos(lat1)
+    s1 = np.sin(lat1)
+    c2 = np.cos(lat2)
+    s2 = np.sin(lat2)
+    cd = np.cos(dlon)
+
+    # This uses the arctan version of the great-circle distance function
+    # from en.wikipedia.org/wiki/Great-circle_distance for increased
+    # numerical stability.
+    # Formula can be obtained from [2] combining eqns. (14)-(16)
+    # for spherical geometry (f=0).
+
+    return 180.0 / np.pi * np.arctan2(np.sqrt((c2*np.sin(dlon))**2 + (c1*s2-s1*c2*cd)**2), s1*s2+c1*c2*cd)
+
+def _variogram_residuals(params, x, y, variogram_function, weight):
+    """Function used in variogram model estimation. Returns residuals between
+    calculated variogram and actual data (lags/semivariance).
+    Called by _calculate_variogram_model.
+    Parameters
+    ----------
+    params: list or 1D array
+        parameters for calculating the model variogram
+    x: ndarray
+        lags (distances) at which to evaluate the model variogram
+    y: ndarray
+        experimental semivariances at the specified lags
+    variogram_function: callable
+        the actual funtion that evaluates the model variogram
+    weight: bool
+        flag for implementing the crude weighting routine, used in order to
+        fit smaller lags better
+    Returns
+    -------
+    resid: 1d array
+        residuals, dimension same as y
+    """
+
+    # this crude weighting routine can be used to better fit the model
+    # variogram to the experimental variogram at smaller lags...
+    # the weights are calculated from a logistic function, so weights at small
+    # lags are ~1 and weights at the longest lags are ~0;
+    # the center of the logistic weighting is hard-coded to be at 70% of the
+    # distance from the shortest lag to the largest lag
+    if weight:
+        drange = np.amax(x) - np.amin(x)
+        k = 2.1972 / (0.1 * drange)
+        x0 = 0.7 * drange + np.amin(x)
+        weights = 1. / (1. + np.exp(-k * (x0 - x)))
+        weights /= np.sum(weights)
+        resid = (variogram_function(params, x) - y) * weights
+    else:
+        resid = variogram_function(params, x) - y
+
+    return resid
+
+def spherical_variogram_model(m, d):
+    """Spherical model, m is [psill, range, nugget]"""
+    psill = float(m[0])
+    range_ = float(m[1])
+    nugget = float(m[2])
+    return np.piecewise(d, [d <= range_, d > range_],
+                        [lambda x: psill * ((3.*x)/(2.*range_) - (x**3.)/(2.*range_**3.)) + nugget, psill + nugget])
+
+'''The generate_variogram function automatically fits a variogram to the data
+    Inputs:
+        X: a 2d array of geographical coordinates of sample points (longitude, latitude) of length n
+        y: an array of length n containing the values at sample points, ordered the same as X
+        variogram_function: a function for the variogram model (Spherical, Gaussian)
+    Returns:
+        variogram_model_parameters: a list of 1. the sill, 2. the range, 3. the nugget'''
+def generate_variogram(X,y,variogram_function):
+    # This calculates the pairwise geographic distance and variance between pairs of points
+    x1, x2 = np.meshgrid(X[:, 0], X[:, 0], sparse=True)
+    y1, y2 = np.meshgrid(X[:, 1], X[:, 1], sparse=True)
+    z1, z2 = np.meshgrid(y, y, sparse=True)
+    d = great_circle_distance(x1, y1, x2, y2)
+    g = 0.5 * (z1 - z2) ** 2.
+    indices = np.indices(d.shape)
+    d = d[(indices[0, :, :] > indices[1, :, :])]
+    g = g[(indices[0, :, :] > indices[1, :, :])]
+
+    # Now we will sort the d and g into bins
+    nlags = 10
+    weight = False
+    dmax = np.amin(d) + (np.amax(d) - np.amin(d)) / 2.0
+    dmax = np.amax(d)
+
+    dmin = np.amin(d)
+    dd = (dmax - dmin) / nlags
+    bins = [dmin + n * dd for n in range(nlags)]
+    dmax += 0.001
+    bins.append(dmax)
+
+    lags = np.zeros(nlags)
+    semivariance = np.zeros(nlags)
+
+    for n in range(nlags):
+        # This 'if... else...' statement ensures that there are data
+        # in the bin so that numpy can actually find the mean. If we
+        # don't test this first, then Python kicks out an annoying warning
+        # message when there is an empty bin and we try to calculate the mean.
+        if d[(d >= bins[n]) & (d < bins[n + 1])].size > 0:
+            lags[n] = np.mean(d[(d >= bins[n]) & (d < bins[n + 1])])
+            semivariance[n] = np.mean(g[(d >= bins[n]) & (d < bins[n + 1])])
+        else:
+            lags[n] = np.nan
+            semivariance[n] = np.nan
+    lags = lags[~np.isnan(semivariance)]
+    semivariance = semivariance[~np.isnan(semivariance)]
+
+    # First entry is the sill, then the range, then the nugget
+    x0 = [np.amax(semivariance) - np.amin(semivariance), lags[2], 0]
+    bnds = ([0., lags[2], 0.], [10. * np.amax(semivariance), np.amax(lags), 1])
+
+    # use 'soft' L1-norm minimization in order to buffer against
+    # potential outliers (weird/skewed points)
+    res = least_squares(_variogram_residuals, x0, bounds=bnds, loss='soft_l1',
+                        args=(lags, semivariance, variogram_function, weight))
+    variogram_model_parameters = res.x
+    print variogram_model_parameters
+    return variogram_model_parameters
 
 #displaygeojson is an Ajax function that reads a specified JSON File (geolayer) in a specified region (region)
 # and returns the JSON object from that file.
@@ -366,6 +551,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     lats = []
     values = []
     elevations = []
+    heights=[]
     aquifermin=points['aquifermin']
     iterations=int((end_date-start_date)/interval+1)
     start_time=calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple())
@@ -395,6 +581,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
             mylats = []
             myvalues = []
             myelevations = []
+            myheights=[]
             slope = 0
             number = 0
             timevalue = 0
@@ -505,6 +692,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
             mylats = []
             myvalues = []
             myelevations = []
+            myheights=[]
             timevalue = 0
 
 
@@ -651,75 +839,37 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                             myspots.append(i['geometry']['coordinates'])
                             mylons.append(i['geometry']['coordinates'][0])
                             mylats.append(i['geometry']['coordinates'][1])
+                            if 'LandElev' in i['properties']:
+                                myheights.append(i['properties']['LandElev'])
             values.append(myvalues)
             elevations.append(myelevations)
             spots.append(myspots)
             lons.append(mylons)
             lats.append(mylats)
+            heights.append(myheights)
             print len(myvalues)
         lons = np.array(lons)
         lats = np.array(lats)
         values = np.array(values)
         elevations = np.array(elevations)
+        heights=np.array(heights)
 
-    lonmin = 360.0
-    latmin = 90.0
-    lonmax = -360.0
-    latmax = -90.0
-    for i in points['features']:
-        if i['geometry']['coordinates'][0] < lonmin:
-            lonmin = i['geometry']['coordinates'][0]
-        if i['geometry']['coordinates'][0] > lonmax:
-            lonmax = i['geometry']['coordinates'][0]
-        if i['geometry']['coordinates'][1] < latmin:
-            latmin = i['geometry']['coordinates'][1]
-        if i['geometry']['coordinates'][1] > latmax:
-            latmax = i['geometry']['coordinates'][1]
-    lonmin = round(lonmin - .05, 1)
-    latmin = round(latmin - .05, 1)
-    lonmax = round(lonmax + .05, 1)
-    latmax = round(latmax + .05, 1)
+    #Now we prepare the data for the generate_variogram function
+    coordinates = []
+    for i in range(0, iterations):
+        coordinate = np.array((lons[i], lats[i])).T
+        coordinates.append(coordinate)
+    coordinates = np.array(coordinates)
+    X = coordinates[0]
+    y = values[0]
+    variogram_function=spherical_variogram_model
+    variogram_model_parameters=generate_variogram(X,y,variogram_function)
 
-    latgrid = np.mgrid[latmin:latmax:resolution]
-    longrid = np.mgrid[lonmin:lonmax:resolution]
-
-    latrange = (latmax - latmin) / resolution + 1
-    lonrange = (lonmax - lonmin) / resolution + 1
-    latrange = int(latrange)
-    lonrange = int(lonrange)
-
-    def iwd(x, y, v, grid, power):
-        for i in xrange(grid.shape[0]):
-            for j in xrange(grid.shape[1]):
-                distance = np.sqrt((x - ((i * resolution) + lonmin)) ** 2 + (y - ((j * resolution) + latmin)) ** 2)
-                if (distance ** power).min() == 0:
-                    grid[i, j] = v[(distance ** power).argmin()]
-                else:
-                    total = np.sum(1 / (distance ** power))
-                    grid[i, j] = np.sum(v / (distance ** power) / total)
-        return grid
-
-    # GMS Method of IDW interpolation
-    def gms(x, y, v, grid, power):
-        for i in xrange(grid.shape[0]):
-            for j in xrange(grid.shape[1]):
-                distance = np.sqrt((x - ((i * resolution) + lonmin)) ** 2 + (y - ((j * resolution) + latmin)) ** 2)
-                if (distance ** power).min() == 0:
-                    grid[i, j] = v[(distance ** power).argmin()]
-                else:
-                    R = np.amax(distance)
-                    w = ((R - distance) / (R * distance)) ** 2
-                    wtotal = np.sum(w)
-                    grid[i, j] = np.sum(v * w / wtotal)
-        return grid
-
-    grid = np.zeros((lonrange, latrange), dtype='float32')
-
-    aquiferlist=getaquiferlist(app_workspace,region)
+    aquiferlist = getaquiferlist(app_workspace, region)
     for i in aquiferlist:
         if i['Id'] == int(aquifer_number):
             myaquifer = i
-    myaquifercaps=myaquifer['CapsName']
+    myaquifercaps = myaquifer['CapsName']
     fieldname = myaquifer['FieldName']
 
     AquiferShape = {
@@ -730,11 +880,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     MajorAquifers = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
     if os.path.exists(MajorAquifers):
         with open(MajorAquifers, 'r') as f:
-            allwells = ''
-            wells = f.readlines()
-            for i in range(0, len(wells)):
-                allwells += wells[i]
-        major = json.loads(allwells)
+            major = json.load(f)
         for i in major['features']:
             if fieldname in i['properties']:
                 if i['properties'][fieldname] == myaquifercaps:
@@ -743,26 +889,121 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     MinorAquifers = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
     if os.path.exists(MinorAquifers):
         with open(MinorAquifers, 'r') as f:
-            allwells = ''
-            wells = f.readlines()
-            for i in range(0, len(wells)):
-                allwells += wells[i]
-        minor = json.loads(allwells)
+            minor = json.load(f)
         for i in minor['features']:
             if fieldname in i['properties']:
                 if i['properties'][fieldname] == myaquifercaps:
                     AquiferShape['features'].append(i)
 
-    State_Boundary = os.path.join(app_workspace.path, region + '/'+region+'_State_Boundary.json')
+    State_Boundary = os.path.join(app_workspace.path, region + '/' + region + '_State_Boundary.json')
     with open(State_Boundary, 'r') as f:
-        allwells = ''
-        wells = f.readlines()
-        for i in range(0, len(wells)):
-            allwells += wells[i]
-    state = json.loads(allwells)
+        state = json.load(f)
 
     if myaquifercaps == region or myaquifercaps == 'NONE':
-        AquiferShape=state
+        AquiferShape = state
+
+    lonmin, latmin, lonmax, latmax = bbox(AquiferShape['features'][0])
+    latgrid = np.mgrid[latmin:latmax:resolution]
+    longrid = np.mgrid[lonmin:lonmax:resolution]
+    latrange = len(latgrid)
+    lonrange = len(longrid)
+    nx = (lonmax - lonmin) / resolution
+    ny = (latmax - latmin) / resolution
+    searchradius = 3
+    ndmax = len(elevations[0])
+    ndmin = ndmax - 2
+    noct = 0
+    nugget = 0
+    sill = variogram_model_parameters[0]
+    vrange = variogram_model_parameters[1]
+    print latrange, lonrange
+
+    bounds = (lonmin, latmin, lonmax, latmax)
+    west, south, east, north = bounds
+    # Reproject DEM to 0.01 degree resolution using rasterio
+    dem_path=os.path.join(app_workspace.path, region+"/DEM/"+name.replace(" ","_")+"_DEM.tif")
+    dem_raster = rasterio.open(dem_path)
+    src_crs = dem_raster.crs
+    src_shape = src_height, src_width = dem_raster.shape
+    src_transform = from_bounds(west, south, east, north, src_width, src_height)
+    source = dem_raster.read(1)
+    dst_crs = {'init': 'EPSG:4326'}
+    dst_transform = from_origin(lonmin, latmax, resolution, resolution)
+    dem_array = np.zeros((latrange, lonrange))
+    dem_array[:] = np.nan
+    reproject(source,
+              dem_array,
+              src_transform=src_transform,
+              src_crs=src_crs,
+              dst_transform=dst_transform,
+              dst_crs=dst_crs,
+              resampling=Resampling.bilinear)
+    dem_array = np.array(dem_array)
+    dem_array = np.flipud(dem_array)
+    dem = np.reshape(dem_array.T, ((lonrange) * latrange))
+    # dem=dem*3.28084 #use this to convert from meters to feet
+    dem_grid = np.reshape(dem, (lonrange, latrange))
+
+    outx = np.repeat(longrid, latrange)
+    outy = np.tile(latgrid, lonrange)
+    depth_grids = []
+    elev_grids = []
+
+    for i in range(0, iterations):
+        params = {
+            'x': lons[i],
+            'y': lats[i],
+            'vr': values[i],
+            'nx': nx,
+            'ny': ny,
+            'nz': 1,
+            'xmn': lonmin,
+            'ymn': latmin,
+            'zmn': 0,
+            'xsiz': resolution,
+            'ysiz': resolution,
+            'zsiz': 1,
+            'nxdis': 1,
+            'nydis': 1,
+            'nzdis': 1,
+            'outx': outx,
+            'outy': outy,
+            'radius': searchradius,
+            'radius1': searchradius,
+            'radius2': searchradius,
+            'ndmax': ndmax,
+            'ndmin': ndmin,
+            'noct': noct,
+            'ktype': 1,
+            'idbg': 0,
+            'c0': nugget,
+            'it': 1,
+            'cc': sill,
+            'aa': vrange,
+            'aa1': vrange,
+            'aa2': vrange
+        }
+        if interpolation_type=="Kriging with External Drift":
+            params['vr']=elevations[i]
+            params['ve']=heights[i]
+            params['outextve']=dem
+            params['ktype']=3
+        estimate = pygslib.gslib.kt3d(params)
+        if interpolation_type=="IDW":
+            array=estimate[0]['outidpower']
+        else:
+            array = estimate[0]['outest']
+        depth_grid = np.reshape(array, (lonrange, latrange))
+        if interpolation_type == "Kriging with External Drift":
+            elev_grid=depth_grid
+            depth_grid = elev_grid - dem_grid
+        else:
+            elev_grid = dem_grid + depth_grid
+        depth_grids.append(depth_grid)
+        elev_grids.append(elev_grid)
+        print i
+    depth_grids = np.array(depth_grids)
+    elev_grids = np.array(elev_grids)
 
     temp_dir=tempfile.mkdtemp()
 
@@ -839,6 +1080,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     longitude[:] = longrid[:]
     year = start_date
     timearray = []  # [datetime.datetime(2000,1,1).toordinal()-1,datetime.datetime(2002,1,1).toordinal()-1]
+    t=0
     for i in range(0, iterations):
         a = lons[i]
         b = lats[i]
@@ -868,14 +1110,8 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                     monthyear=int(monthyear-.5)
                     timearray.append(datetime.datetime(monthyear, 7, 1).toordinal() - 1)
             year += interval
-            time[i] = timearray[i]
-            for x in range(0, len(longrid)):
-                for y in range(0, len(latgrid)):
-                    depth[i, x, y] = -9999
-                    elevation[i,x,y]=-9999
-                    drawdown[i,x,y]=-9999
-        elif interpolation_type == 'IDW' or krigeable==False:
-            grids = gms(a, b, c, grid, 2)
+
+        else: # for IDW, Kriging, and Kriging with External Drift
             if sixmonths==False:
                 year=int(year)
                 timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
@@ -889,73 +1125,21 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                     monthyear=int(monthyear-.5)
                     timearray.append(datetime.datetime(monthyear, 7, 1).toordinal() - 1)
             year += interval
-            time[i] = timearray[i]
-            for x in range(0, len(longrid)):
-                for y in range(0, len(latgrid)):
-                    depth[i, x, y] = grids[x, y]
-                    if i == 0:
-                        drawdown[i, x, y] = 0
-                    else:
-                        for f in range(0, i):
-                            if depth[f, x, y] != -9999:
-                                drawdown[i, x, y] = depth[i, x, y] - depth[f, x, y]
-                                break
-                            else:
-                                drawdown[i, x, y] = 0
-                    mylatmin=math.radians(latitude[y]-resolution/2)
-                    mylatmax=math.radians(latitude[y]+resolution/2)
-                    area=3959.0 * math.radians(resolution) * 3959.0 * abs((math.sin(mylatmin)-math.sin(mylatmax))) #3959 is the radius of the earth in miles
-                    area=area*640.0 #convert from square miles to acres
-                    volume[i,x,y]=drawdown[i,x,y]*porosity*area
-
-            grid2 = gms(a, b, d, grid, 2)
-            for x in range(0, len(longrid)):
-                for y in range(0, len(latgrid)):
-                    elevation[i, x, y] = grid2[x, y]
-
-
-        elif interpolation_type == 'Kriging':
-            OK = OrdinaryKriging(a, b, c, variogram_model='gaussian', coordinates_type='geographic', verbose=True, enable_plotting=False)
-            EK = OrdinaryKriging(a, b, d, variogram_model='gaussian', coordinates_type='geographic')
-            if len(a) > 500:
-                elev, error = EK.execute('grid', longrid, latgrid, backend='C', n_closest_points=25)
-                krig, ss = OK.execute('grid', longrid, latgrid, backend='C', n_closest_points=25)
-            else:
-                elev, error = EK.execute('grid', longrid, latgrid)
-                krig, ss = OK.execute('grid', longrid, latgrid)
-            if sixmonths==False:
-                year=int(year)
-                timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
-            else:
-                monthyear=start_date+interval*i
-                doubleyear=monthyear*2
-                if doubleyear%2==0:
-                    monthyear=int(monthyear)
-                    timearray.append(datetime.datetime(monthyear, 1, 1).toordinal() - 1)
+            time[t] = timearray[i]
+            for y in range(0, latrange):
+                depth[t, :, y] = depth_grids[i, :, y]
+                elevation[t, :, y] = elev_grids[i, :, y]
+                if t == 0:
+                    drawdown[t, :, y] = 0
                 else:
-                    monthyear=int(monthyear-.5)
-                    timearray.append(datetime.datetime(monthyear, 7, 1).toordinal() - 1)
-            year += interval
-            time[i] = timearray[i]
-            for x in range(0, len(longrid)):
-                for y in range(0, len(latgrid)):
-                    depth[i, x, y] = krig[y, x]
-                    elevation[i, x, y] = elev[y, x]
-                    if i == 0:
-                        drawdown[i, x, y] = 0
-                    else:
-                        for f in range(0,i):
-                            if depth[f,x,y]!=-9999:
-                                drawdown[i, x, y] = depth[i, x, y] - depth[f, x, y]
-                                break
-                            else:
-                                drawdown[i,x,y]=0
-                    mylatmin = math.radians(latitude[y] - resolution / 2)
-                    mylatmax = math.radians(latitude[y] + resolution / 2)
-                    area = 3959 * math.radians(resolution) * 3959 * abs(
-                        (math.sin(mylatmin) - math.sin(mylatmax)))  # 3959 is the radius of the earth in miles
-                    area = area * 640  # convert from square miles to acres
-                    volume[i, x, y] = drawdown[i, x, y] * porosity * area
+                    drawdown[t, :, y] = depth[i, :, y] - depth[0, :, y]
+                mylatmin = math.radians(latitude[y] - resolution / 2)
+                mylatmax = math.radians(latitude[y] + resolution / 2)
+                area = 6371000 * math.radians(resolution) * 6371000 * abs(
+                    (math.sin(mylatmin) - math.sin(mylatmax)))  # 3959 is the radius of the earth in miles, 6,371,000 is radius in meters
+                # area = area * 640  # convert from square miles to acres by multiplying by 640
+                volume[t, :, y] = drawdown[i, :, y] * porosity * area
+            t+=1
 
     h.close()
 
@@ -1052,16 +1236,21 @@ def divideaquifers(region,app_workspace,aquiferid):
 def subdivideaquifers(region,app_workspace,aquiferid):
     aquiferlist = getaquiferlist(app_workspace, region)
 
-    geofile = region+"/Wells1.json"
-    nc_file=os.path.join(app_workspace.path,geofile)
+    wellfile = region+"/Wells1.json"
+    well_file=os.path.join(app_workspace.path,wellfile)
     aquifer = int(aquiferid)
 
     for i in aquiferlist:
-        if i['Id'] == int(aquifer):
+        if i['Id'] == aquifer:
             myaquifer = i
-
+    #Check stuff with i['Contains']
+    aquifer_id_number=int(aquifer)
+    aquifer_id_numbers=[aquifer_id_number]
+    if 'Contains' in myaquifer:
+        if len(myaquifer['Contains'])>1:
+            aquifer_id_numbers=myaquifer['Contains']
     if myaquifer['Name']!=region:
-        with open(nc_file, 'r') as f:
+        with open(well_file, 'r') as f:
             allwells = ''
             wells = f.readlines()
             for i in range(0, len(wells)):
@@ -1073,24 +1262,23 @@ def subdivideaquifers(region,app_workspace,aquiferid):
         }
         for feature in wells_json['features']:
             feature['properties']['HydroID']=str(feature['properties']['HydroID'])
-            if feature['properties']['AquiferID'] == aquifer:
+            if feature['properties']['AquiferID'] == aquifer_id_number or feature['properties']['AquiferID'] in aquifer_id_numbers:
                 points['features'].append(feature)
         points['features'].sort(key=lambda x: x['properties']['HydroID'])
         time_csv = []
-        aquifer = str(aquifer)
         mycsv=region+'/Wells_Master.csv'
         the_csv=os.path.join(app_workspace.path,mycsv)
+        aquifer_id_number = str(aquifer_id_number)
         with open(the_csv) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if row['AquiferID'] == aquifer:
+                if row['AquiferID'] == aquifer_id_number or int(row['AquiferID']) in aquifer_id_numbers:
                     if row['TsValue_normalized'] != '':
-                        timestep = (row['FeatureID'], (row['TsTime']), (float(row['TsValue'])),
+                        timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
                                     (float(row['TsValue_normalized'])))
                         time_csv.append(timestep)
-        aquifer=int(aquifer)
     else:
-        with open(nc_file, 'r') as f:
+        with open(well_file, 'r') as f:
             allwells = ''
             wells = f.readlines()
             for i in range(0, len(wells)):
@@ -1112,17 +1300,16 @@ def subdivideaquifers(region,app_workspace,aquiferid):
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if row['TsValue_normalized'] != '':
-                    timestep = (row['FeatureID'], (row['TsTime']), (float(row['TsValue'])),
+                    timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
                                 (float(row['TsValue_normalized'])))
                     time_csv.append(timestep)
     time_csv.sort(key=lambda x:x[0])
-
     number = 0
     aquifermin = 0.0
     max_number = len(points['features'])
     for i in time_csv:
         while number < max_number:
-            if i[0] == points['features'][number]['properties']['HydroID']:
+            if i[0] == str(points['features'][number]['properties']['HydroID']):
                 if 'TsTime' not in points['features'][number]:
                     points['features'][number]['TsTime'] = []
                     points['features'][number]['TsValue'] = []
@@ -1167,10 +1354,14 @@ def subdivideaquifers(region,app_workspace,aquiferid):
             i['TsTime'] = []
             i['TsValue'] = []
             i['TsValue_norm'] = []
+            #This portion of the sorting code checks to see if the dates are duplicates and does not add them if they are
+            oldtime=-9999.5555
             for j in range(0, length):
-                i['TsTime'].append(array[j][0])
-                i['TsValue'].append(array[j][1])
-                i['TsValue_norm'].append(array[j][2])
+                if oldtime!=array[j][0]:
+                    i['TsTime'].append(array[j][0])
+                    i['TsValue'].append(array[j][1])
+                    i['TsValue_norm'].append(array[j][2])
+                    oldtime=array[j][0]
 
     points['aquifermin']=aquifermin
 
@@ -1187,6 +1378,41 @@ def subdivideaquifers(region,app_workspace,aquiferid):
     filename=os.path.join(app_workspace.path,region+'/aquifers/'+filename)
     with open(filename, 'w') as outfile:
         json.dump(points, outfile)
+
+    directory = os.path.join(app_workspace.path, region + '/DEM')
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    # Download and Set up the DEM for the aquifer
+    minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
+    majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
+    aquiferShape = {
+        'type': 'FeatureCollection',
+        'features': []
+    }
+    fieldname = myaquifer['FieldName']
+
+    if os.path.exists(minorfile):
+        with open(minorfile, 'r') as f:
+            minor = json.load(f)
+        for i in minor['features']:
+            if fieldname in i['properties']:
+                if i['properties'][fieldname] == myaquifer['CapsName']:
+                    aquiferShape['features'].append(i)
+
+    if os.path.exists(majorfile):
+        with open(majorfile, 'r') as f:
+            major = json.load(f)
+        for i in major['features']:
+            if fieldname in i['properties']:
+                if i['properties'][fieldname] == myaquifer['CapsName']:
+                    aquiferShape['features'].append(i)
+    print aquiferShape
+    lonmin, latmin, lonmax, latmax = bbox(aquiferShape['features'][0])
+    bounds = (lonmin - .1, latmin - .1, lonmax + .1, latmax + .1)
+    dem_path = name.replace(' ','_') + '_DEM.tif'
+    output = os.path.join(directory, dem_path)
+    elevation.clip(bounds=bounds, output=output, product='SRTM3')
+    print "This step works. 90 m DEM downloaded for ",name
 
     print len(time_csv)
     return [points,aquifermin]
@@ -1205,6 +1431,10 @@ def getaquiferlist(app_workspace,region):
                 'CapsName': row['CapsName'],
                 'FieldName':row['NameField']
             }
+            if 'Contains' in row:
+                if row['Contains'] !="":
+                    myaquifer['Contains']=row['Contains'].split('.')
+                    myaquifer['Contains']=[int(i) for i in myaquifer['Contains']]
             aquiferlist.append(myaquifer)
     return aquiferlist
 

@@ -3,17 +3,8 @@ from django.shortcuts import redirect, reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required,user_passes_test
 from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput
-# import csv
-# import os
-# import tempfile
-# import shutil
-# from .app import Gw as app
-# import urllib
-# import json
-# import calendar
-# import datetime
+import elevation
 import pandas as pd
-# from operator import itemgetter
 from ajax_controllers import *
 
 
@@ -227,7 +218,7 @@ def addregion(request):
             major_file=major_file[0]
             wells_file=wells_file[0]
             time_file=time_file[0]
-
+            region=region.replace(' ', '_')
             app_workspace = app.get_app_workspace()
             # Function to write the file from the uploaded file
             def writefile(input, output):
@@ -257,7 +248,6 @@ def addregion(request):
                 if not os.path.exists(thredds_folder):
                     os.mkdir(thredds_folder)
 
-                # Addition
                 aquiferlist = getaquiferlist(app_workspace, region)
 
                 well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
@@ -266,7 +256,7 @@ def addregion(request):
                 for i in range(1, len(aquiferlist) + 1):
                     if os.path.exists(well_file) and os.path.exists(times_file):
                         subdivideaquifers(region, app_workspace, i)
-                # End Addition
+
                 success=True
 
             except Exception as e:
@@ -318,7 +308,7 @@ def region_map(request):
     dirs=next(os.walk(app_workspace.path))[1]
     regions=[]
     for entry in dirs:
-        region=(entry,entry)
+        region=(entry.replace("_"," "),entry)
         regions.append(region)
     select_region = SelectInput(display_text='Select Region',
                                  name='select_region',
