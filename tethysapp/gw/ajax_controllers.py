@@ -11,7 +11,6 @@ from shapely.geometry import shape
 from hs_restclient import HydroShare, HydroShareAuthBasic
 from .uploadnetcdf import *
 
-#We will now use a PostGIS database instead of the workspace
 
 #Check if the user is superuser or staff. Only the superuser or staff have the permission to add and manage watersheds.
 def user_permission_test(user):
