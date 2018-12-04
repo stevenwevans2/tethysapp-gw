@@ -80,22 +80,19 @@
                 </span>
         </span>
         <div id="map" style="height: 500px; width: 100%"></div>
-        <span><span style="white-space:nowrap;float:left;">{% gizmo region_home %}<span id="volbut" style="white-space:nowrap;float:right;">{% gizmo volume_button %}</span></span><span id="buttons" style="white-space:nowrap;float:right;">{% if user.is_superuser or user.is_staff %}{% gizmo delete_button %}{% gizmo default_button %}{% endif %}</span></span>
+        <span>
+            <span style="white-space:nowrap;float:left;">{% gizmo region_home %}
+                <span id="volbut" style="white-space:nowrap;float:right;">{% gizmo volume_button %}</span>
+            </span>
+            <span id="buttons" style="white-space:nowrap;float:right;">
+                <a name="btnUpload" class="btn btn-default" id="btnUpload" data-toggle="modal" data-target="#hydroshare-modal" role="button" >
+                    <span class="glyphicon hydroshare" aria-hidden="true"></span>
+                    <img src="/static/gw/images/hydroshare_logo.svg" class="button-icon" style="height:26px;width:26px"/>Upload to HydroShare
+                </a>
+                {% if user.is_superuser or user.is_staff %}{% gizmo delete_button %}{% gizmo default_button %}{% endif %}
+            </span>
+        </span>
         <div id="chart" style="width: 100%; height: 400px; "></div>
-
-	    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.4.2/Control.FullScreen.min.js"></script>
-        <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
-	    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
-
-	    <script src="https://code.highcharts.com/stock/highstock.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js"></script>
-        <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
-        <script type="text/javascript" src="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.min.js"></script>
-        <script type="text/javascript" src="{% static 'gw/js/region_map.js' %}"></script>
-        <script src="https://code.highcharts.com/modules/series-label.js"></script>
-        <script src="https://code.highcharts.com/modules/exporting.js"></script>
-        <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
 
     </body>
 </html>
@@ -162,6 +159,69 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+    <div class="modal fade" id="hydroshare-modal" tabindex="-1" role="dialog" aria-labelledby="AddHydroshareResource">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h6 class="modal-title">Upload File to HydroShare as a Resource(*Required)</h6>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="resource-title" class="control-label">*Resource Title:</label>
+                        <input type="text" class="form-control" id="resource-title">
+                    </div>
+                    <div class="form-group">
+                        <label for="resource-type" class="control-label">*Resource Type:</label>
+                        <select class="form-control" id="resource-type">
+                            <option>GenericResource</option>
+                            <!--<option>Geographic Raster</option>-->
+                            <!--<option>HIS Referenced Time Series</option>-->
+                            <!--<option>Model Program</option>-->
+                            <!--<option>Model Instance</option>-->
+                            <!--<option>Multidimensional (NetCDF)</option>-->
+                            <!--<option>Time Series</option>-->
+                            <!--<option>Application</option>-->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="resource-abstract" class="control-label">*Resource Abstract:</label>
+                        <textarea rows="6" cols="50" id="resource-abstract" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="resource-keywords" class="control-label">*Resource Keywords:</label>
+                        <input type="text" class="form-control" id="resource-keywords">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="display-status" class="col-md-8"></div>
+                    <div id="footer-buttons" class="col-md-4">
+                        <button type="button" class="btn btn-default footer" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary footer" id="hydroshare-proceed">Proceed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ block.super }}
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.4.2/Control.FullScreen.min.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.min.js"></script>
+    <script type="text/javascript" src="{% static 'gw/js/region_map.js' %}"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+
 {% endblock %}
 
 {% block app_actions %}

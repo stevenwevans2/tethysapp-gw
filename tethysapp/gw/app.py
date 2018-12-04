@@ -118,6 +118,11 @@ class Gw(TethysAppBase):
                 url='gw/addoutlier',
                 controller='gw.ajax_controllers.addoutlier'
             ),
+            UrlMap(
+                name='upload_to_hydroshare',
+                url='gw/upload-to-hydroshare',
+                controller='gw.ajax_controllers.upload_to_hydroshare'
+            ),
         )
 
         return url_maps

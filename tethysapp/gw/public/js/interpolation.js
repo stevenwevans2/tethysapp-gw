@@ -39,19 +39,24 @@ function submit_form(){
     var make_default=$("#default").find('option:selected').val();
     var min_samples=$("#min_samples").find('option:selected').val();
     var min_ratio=$("#min_ratio").find('option:selected').val();
+    var units=$("#select_units").find('option:selected').val();
+    if (start_date>=end_date){
+        alert("Error, Start Date must be before End Date");
+        document.getElementById('waiting_output').innerHTML = '';
+    }
+    else{
+        $.ajax({
+            url: '/apps/gw/loaddata/',
+            type: 'GET',
+            data: {'id':id, 'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units},
+            contentType: 'application/json',
+            error: function (status) {
 
-    $.ajax({
-        url: '/apps/gw/loaddata/',
-        type: 'GET',
-        data: {'id':id, 'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1},
-        contentType: 'application/json',
-        error: function (status) {
-
-        }, success: function (response) {
-            document.getElementById('waiting_output').innerHTML = '';
-            document.getElementById('chart').innerHTML='Finished Interpolation';
-        }
-    })
-
+            }, success: function (response) {
+                document.getElementById('waiting_output').innerHTML = '';
+                document.getElementById('chart').innerHTML=response['message'];
+            }
+        })
+    }
 
 }

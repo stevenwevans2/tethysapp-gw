@@ -24,7 +24,7 @@ dependencies = [
 setup(
     name=release_package,
     version='0.0.1',
-    tags='&quot;Hydrology&quot;,&quot;Groundwater&quot;,&quot;Timeseries&quot;',
+    tags='Hydrology,Groundwater,Timeseries',
     description='This application uses spatial and temporal interpolation of well data to create groundwater level maps and time series.',
     long_description='',
     keywords='',

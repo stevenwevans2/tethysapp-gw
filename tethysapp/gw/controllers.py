@@ -3,8 +3,8 @@ from django.shortcuts import redirect, reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required,user_passes_test
 from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput
-import elevation
 import pandas as pd
+import urllib
 from ajax_controllers import *
 
 
@@ -256,7 +256,6 @@ def addregion(request):
                 for i in range(1, len(aquiferlist) + 1):
                     if os.path.exists(well_file) and os.path.exists(times_file):
                         subdivideaquifers(region, app_workspace, i)
-
                 success=True
 
             except Exception as e:
@@ -435,12 +434,19 @@ def interpolation(request):
     """
     Controller for the app home page.
     """
+    select_units=SelectInput(display_text='Select Units',
+                             name='select_units',
+                             options=[('English','English'),("Metric","Metric")],
+                             initial='English',
+    )
+
     app_workspace = app.get_app_workspace()
     dirs = next(os.walk(app_workspace.path))[1]
     regions = []
     for entry in dirs:
         region = (entry, entry)
         regions.append(region)
+
     select_region = SelectInput(display_text='Select Region',
                                  name='select_region',
                                  multiple=False,
@@ -547,6 +553,7 @@ def interpolation(request):
 
 
     context = {
+        "select_units":select_units,
         "select_region":select_region,
         "select_aquifer":select_aquifer,
         "select_interpolation": select_interpolation,

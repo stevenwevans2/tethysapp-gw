@@ -1,5 +1,6 @@
-var thredds_url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/";
-//var thredds_url = "http://localhost:8080/thredds/wms/testAll/groundwater/";
+//var thredds_url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/";
+var thredds_url = "http://localhost:8080/thredds/wms/testAll/groundwater/";
+var units="Metric";
 
 //Get a CSRF cookie for request
 function getCookie(name) {
@@ -541,6 +542,12 @@ function displaygeojson(aquifer_number, displayallwells) {
 
 function displayallwells(aquifer_number,well_points,required){
 
+    var length_unit="m";
+    var vol_unit="Cubic Meters";
+    if (units=="English"){
+        length_unit="ft";
+        vol_unit="Acre-ft"
+    }
     var color='blue';
     var aquifer=$("#select_aquifer").find('option:selected').text();
     var name=$("#available_dates").find('option:selected').val();
@@ -910,13 +917,13 @@ function displayallwells(aquifer_number,well_points,required){
                                         //'Depth to Water Table (ft)'}
                                             type=$("#select_view").find('option:selected').val();
                                             if (type=="elevation"){
-                                                type="Elevation of Water Table (ft)";
+                                                type="Elevation of Water Table ("+length_unit+")";
                                             }
                                             else if(type=="drawdown"){
-                                                type="Drawdown (ft)";
+                                                type="Drawdown ("+length_unit+")";
                                             }
                                             else{
-                                                type="Depth to Water Table (ft)";
+                                                type="Depth to Water Table ("+length_unit+")";
                                             }
                                             return type;
                                             })()
@@ -924,21 +931,21 @@ function displayallwells(aquifer_number,well_points,required){
                                 },
                                 series: [{
                                     data: data,
-                                    name: "Depth to Water Table (ft)",
+                                    name: "Depth to Water Table ("+length_unit+")",
                                     marker:{enabled: true},
                                     visible:(function(){
                                             type=$("#select_view").find('option:selected').val();
                                             if (type=="elevation"){
-                                                type="Elevation of Water Table (ft)";
+                                                type="Elevation of Water Table ("+length_unit+")";
                                             }
                                             else if(type=="drawdown"){
-                                                type="Drawdown (ft)";
+                                                type="Drawdown ("+length_unit+")";
                                             }
                                             else{
-                                                type="Depth to Water Table (ft)";
+                                                type="Depth to Water Table ("+length_unit+")";
                                             }
                                             visible=false
-                                            if (type=="Depth to Water Table (ft)"){
+                                            if (type=="Depth to Water Table ("+length_unit+")"){
                                                 visible=true;
                                             }
                                             return visible;
@@ -946,22 +953,22 @@ function displayallwells(aquifer_number,well_points,required){
                                     },
                                     {
                                     data:elevation,
-                                    name: "Elevation of Water Table (ft)",
+                                    name: "Elevation of Water Table ("+length_unit+")",
                                     marker:{enabled: true},
                                     color:'blue',
                                     visible:(function(){
                                             type=$("#select_view").find('option:selected').val();
                                             if (type=="elevation"){
-                                                type="Elevation of Water Table (ft)";
+                                                type="Elevation of Water Table ("+length_unit+")";
                                             }
                                             else if(type=="drawdown"){
-                                                type="Drawdown (ft)";
+                                                type="Drawdown ("+length_unit+")";
                                             }
                                             else{
-                                                type="Depth to Water Table (ft)";
+                                                type="Depth to Water Table ("+length_unit+")";
                                             }
                                             visible=false
-                                            if (type=="Elevation of Water Table (ft)"){
+                                            if (type=="Elevation of Water Table ("+length_unit+")"){
                                                 visible=true;
                                             }
                                             return visible;
@@ -969,22 +976,22 @@ function displayallwells(aquifer_number,well_points,required){
                                     },
                                     {
                                     data:drawdown,
-                                    name: "Drawdown (ft)",
+                                    name: "Drawdown ("+length_unit+")",
                                     marker:{enabled: true},
                                     color:'#1A429E',
                                     visible:(function(){
                                             type=$("#select_view").find('option:selected').val();
                                             if (type=="elevation"){
-                                                type="Elevation of Water Table (ft)";
+                                                type="Elevation of Water Table ("+length_unit+")";
                                             }
                                             else if(type=="drawdown"){
-                                                type="Drawdown (ft)";
+                                                type="Drawdown ("+length_unit+")";
                                             }
                                             else{
-                                                type="Depth to Water Table (ft)";
+                                                type="Depth to Water Table ("+length_unit+")";
                                             }
                                             visible=false
-                                            if (type=="Drawdown (ft)"){
+                                            if (type=="Drawdown ("+length_unit+")"){
                                                 visible=true;
                                             }
                                             return visible;
@@ -1012,10 +1019,10 @@ function displayallwells(aquifer_number,well_points,required){
                                 var since='';
                                 type=$("#select_view").find('option:selected').val();
                                 if (type=="elevation"){
-                                    type="Elevation of Water Table (ft)";
+                                    type="Elevation of Water Table ("+length_unit+")";
                                 }
                                 else if(type=="drawdown"){
-                                    type="Drawdown (ft)";
+                                    type="Drawdown ("+length_unit+")";
                                     var blank_raster=$("#available_dates").find('option:selected').val();
                                     var first_entry=data[0][0];
                                     if (blank_raster!="Blank.nc"){
@@ -1038,7 +1045,7 @@ function displayallwells(aquifer_number,well_points,required){
                                     since="since "+month+", "+year+" ";
                                 }
                                 else{
-                                    type="Depth to Water Table (ft)";
+                                    type="Depth to Water Table ("+length_unit+")";
                                 }
                                 for (var i=0;i<mychart.series.length;i++){
                                     if (mychart.series[i].name==type){
@@ -1060,10 +1067,10 @@ function displayallwells(aquifer_number,well_points,required){
                                 var since='';
                                 type=$("#select_view").find('option:selected').val();
                                 if (type=="elevation"){
-                                    type="Elevation of Water Table (ft)";
+                                    type="Elevation of Water Table ("+length_unit+")";
                                 }
                                 else if(type=="drawdown"){
-                                    type="Drawdown (ft)";
+                                    type="Drawdown ("+length_unit+")";
                                     var blank_raster=$("#available_dates").find('option:selected').val();
                                     var first_entry=data[0][0];
                                     if (blank_raster!="Blank.nc"){
@@ -1086,7 +1093,7 @@ function displayallwells(aquifer_number,well_points,required){
                                     since="since "+month+", "+year+" ";
                                 }
                                 else{
-                                    type="Depth to Water Table (ft)";
+                                    type="Depth to Water Table ("+length_unit+")";
                                 }
                                 for (var i=0;i<mychart.series.length;i++){
                                     if (mychart.series[i].name==type){
@@ -1335,6 +1342,14 @@ function toggleButtons(){
             else{
                 document.getElementById('volbut').style.display="none";document.getElementById('volbut').style.display="none";
             }
+            $('#display-status').html('');
+            $('#display-status').html('').removeClass('success');
+            $('#resource-abstract').val(response.abstract);
+            $('#resource-keywords').val(response.keywords);
+            $('#resource-title').val(response.title);
+            $('#resource-type').val(response.type);
+            var filepath =response.filepath;
+            var metadata=response.metadata
         }
     });
 }
@@ -1369,6 +1384,7 @@ function list_dates(call_function){
                 if (timelist[i].Default==1){
                     $("#available_dates").val(number);
                 }
+                units=timelist[i].Units;
             }
             document.getElementById("select2-available_dates-container").innerHTML=$("#available_dates").find('option:selected').text();
             toggleButtons();
@@ -1398,6 +1414,7 @@ function confirm_delete(){
 
         }, success: function (response) {
             list_dates(1);
+            document.getElementById('chart').innerHTML='';
         }
     });
     }
@@ -1427,6 +1444,12 @@ function confirm_default(){
 function totalvolume(){
     region=$("#select_region").find('option:selected').val();
     name=$("#available_dates").find('option:selected').val();
+    var length_unit="m";
+    var vol_unit="Cubic Meters";
+    if (units=="English"){
+        length_unit="ft";
+        vol_unit="Acre-ft"
+    }
     $.ajax({
         url: '/apps/gw/gettotalvolume/',
         type: 'GET',
@@ -1488,14 +1511,14 @@ function totalvolume(){
                     title: {
                         text: (function(){
                         //'Depth to Water Table (ft)'}
-                            type="Change in aquifer storage volume (Acre-ft)";
+                            type="Change in aquifer storage volume ("+vol_unit+")";
                             return type;
                             })()
                         }
                 },
                 series: [{
                     data: data,
-                    name: "Change in aquifer storage volume (Acre-ft)"
+                    name: "Change in aquifer storage volume ("+vol_unit+")"
                 }]
             })
             TimeLayer._timeDimension.on('timeload', (function() {
@@ -1514,3 +1537,81 @@ function totalvolume(){
         }
     });
 }
+
+//This is a function for uploading the NetCDF file to HydroShare
+
+$('#hydroshare-proceed').on('click', function ()  {
+           //This function only works on HTML5 browsers.
+    var displayStatus = $('#display-status');
+    displayStatus.removeClass('error');
+    displayStatus.addClass('uploading');
+    displayStatus.html('<em>Uploading...</em>');
+    var resourceTypeSwitch = function(typeSelection) {
+        var options = {
+            'GenericResource': 'GenericResource',
+            'Geographic Raster': 'RasterResource',
+            'HIS Referenced Time Series': 'RefTimeSeries',
+            'Model Instance': 'ModelInstanceResource',
+            'Model Program': 'ModelProgramResource',
+            'Multidimensional (NetCDF)': 'NetcdfResource',
+            'Time Series': 'TimeSeriesResource',
+            'Application': 'ToolResource'
+        };
+        return options[typeSelection];
+    };
+
+    var name=$("#available_dates").find('option:selected').val();
+    name=name.replace(/ /g,"_");
+    var region=$("#select_region").find('option:selected').val();
+    region=region.replace(/ /g,"_");
+    var resourceAbstract = $('#resource-abstract').val();
+    var resourceTitle = $('#resource-title').val();
+    var resourceKeywords = $('#resource-keywords').val();
+    var resourceType = $('#resource-type').val();
+
+     if (!resourceTitle || !resourceKeywords || !resourceAbstract) {
+        displayStatus.removeClass('uploading');
+        displayStatus.addClass('error');
+        displayStatus.html('<em>You must provide all metadata information.</em>');
+        return;
+    }
+
+    $(this).prop('disabled', true);
+    $.ajax({
+        type: 'POST',
+        url: '/apps/gw/upload-to-hydroshare/',
+        dataType:'json',
+        data: {
+                'name':name,
+                'region':region,
+                'r_title': resourceTitle,
+                'r_type': resourceType,
+                'r_abstract': resourceAbstract,
+                'r_keywords': resourceKeywords
+                        },
+        success: function (data) {
+            $('#hydroshare-proceed').prop('disabled', false);
+            if ('error' in data) {
+                displayStatus.removeClass('uploading');
+                displayStatus.addClass('error');
+                displayStatus.html('<em>' + data.error + '</em>');
+            }
+            else
+            {
+                displayStatus.removeClass('uploading');
+                displayStatus.addClass('success');
+                displayStatus.html('<em>' + data.success + ' View in HydroShare <a href="https://' + data.hs_domain +'/resource/' + data.newResource +
+                    '" target="_blank">HERE</a></em>');
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            alert("Error");
+            debugger;
+            $('#hydroshare-proceed').prop('disabled', false);
+            console.log(jqXHR + '\n' + textStatus + '\n' + errorThrown);
+            displayStatus.removeClass('uploading');
+            displayStatus.addClass('error');
+            displayStatus.html('<em>' + errorThrown + '</em>');
+        }
+    });
+});

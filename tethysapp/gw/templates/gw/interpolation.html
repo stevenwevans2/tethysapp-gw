@@ -11,6 +11,7 @@
 {% block app_content %}
   <h1>Interpolation Wizard</h1>
   <p>This Wizard allows you to adjust interpolation settings and interpolate water levels</p>
+    {% gizmo select_input select_units %}
     {% gizmo select_input select_region %}
     {% gizmo select_input select_aquifer %}
     {% gizmo select_input start_date %}
