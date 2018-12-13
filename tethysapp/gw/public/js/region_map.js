@@ -478,12 +478,13 @@ function displaygeojson(aquifer_number, displayallwells) {
 
     }, success: function (response) {
         AquiferShape=response['data'];
-        myaquifer=response['aquifer'];
+        name=response['aquifer'];
+        name=name.replace(/ /g,"_");
         var aquifer_center=[];
 
         //find the center of the aquifer if an aquifer is selected. Add the aquifer to the map and zoom and pan to the center
-        if (AquiferShape[0]){
-            var AquiferLayer=L.geoJSON(AquiferShape[0],{
+        if (AquiferShape){
+            var AquiferLayer=L.geoJSON(AquiferShape,{
                 onEachFeature: function (feature, layer) {
                     feature.properties.bounds_calculated = layer.getBounds();
                     var latcenter=(feature.properties.bounds_calculated._northEast.lat+feature.properties.bounds_calculated._southWest.lat)/2;
@@ -509,33 +510,30 @@ function displaygeojson(aquifer_number, displayallwells) {
         min_num=$("#required_data").find('option:selected').val();
         min_num=Number(min_num);
         id=aquifer_number;
-        var name=myaquifer.Name;
-        name=name.replace(/ /g,"_");
 
         var region=$("#select_region").find('option:selected').val();
+        $.ajax({
+            url: '/apps/gw/get_aquifer_wells/',
+            type: 'GET',
+            data: {'aquifer_id':id,'region':region},
+            contentType: 'application/json',
+            error: function (status) {
 
-            $.ajax({
-                url: '/apps/gw/loaddata/',
-                type: 'GET',
-                data: {'id':id,'region':region, 'make_default':0, 'from_wizard':0},
-                contentType: 'application/json',
-                error: function (status) {
+            }, success: function (response) {
+                var well_points=response['data'];//.features;
+                //calls displayallwells
+                displayallwells(aquifer_number, well_points,min_num);
 
-                }, success: function (response) {
-                    var well_points=response['data'];//.features;
-                    //calls displayallwells
-                    displayallwells(aquifer_number, well_points,min_num);
+                overlayMaps={
+                    "Aquifer Boundary":aquifer_group,
+                    "Wells":well_group,
+                    "Water Table Surface":interpolation_group,
+                };
 
-                    overlayMaps={
-                        "Aquifer Boundary":aquifer_group,
-                        "Wells":well_group,
-                        "Water Table Surface":interpolation_group,
-                    };
-
-                    toggle.remove();
-                    toggle=L.control.layers(null,overlayMaps).addTo(map);
-                }
-            })
+                toggle.remove();
+                toggle=L.control.layers(null,overlayMaps).addTo(map);
+            }
+        })
         }
     })
 }

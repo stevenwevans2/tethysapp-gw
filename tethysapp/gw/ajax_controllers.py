@@ -28,57 +28,30 @@ def displaygeojson(request):
     # Check if its an ajax post request
     if request.is_ajax() and request.method == 'GET':
         return_obj['success'] = True
-        geolayer = request.GET.get('geolayer')
         region=request.GET.get('region')
-        return_obj['geolayer'] = geolayer
-        app_workspace = app.get_app_workspace()
-        geofile = os.path.join(app_workspace.path, region+"/"+geolayer)
-        aquiferlist = getaquiferlist(app_workspace, region)
-        fieldnames=[]
-        for i in aquiferlist:
-            fieldnames.append(i['FieldName'])
-        if os.path.exists(geofile):
-            with open(geofile, 'r') as f:
-                return_obj['state']=json.load(f)
-            #     allwells = ''
-            #     wells = f.readlines()
-            #     for i in range(0, len(wells)):#len(wells)
-            #         allwells += wells[i]
-            # return_obj['state'] = json.loads(allwells)
-        minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
-        majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
-        if os.path.exists(minorfile):
-            with open(minorfile, 'r') as f:
-                minor=''
-                entry=f.readlines()
-                for i in range(0, len(entry)):
-                    minor += entry[i]
-                minoraquifers = json.loads(minor)
-                for j in fieldnames:
-                    if j in minoraquifers['features'][0]['properties']:
-                        fieldname=j
-                for k in minoraquifers['features']:
-                    for l in aquiferlist:
-                        if k['properties'][fieldname]==l['CapsName']:
-                            k['properties']['Id']=l['Id']
-                            k['properties']['Name']=l["Name"]
-            return_obj['minor'] = minoraquifers
-        if os.path.exists(majorfile):
-            with open(majorfile, 'r') as f:
-                major=''
-                entry=f.readlines()
-                for i in range(0, len(entry)):
-                    major += entry[i]
-                majoraquifers = json.loads(major)
-                for j in fieldnames:
-                    if j in majoraquifers['features'][0]['properties']:
-                        fieldname=j
-                for k in majoraquifers['features']:
-                    for l in aquiferlist:
-                        if k['properties'][fieldname]==l['CapsName']:
-                            k['properties']['Id']=l['Id']
-                            k['properties']['Name']=l['Name']
-            return_obj['major']=majoraquifers
+
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
+
+        majoraquifers = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="Major")
+        major=[]
+        for aquifer in majoraquifers:
+            mymajor=aquifer.AquiferShapeJSON
+            mymajor['features'][0]['properties']['Name']=aquifer.AquiferName
+            major.append(mymajor)
+        return_obj['major'] = major
+        minoraquifers=session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="(Minor)")
+        minor=[]
+        if minoraquifers:
+            for aquifer in minoraquifers:
+                myminor = aquifer.AquiferShapeJSON
+                myminor['features'][0]['properties']['Name'] = aquifer.AquiferName
+                minor.append(myminor)
+            return_obj['minor']=minor
+        state=session.query(Regions).filter(Regions.RegionName == region.replace("_"," "))
+        for entry in state:
+            return_obj['state']=entry.RegionJSON
+        session.close()
 
     return JsonResponse(return_obj)
 
@@ -94,43 +67,15 @@ def loadjson(request):
         return_obj['success'] = True
         aquifer_number = request.GET.get('aquifer_number')
         region=request.GET.get('region')
-        app_workspace = app.get_app_workspace()
-        aquiferlist=getaquiferlist(app_workspace,region)
 
-        for i in aquiferlist:
-            if i['Id'] == int(aquifer_number):
-                myaquifer = i
-        minorfile = os.path.join(app_workspace.path, region+'/MinorAquifers.json')
-        majorfile = os.path.join(app_workspace.path, region+'/MajorAquifers.json')
-        aquiferShape = []
-        fieldname=myaquifer['FieldName']
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
+        aquiferlist = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_", " "),Aquifers.AquiferID==aquifer_number)
+        for aquifer in aquiferlist:
+            return_obj['data']=aquifer.AquiferShapeJSON
+            return_obj['aquifer'] = aquifer.AquiferName
+        session.close()
 
-        if os.path.exists(minorfile):
-            with open(minorfile, 'r') as f:
-                minor = ''
-                entry = f.readlines()
-                for i in range(0, len(entry)):
-                    minor += entry[i]
-            minor = json.loads(minor)
-            for i in minor['features']:
-                if fieldname in i['properties']:
-                    if i['properties'][fieldname]==myaquifer['CapsName']:
-                        aquiferShape.append(i)
-
-        if os.path.exists(majorfile):
-            with open(majorfile, 'r') as f:
-                major = ''
-                entry = f.readlines()
-                for i in range(0, len(entry)):
-                    major += entry[i]
-            major=json.loads(major)
-            for i in major['features']:
-                if fieldname in i['properties']:
-                    if i['properties'][fieldname]==myaquifer['CapsName']:
-                        aquiferShape.append(i)
-
-        return_obj['data']=aquiferShape
-        return_obj['aquifer']=myaquifer
     return JsonResponse(return_obj)
 
 
@@ -147,8 +92,19 @@ def loadaquiferlist(request):
         return_obj['success'] = True
         region=request.GET.get('region')
 
-        app_workspace = app.get_app_workspace()
-        aquiferlist=getaquiferlist(app_workspace,region)
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
+        aquifersession = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_", " "))
+        aquiferlist=[]
+        for aquifer in aquifersession:
+            myaquifer={
+                'Id': aquifer.AquiferID,
+                'Name': aquifer.AquiferName,
+                'Type': aquifer.AquiferType,
+            }
+            aquiferlist.append(myaquifer)
+
+        session.close()
         return_obj['aquiferlist']=aquiferlist
     return JsonResponse(return_obj)
 
@@ -357,7 +313,8 @@ def loaddata(request):
 
 #This function takes a region and aquiferid number and writes a new JSON file with data for the specified aquifer
 #This function uses data from the Wells.json file for the region.
-def divideaquifers(region,app_workspace,aquiferid):
+def divideaquifers(region,app_workspace,aquiferid,units):
+    print "into divideaquifers"
     aquiferlist = getaquiferlist(app_workspace, region)
     for i in aquiferlist:
         if i['Id'] == int(aquiferid):
@@ -394,12 +351,9 @@ def divideaquifers(region,app_workspace,aquiferid):
     filename=region+"/Wells.json"
     json_file=os.path.join(app_workspace.path,filename)
     with open(json_file, 'r') as f:
-        allwells = ''
-        wells = f.readlines()
-        for i in range(0, len(wells)):
-            allwells += wells[i]
-    all_points = json.loads(allwells)
+        all_points=json.load(f)
 
+    print "right before len(AquiferShape)"
     if len(aquiferShape)>0:
         polygon = shape(aquiferShape[0]['geometry'])
         points = {
@@ -421,34 +375,26 @@ def divideaquifers(region,app_workspace,aquiferid):
         points=all_points
 
     name = myaquifer['Name']
-    directory = os.path.join(app_workspace.path, region + '/aquifers')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    # Write a json file to the app workspace for the specified aquifer.
-    # This file includes all the geographical, time series, and properties data for the aquifer.
-    filename = name.replace(' ', '_') + '.json'
-    filename = os.path.join(app_workspace.path, region + '/aquifers/' + filename)
-
-    with open(filename, 'w') as outfile:
-        json.dump(points, outfile)
-    # Download and Set up the DEM for the aquifer
-    download_DEM(region, myaquifer)
+    print "right before add_aquifer"
+    if name!=region and name!='NONE' and name!="None":
+        add_aquifer(points, region, name, myaquifer, units)
 
     return points
 
 #This function takes a region and aquiferid number and writes a new JSON file with data for the specified aquifer.
 # This function divides the data from a CSV and JSON file combination.
-def subdivideaquifers(region,app_workspace,aquiferid):
+def subdivideaquifers(region,app_workspace,aquiferid,units):
     aquiferlist = getaquiferlist(app_workspace, region)
 
     wellfile = region+"/Wells1.json"
     well_file=os.path.join(app_workspace.path,wellfile)
     aquifer = int(aquiferid)
 
-    for i in aquiferlist:
-        if i['Id'] == aquifer:
-            myaquifer = i
-    #Check stuff with i['Contains']
+    for aq in aquiferlist:
+        if aq['Id'] == aquifer:
+            myaquifer = aq
+    print myaquifer['Name']
+
     aquifer_id_number=int(aquifer)
     aquifer_id_numbers=[aquifer_id_number]
     if 'Contains' in myaquifer:
@@ -456,11 +402,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
             aquifer_id_numbers=myaquifer['Contains']
     if myaquifer['Name']!=region:
         with open(well_file, 'r') as f:
-            allwells = ''
-            wells = f.readlines()
-            for i in range(0, len(wells)):
-                allwells += wells[i]
-        wells_json = json.loads(allwells)
+            wells_json = json.load(f)
         points = {
             'type': 'FeatureCollection',
             'features': []
@@ -573,22 +515,14 @@ def subdivideaquifers(region,app_workspace,aquiferid):
 
     name = myaquifer['Name']
 
-    directory = os.path.join(app_workspace.path, region + '/aquifers')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    #Write a json file to the app workspace for the specified aquifer.
-    # This file includes all the geographical, time series, and properties data for the aquifer.
-    filename = name.replace(' ', '_') + '.json'
-    filename=os.path.join(app_workspace.path,region+'/aquifers/'+filename)
-    with open(filename, 'w') as outfile:
-        json.dump(points, outfile)
+    if name!=region and name!='NONE' and name!="None":
+        add_aquifer(points, region, name, myaquifer, units)
 
-    # Download and Set up the DEM for the aquifer
-    download_DEM(region,myaquifer)
     return [points,aquifermin]
 
 
-#This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
+#This function looks in the thredds server directory for the specified region and returns a list of dicts detailing info on each available
+# NetCDF file for the specified aquifer in the specified region
 def gettimelist(region,aquifer):
 
     list = []
@@ -628,17 +562,18 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
     else:
         interpolate=0
 
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    aquiferlist = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_", " "),
+                                                 Aquifers.AquiferID == str(aquiferid))
+    for aquifer in aquiferlist:
+        print "got one"
+        name = aquifer.AquiferFileName
+        points=aquifer.AquiferWellsJSON
+    session.close()
 
-
-    aquiferlist = getaquiferlist(app_workspace, region)
-
-    for i in aquiferlist:
-        if i['Id'] == aquiferid:
-            myaquifer = i
-    name = myaquifer['Name'].replace(' ', '_')
-    aquifer=name
     if interpolation_type:
-        date_name=aquifer+"."+str(start_date)+"."+str(end_date)+"."+str(interval)+"."+str(int(resolution*100))+"."+str(min_samples)+"."+str(int(min_ratio*100))+"."+str(time_tolerance)+"."+interpolation_type[0]
+        date_name=name+"."+str(start_date)+"."+str(end_date)+"."+str(interval)+"."+str(int(resolution*100))+"."+str(min_samples)+"."+str(int(min_ratio*100))+"."+str(time_tolerance)+"."+interpolation_type[0]
     else:
         date_name="Nothing will be named this"
     netcdf_directory = os.path.join(thredds_serverpath, region)
@@ -665,27 +600,7 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
 
     start = t.time()
 
-    # Check whether the region has been divided. If not, then divide it
-    directory = os.path.join(app_workspace.path, region + '/aquifers')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
 
-    filename = name + '.json'
-    filename = os.path.join(app_workspace.path, region + '/aquifers/' + filename)
-    well_file = os.path.join(app_workspace.path, region + '/Wells.json')
-    if not os.path.exists(filename):
-
-        for i in range(1, len(aquiferlist) + 1):
-            if os.path.exists(well_file):
-                divideaquifers(region, app_workspace, i)
-            else:
-                subdivideaquifers(region, app_workspace, i)
-    with open(filename, 'r') as f:
-        allwells = ''
-        wells = f.readlines()
-        for i in range(0, len(wells)):
-            allwells += wells[i]
-    points = json.loads(allwells)
     print len(points['features'])
 
     returnmessage=''

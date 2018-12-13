@@ -74,11 +74,6 @@ class Gw(TethysAppBase):
                 controller='gw.ajax_controllers.loadjson'
             ),
             UrlMap(
-                name='retrieve_wells',
-                url='gw/retrieve_Wells',
-                controller='gw.model.retrieve_Wells'
-            ),
-            UrlMap(
                 name='loaddata',
                 url='gw/loaddata',
                 controller='gw.ajax_controllers.loaddata'
@@ -122,6 +117,11 @@ class Gw(TethysAppBase):
                 name='upload_to_hydroshare',
                 url='gw/upload-to-hydroshare',
                 controller='gw.ajax_controllers.upload_to_hydroshare'
+            ),
+            UrlMap(
+                name='get_aquifer_wells',
+                url='gw/get_aquifer_wells',
+                controller='gw.model.get_aquifer_wells'
             ),
         )
 

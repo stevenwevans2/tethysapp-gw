@@ -15,10 +15,10 @@ import rasterio
 import math
 import pygslib
 from scipy.optimize import least_squares
-import elevation
 import csv
 from .app import Gw as app
-# from ajax_controllers import *
+from model import *
+
 
 porosity=0.3
 #global variables
@@ -46,58 +46,10 @@ def getaquiferlist(app_workspace,region):
             aquiferlist.append(myaquifer)
     return aquiferlist
 
-#The explode and bbox functions are used to get the bounding box of a geoJSON object
-def explode(coords):
-    """Explode a GeoJSON geometry's coordinates object and yield coordinate tuples.
-    As long as the input is conforming, the type of the geometry doesn't matter."""
-    for e in coords:
-        if isinstance(e, (float, int, long)):
-            yield coords
-            break
-        else:
-            for f in explode(e):
-                yield f
 
-def bbox(f):
-    x, y = zip(*list(explode(f['geometry']['coordinates'])))
-    return round(np.min(x)-.05,1), round(np.min(y)-.05,1), round(np.max(x)+.05,1), round(np.max(y)+.05,1)
 
-def download_DEM(region,myaquifer):
-    # Download and Set up the DEM for the aquifer
-    app_workspace = app.get_app_workspace()
-    name=myaquifer['Name']
-    directory = os.path.join(app_workspace.path, region + '/DEM')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
-    majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
-    aquiferShape = {
-        'type': 'FeatureCollection',
-        'features': []
-    }
-    fieldname = myaquifer['FieldName']
 
-    if os.path.exists(minorfile):
-        with open(minorfile, 'r') as f:
-            minor = json.load(f)
-        for i in minor['features']:
-            if fieldname in i['properties']:
-                if i['properties'][fieldname] == myaquifer['CapsName']:
-                    aquiferShape['features'].append(i)
 
-    if os.path.exists(majorfile):
-        with open(majorfile, 'r') as f:
-            major = json.load(f)
-        for i in major['features']:
-            if fieldname in i['properties']:
-                if i['properties'][fieldname] == myaquifer['CapsName']:
-                    aquiferShape['features'].append(i)
-    lonmin, latmin, lonmax, latmax = bbox(aquiferShape['features'][0])
-    bounds = (lonmin - .1, latmin - .1, lonmax + .1, latmax + .1)
-    dem_path = name.replace(' ', '_') + '_DEM.tif'
-    output = os.path.join(directory, dem_path)
-    elevation.clip(bounds=bounds, output=output, product='SRTM3')
-    print "This step works. 90 m DEM downloaded for ", name
 # The following functions are used to automatically fit a variogram to the input data
 def great_circle_distance(lon1, lat1, lon2, lat2):
     """Calculate the great circle distance between one or multiple pairs of
@@ -596,42 +548,26 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
         else:
             variogram_model_parameters.append([0,0,0])
 
-    aquiferlist = getaquiferlist(app_workspace, region)
-    for i in aquiferlist:
-        if i['Id'] == int(aquifer_number):
-            myaquifer = i
-    myaquifercaps = myaquifer['CapsName']
-    fieldname = myaquifer['FieldName']
-
     AquiferShape = {
         'type': 'FeatureCollection',
         'features': []
     }
 
-    MajorAquifers = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
-    if os.path.exists(MajorAquifers):
-        with open(MajorAquifers, 'r') as f:
-            major = json.load(f)
-        for i in major['features']:
-            if fieldname in i['properties']:
-                if i['properties'][fieldname] == myaquifercaps:
-                    AquiferShape['features'].append(i)
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
 
-    MinorAquifers = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
-    if os.path.exists(MinorAquifers):
-        with open(MinorAquifers, 'r') as f:
-            minor = json.load(f)
-        for i in minor['features']:
-            if fieldname in i['properties']:
-                if i['properties'][fieldname] == myaquifercaps:
-                    AquiferShape['features'].append(i)
+    aquifersession = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_", " "),
+                                              Aquifers.AquiferID == str(aquifer_number))
+    for object in aquifersession:
+        dem_json = object.AquiferDEM
+        AquiferShape['features'].append(object.AquiferShapeJSON)
 
-    State_Boundary = os.path.join(app_workspace.path, region + '/' + region + '_State_Boundary.json')
-    with open(State_Boundary, 'r') as f:
-        state = json.load(f)
+    if len(AquiferShape['features'])<1:
+        regionsession=session.query(Regions).filter(Regions.RegionName == region.replace("_", " "))
+        for object in regionsession:
+            AquiferShape=object.RegionJSON
 
-    if myaquifercaps == region or myaquifercaps == 'NONE':
-        AquiferShape = state
+    session.close()
 
     lonmin, latmin, lonmax, latmax = bbox(AquiferShape['features'][0])
     latgrid = np.mgrid[latmin:latmax:resolution]
@@ -643,18 +579,12 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
 
     print latrange, lonrange
 
-    bounds = (lonmin, latmin, lonmax, latmax)
-    west, south, east, north = bounds
-    # Download and Set up the DEM for the aquifer if it does not exist already
-    dem_path = os.path.join(app_workspace.path, region + "/DEM/" + name.replace(" ", "_") + "_DEM.tif")
-    if not os.path.exists(dem_path):
-        download_DEM(region, myaquifer)
     # Reproject DEM to 0.01 degree resolution using rasterio
-    dem_raster = rasterio.open(dem_path)
-    src_crs = dem_raster.crs
-    src_shape = src_height, src_width = dem_raster.shape
-    src_transform = from_bounds(west, south, east, north, src_width, src_height)
-    source = dem_raster.read(1)
+
+    src_crs=dem_json['src_crs']
+    src_transform=dem_json['src_transform']
+    source=dem_json['source']
+
     dst_crs = {'init': 'EPSG:4326'}
     dst_transform = from_origin(lonmin, latmax, resolution, resolution)
     dem_array = np.zeros((latrange, lonrange))

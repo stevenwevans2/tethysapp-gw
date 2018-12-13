@@ -14,6 +14,7 @@
   <form id="add-region-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% gizmo region_name %}
+    {% gizmo select_units %}
     <h2>Region and Aquifer Polygon Data</h2>
     <div class="form-group{% if file_error %} has-error{% endif %}">
       <label class="control-label">

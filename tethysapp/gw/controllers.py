@@ -6,6 +6,7 @@ from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput
 import pandas as pd
 import urllib
 from ajax_controllers import *
+from model import *
 
 
 
@@ -14,9 +15,7 @@ def home(request):
     """
     Controller for the app home page.
     """
-
     context = {
-
     }
 
     return render(request, 'gw/home.html', context)
@@ -102,16 +101,20 @@ def addregion_nwis(request):
                 if not os.path.exists(thredds_folder):
                     os.mkdir(thredds_folder)
 
-                #Addition
                 aquiferlist = getaquiferlist(app_workspace, region)
 
                 well_file = os.path.join(app_workspace.path, region + '/Wells.json')
 
+                add_region(region, units="English")
                 for i in range(1, len(aquiferlist) + 1):
                     if os.path.exists(well_file):
-                        divideaquifers(region, app_workspace, i)
-                #End Addition
+                        divideaquifers(region, app_workspace, i,units="English")
+
                 success = True
+
+            except Exception as e:
+                print e
+                success=False
 
             except Exception as e:
                 print e
@@ -119,9 +122,11 @@ def addregion_nwis(request):
 
             if success:
                 messages.info(request, 'Successfully added region')
+                shutil.rmtree(os.path.join(app_workspace.path, region))
+                return redirect(reverse('gw:region_map'))
             else:
                 messages.info(request, 'Unable to add region.')
-            return redirect(reverse('gw:region_map'))
+                return redirect(reverse('gw:addregion'))
 
         messages.error(request, "Please fix errors.")
 
@@ -179,6 +184,7 @@ def addregion(request):
     if request.POST and 'add_button' in request.POST:
         has_errors=False
         region=request.POST.get('region_name')
+        units=request.POST.get('select_units')
         if not region:
             has_errors=True
             region_error='Region name is required.'
@@ -253,9 +259,10 @@ def addregion(request):
                 well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
                 times_file=os.path.join(app_workspace.path, region + '/Wells_Master.csv')
 
+                add_region(region, units)
                 for i in range(1, len(aquiferlist) + 1):
                     if os.path.exists(well_file) and os.path.exists(times_file):
-                        subdivideaquifers(region, app_workspace, i)
+                        subdivideaquifers(region, app_workspace, i,units)
                 success=True
 
             except Exception as e:
@@ -264,6 +271,7 @@ def addregion(request):
 
             if success:
                 messages.info(request, 'Successfully added region')
+                shutil.rmtree(os.path.join(app_workspace.path, region))
                 return redirect(reverse('gw:region_map'))
             else:
                 messages.info(request, 'Unable to add region.')
@@ -277,6 +285,13 @@ def addregion(request):
                            name='region_name',
                            placeholder='e.g.: Texas',
                             error=region_error)
+
+    select_units = SelectInput(display_text='Select Units',
+                               name='select_units',
+                               options=[('English', 'English'), ("Metric", "Metric")],
+                               initial='English',
+                               )
+
     add_button=Button(
         display_text='Add Region',
         name='add_button',
@@ -293,7 +308,8 @@ def addregion(request):
         'border_error':border_error,
         'major_error':major_error,
         'wells_error':wells_error,
-        'time_error':time_error
+        'time_error':time_error,
+        'select_units':select_units,
     }
 
     return render(request, 'gw/addregion.html', context)
@@ -303,12 +319,15 @@ def region_map(request):
     """
     Controller for the app home page.
     """
-    app_workspace=app.get_app_workspace()
-    dirs=next(os.walk(app_workspace.path))[1]
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    regionlist = session.query(Regions)
     regions=[]
-    for entry in dirs:
-        region=(entry.replace("_"," "),entry)
+    for entry in regionlist:
+        region=(entry.RegionName,entry.RegionFileName)
         regions.append(region)
+    session.close()
+
     select_region = SelectInput(display_text='Select Region',
                                  name='select_region',
                                  multiple=False,
@@ -440,12 +459,14 @@ def interpolation(request):
                              initial='English',
     )
 
-    app_workspace = app.get_app_workspace()
-    dirs = next(os.walk(app_workspace.path))[1]
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    regionlist = session.query(Regions)
     regions = []
-    for entry in dirs:
-        region = (entry, entry)
+    for entry in regionlist:
+        region = (entry.RegionName, entry.RegionFileName)
         regions.append(region)
+    session.close()
 
     select_region = SelectInput(display_text='Select Region',
                                  name='select_region',
