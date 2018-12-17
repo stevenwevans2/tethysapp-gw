@@ -198,7 +198,9 @@ def retrieve_Wells(request):
 
         json_string='{"type":"FeatureCollection", "features": ['
         for well in all_wells:
-            json_string+='{"type":"Feature","geometry":{"type":"Point","coordinates":['+str(well.longitude)+','+str(well.latitude)+']},'+'"properties":{"HydroID":'+str(well.HydroID)+',"LandElev":'+str(well.Elevation)+',"WellDepth":'+str(well.Depth)+',"AquiferID":'+str(well.AquiferID)+',"FType":"'+str(well.FType)+'"}'
+            json_string+='{"type":"Feature","geometry":{"type":"Point","coordinates":['+str(well.longitude)+','+str(well.latitude)+']},'\
+                         +'"properties":{"HydroID":'+str(well.HydroID)+',"LandElev":'+str(well.Elevation)+',"WellDepth":'+str(well.Depth)\
+                         +',"AquiferID":'+str(well.AquiferID)+',"FType":"'+str(well.FType)+'"}'
             if well.timeseries:
                 json_string+=',"timeseries":{"TsTime":'
                 time='['
