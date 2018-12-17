@@ -33,14 +33,14 @@ def displaygeojson(request):
         Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
         session = Session()
 
-        majoraquifers = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="Major")
+        majoraquifers = session.query(Aquifers.AquiferName,Aquifers.AquiferShapeJSON).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="Major")
         major=[]
         for aquifer in majoraquifers:
             mymajor=aquifer.AquiferShapeJSON
             mymajor['features'][0]['properties']['Name']=aquifer.AquiferName
             major.append(mymajor)
         return_obj['major'] = major
-        minoraquifers=session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="(Minor)")
+        minoraquifers=session.query(Aquifers.AquiferName,Aquifers.AquiferShapeJSON).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="(Minor)")
         minor=[]
         if minoraquifers:
             for aquifer in minoraquifers:
@@ -48,7 +48,7 @@ def displaygeojson(request):
                 myminor['features'][0]['properties']['Name'] = aquifer.AquiferName
                 minor.append(myminor)
             return_obj['minor']=minor
-        state=session.query(Regions).filter(Regions.RegionName == region.replace("_"," "))
+        state=session.query(Regions.RegionJSON).filter(Regions.RegionName == region.replace("_"," "))
         for entry in state:
             return_obj['state']=entry.RegionJSON
         session.close()
@@ -70,7 +70,7 @@ def loadjson(request):
 
         Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
         session = Session()
-        aquiferlist = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_", " "),Aquifers.AquiferID==aquifer_number)
+        aquiferlist = session.query(Aquifers.AquiferShapeJSON,Aquifers.AquiferName).filter(Aquifers.RegionName == region.replace("_", " "),Aquifers.AquiferID==aquifer_number)
         for aquifer in aquiferlist:
             return_obj['data']=aquifer.AquiferShapeJSON
             return_obj['aquifer'] = aquifer.AquiferName
@@ -94,7 +94,7 @@ def loadaquiferlist(request):
 
         Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
         session = Session()
-        aquifersession = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_", " "))
+        aquifersession = session.query(Aquifers.AquiferID, Aquifers.AquiferName, Aquifers.AquiferType).filter(Aquifers.RegionName == region.replace("_", " "))
         aquiferlist=[]
         for aquifer in aquifersession:
             myaquifer={
@@ -564,7 +564,7 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
 
     Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
     session = Session()
-    aquiferlist = session.query(Aquifers).filter(Aquifers.RegionName == region.replace("_", " "),
+    aquiferlist = session.query(Aquifers.AquiferFileName,Aquifers.AquiferWellsJSON).filter(Aquifers.RegionName == region.replace("_", " "),
                                                  Aquifers.AquiferID == str(aquiferid))
     for aquifer in aquiferlist:
         print "got one"
