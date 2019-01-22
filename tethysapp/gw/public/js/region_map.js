@@ -351,7 +351,7 @@ $.ajax({
                     layer.on({
                         click: function jumpaquifer(){
                             $("#select_aquifer").val(feature.properties.Id);
-//                            document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                            document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
                             list_dates(2)
                         }
                     });
@@ -374,7 +374,7 @@ $.ajax({
                     layer.on({
                         click: function jumpaquifer(){
                             $("#select_aquifer").val(feature.properties.Id);
-//                            document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                            document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
                             list_dates(2)
                         }
                     });
@@ -1250,7 +1250,7 @@ function list_aquifer(){
                         layer.on({
                             click: function jumpaquifer(){
                                 $("#select_aquifer").val(feature.properties.Id);
-//                                document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                                document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
                                 list_dates(2)//,feature.properties.Name,feature.properties.Id)
                             }
                         });
@@ -1273,7 +1273,7 @@ function list_aquifer(){
                         layer.on({
                             click: function jumpaquifer(){
                                 $("#select_aquifer").val(feature.properties.Id);
-//                                document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                                document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
                                 list_dates(2)//,feature.properties.Name,feature.properties.Id)
                             }
                         });
@@ -1305,9 +1305,9 @@ function list_aquifer(){
                         number=aquiferlist[i].Id;
                         $("#select_aquifer").append('<option value="'+number+'">'+name+'</option>');
                     }
-//                    document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
+                    document.getElementById("select2-select_aquifer-container").innerHTML=$("#select_aquifer").find('option:selected').text();
                     $("#available_dates").empty();
-//                    document.getElementById("select2-available_dates-container").innerHTML='';
+                    document.getElementById("select2-available_dates-container").innerHTML='';
                 }
             });
 
@@ -1386,7 +1386,7 @@ function list_dates(call_function){
                 }
                 units=timelist[i].Units;
             }
-//            document.getElementById("select2-available_dates-container").innerHTML=$("#available_dates").find('option:selected').text();
+            document.getElementById("select2-available_dates-container").innerHTML=$("#available_dates").find('option:selected').text();
             toggleButtons();
             if (call_function==1){
                 changeWMS(); //clears only raster layers and updates them
