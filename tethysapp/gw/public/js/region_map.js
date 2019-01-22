@@ -1,5 +1,5 @@
-//var thredds_url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/";
-var thredds_url = "http://localhost:8080/thredds/wms/testAll/groundwater/";
+var thredds_url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/";
+//var thredds_url = "http://localhost:8080/thredds/wms/testAll/groundwater/";
 var units="Metric";
 
 //Get a CSRF cookie for request
