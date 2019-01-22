@@ -109,9 +109,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>filepath</find>
-      <find>try</find>
-      <find>region</find>
       <find>check</find>
       <find>displaystatus</find>
       <find>elevation</find>
@@ -139,6 +136,9 @@
       <find>loaddata</find>
       <find>alert</find>
       <find>chart'</find>
+      <find>tethys</find>
+      <find>thredds</find>
+      <find>document.getElementById(&quot;select2</find>
     </findStrings>
     <replaceStrings>
       <replace>h3</replace>
