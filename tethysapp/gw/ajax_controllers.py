@@ -438,6 +438,7 @@ def divideaquifers(region,app_workspace,aquiferid):
 #This function takes a region and aquiferid number and writes a new JSON file with data for the specified aquifer.
 # This function divides the data from a CSV and JSON file combination.
 def subdivideaquifers(region,app_workspace,aquiferid):
+    print "into subdivide"
     aquiferlist = getaquiferlist(app_workspace, region)
 
     wellfile = region+"/Wells1.json"
@@ -473,21 +474,21 @@ def subdivideaquifers(region,app_workspace,aquiferid):
         mycsv=region+'/Wells_Master.csv'
         the_csv=os.path.join(app_workspace.path,mycsv)
         aquifer_id_number = str(aquifer_id_number)
+        print "to csv reader"
         with open(the_csv) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if row['AquiferID'] == aquifer_id_number or int(row['AquiferID']) in aquifer_id_numbers:
-                    if row['TsValue_normalized'] != '':
-                        timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
-                                    (float(row['TsValue_normalized'])))
-                        time_csv.append(timestep)
+                if row:
+                    print row['TsValue']
+                    if row['AquiferID'] == aquifer_id_number or int(float(row['AquiferID'])) in aquifer_id_numbers:
+                        if row['TsValue_normalized'] != '':
+                            timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
+                                        (float(row['TsValue_normalized'])))
+                            time_csv.append(timestep)
+        print "past csv reader"
     else:
         with open(well_file, 'r') as f:
-            allwells = ''
-            wells = f.readlines()
-            for i in range(0, len(wells)):
-                allwells += wells[i]
-        wells_json = json.loads(allwells)
+            wells_json = json.load(f)
         points = {
             'type': 'FeatureCollection',
             'features': []

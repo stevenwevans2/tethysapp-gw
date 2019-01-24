@@ -255,6 +255,7 @@ def addregion(request):
 
                 for i in range(1, len(aquiferlist) + 1):
                     if os.path.exists(well_file) and os.path.exists(times_file):
+                        print "made it to subdivide"
                         subdivideaquifers(region, app_workspace, i)
                 success=True
 

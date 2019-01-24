@@ -22,8 +22,8 @@ from .app import Gw as app
 
 porosity=0.3
 #global variables
-thredds_serverpath='/home/tethys/Thredds/groundwater/'
-# thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+thredds_serverpath='/opt/tomcat/thredds/public/testdata/groundwater/'
+#thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
 def getaquiferlist(app_workspace,region):
@@ -221,7 +221,7 @@ def generate_variogram(X,y,variogram_function):
     nlags = 10
     weight = False
     dmax = np.amin(d) + (np.amax(d) - np.amin(d)) / 2.0
-    dmax = np.amax(d)
+    # dmax = np.amax(d)
 
     dmin = np.amin(d)
     dd = (dmax - dmin) / nlags
@@ -245,14 +245,19 @@ def generate_variogram(X,y,variogram_function):
             semivariance[n] = np.nan
     lags = lags[~np.isnan(semivariance)]
     semivariance = semivariance[~np.isnan(semivariance)]
+    print len(X)
+    print lags
 
     # First entry is the sill, then the range, then the nugget
     if len(lags)>3:
         x0 = [np.amax(semivariance) - np.amin(semivariance), lags[2], 0]
         bnds = ([0., lags[2], 0.], [10. * np.amax(semivariance), np.amax(lags), 1])
-    else:
+    elif len(lags)>1:
         x0 = [np.amax(semivariance) - np.amin(semivariance), lags[0], 0]
         bnds = ([0., lags[0], 0.], [10. * np.amax(semivariance), np.amax(lags), 1])
+    else:
+        x0 = [0, 0, 0]
+        bnds = ([0., 0, 0.], [1000, 10, 1])
 
     # use 'soft' L1-norm minimization in order to buffer against
     # potential outliers (weird/skewed points)
@@ -592,6 +597,8 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
         if len(coordinates[j])>2:
             X = coordinates[i]
             y = values[i]
+            print X
+            print y
             variogram_model_parameters.append(generate_variogram(X,y,variogram_function))
         else:
             variogram_model_parameters.append([0,0,0])
@@ -680,8 +687,8 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
 
     for i in range(0, iterations):
         searchradius = 3
-        ndmax = len(elevations[i])
-        ndmin = ndmax - 2
+        ndmax = len(elevations[i])/8
+        ndmin = max(ndmax - 2,0)
         noct = 0
         nugget = 0
         sill = variogram_model_parameters[i][0]
