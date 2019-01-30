@@ -687,7 +687,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
 
     for i in range(0, iterations):
         searchradius = 3
-        ndmax = len(elevations[i])/8
+        ndmax = len(elevations[i])
         ndmin = max(ndmax - 2,0)
         noct = 0
         nugget = 0
