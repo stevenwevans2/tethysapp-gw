@@ -454,7 +454,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
     if 'Contains' in myaquifer:
         if len(myaquifer['Contains'])>1:
             aquifer_id_numbers=myaquifer['Contains']
-    if myaquifer['Name']!=region:
+    if myaquifer['Name']!=region and myaquifer['Name'].replace(' ', '_')!=region:
         with open(well_file, 'r') as f:
             allwells = ''
             wells = f.readlines()
@@ -479,7 +479,6 @@ def subdivideaquifers(region,app_workspace,aquiferid):
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if row:
-                    print row['TsValue']
                     if row['AquiferID'] == aquifer_id_number or int(float(row['AquiferID'])) in aquifer_id_numbers:
                         if row['TsValue_normalized'] != '':
                             timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
@@ -508,6 +507,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
                     timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
                                 (float(row['TsValue_normalized'])))
                     time_csv.append(timestep)
+        print "made it past the_csv step"
     time_csv.sort(key=lambda x:x[0])
     number = 0
     aquifermin = 0.0
@@ -530,7 +530,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
         if number==max_number:
             number=0
             continue
-
+    print "made it past the time_csv combination step"
 
 
 
@@ -567,7 +567,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
                     i['TsValue'].append(array[j][1])
                     i['TsValue_norm'].append(array[j][2])
                     oldtime=array[j][0]
-
+    print "made it past the sorter"
     points['aquifermin']=aquifermin
 
 

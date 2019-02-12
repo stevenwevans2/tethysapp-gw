@@ -22,8 +22,8 @@ from .app import Gw as app
 
 porosity=0.3
 #global variables
-thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
-# thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+# thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
+thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
 def getaquiferlist(app_workspace,region):
@@ -71,6 +71,7 @@ def download_DEM(region,myaquifer):
         os.makedirs(directory)
     minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
     majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
+    regionfile=os.path.join(app_workspace.path, region + '/'+region+'_State_Boundary.json')
     aquiferShape = {
         'type': 'FeatureCollection',
         'features': []
@@ -92,6 +93,10 @@ def download_DEM(region,myaquifer):
             if fieldname in i['properties']:
                 if i['properties'][fieldname] == myaquifer['CapsName']:
                     aquiferShape['features'].append(i)
+    if len(aquiferShape['features'])<1:
+        with open(regionfile,'r') as f:
+            region=json.load(f)
+        aquiferShape['features'].append(region['features'][0])
     lonmin, latmin, lonmax, latmax = bbox(aquiferShape['features'][0])
     bounds = (lonmin - .1, latmin - .1, lonmax + .1, latmax + .1)
     dem_path = name.replace(' ', '_') + '_DEM.tif'
@@ -637,9 +642,10 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     with open(State_Boundary, 'r') as f:
         state = json.load(f)
 
-    if myaquifercaps == region or myaquifercaps == 'NONE':
-        AquiferShape = state
-
+    if myaquifercaps == region or myaquifercaps == 'NONE' or myaquifercaps.replace(" ","_")==region:
+        AquiferShape['features'].append(state['features'][0])
+    print myaquifer
+    print AquiferShape
     lonmin, latmin, lonmax, latmax = bbox(AquiferShape['features'][0])
     latgrid = np.mgrid[latmin:latmax:resolution]
     longrid = np.mgrid[lonmin:lonmax:resolution]
