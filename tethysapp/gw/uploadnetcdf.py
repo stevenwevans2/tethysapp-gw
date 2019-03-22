@@ -22,8 +22,8 @@ from .app import Gw as app
 
 porosity=0.3
 #global variables
-# thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
-thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
+# thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
 def getaquiferlist(app_workspace,region):
@@ -101,8 +101,9 @@ def download_DEM(region,myaquifer):
     bounds = (lonmin - .1, latmin - .1, lonmax + .1, latmax + .1)
     dem_path = name.replace(' ', '_') + '_DEM.tif'
     output = os.path.join(directory, dem_path)
-    elevation.clip(bounds=bounds, output=output, product='SRTM3')
+    elevation.clip(bounds=bounds, output=output)
     print "This step works. 90 m DEM downloaded for ", name
+    elevation.clean()
 # The following functions are used to automatically fit a variogram to the input data
 def great_circle_distance(lon1, lat1, lon2, lat2):
     """Calculate the great circle distance between one or multiple pairs of
@@ -250,8 +251,6 @@ def generate_variogram(X,y,variogram_function):
             semivariance[n] = np.nan
     lags = lags[~np.isnan(semivariance)]
     semivariance = semivariance[~np.isnan(semivariance)]
-    print len(X)
-    print lags
 
     # First entry is the sill, then the range, then the nugget
     if len(lags)>3:
@@ -269,10 +268,11 @@ def generate_variogram(X,y,variogram_function):
     res = least_squares(_variogram_residuals, x0, bounds=bnds, loss='soft_l1',
                         args=(lags, semivariance, variogram_function, weight))
     variogram_model_parameters = res.x
+    print "sill, range, nugget"
     print variogram_model_parameters
     return variogram_model_parameters
 
-def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_type,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units):
+def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_type,interpolation_options,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units):
     # Execute the following code to interpolate groundwater levels and create a netCDF File and upload it to the server
     # Download and Set up the DEM for the aquifer
     spots = []
@@ -286,16 +286,20 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     start_time=calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple())
     end_time=calendar.timegm(datetime.datetime(end_date, 1, 1).timetuple())
     sixmonths=False
-    if interval==.5:
+    threemonths=False
+    if interval<=.5:
         sixmonths=True
         iterations+=1
+        if interval==.25:
+            threemonths=True
+            iterations+=2
     #old method of interpolation that uses all data
     if min_samples==1 and min_ratio==0:
         for v in range(0, iterations):
             if sixmonths==False:
                 targetyear = int(start_date + interval * v)
                 target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-            else:
+            elif threemonths==False:
                 monthyear=start_date+interval*v
                 doubleyear=monthyear*2
                 if doubleyear%2==0:
@@ -304,6 +308,21 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                 else:
                     targetyear=int(monthyear-.5)
                     target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
+            else:
+                monthyear=start_date+interval*v
+                quadyear=monthyear*4
+                if quadyear%4==0:
+                    targetyear=int(monthyear)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+                elif quadyear%4==1:
+                    targetyear=int(monthyear-.25)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 4, 1).timetuple())
+                elif quadyear%4==2:
+                    targetyear=int(monthyear-.50)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
+                elif quadyear%4==3:
+                    targetyear=int(monthyear-.75)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 10, 1).timetuple())
             fiveyears = 157766400 * 2
             myspots = []
             mylons = []
@@ -402,18 +421,33 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     #New method for interpolation that uses least squares fit and filters data
     else:
         for v in range(0, iterations):
-            if sixmonths==False:
+            if sixmonths == False:
                 targetyear = int(start_date + interval * v)
                 target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-            else:
-                monthyear=start_date+interval*v
-                doubleyear=monthyear*2
-                if doubleyear%2==0:
-                    targetyear=int(monthyear)
+            elif threemonths == False:
+                monthyear = start_date + interval * v
+                doubleyear = monthyear * 2
+                if doubleyear % 2 == 0:
+                    targetyear = int(monthyear)
                     target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
                 else:
-                    targetyear=int(monthyear-.5)
+                    targetyear = int(monthyear - .5)
                     target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
+            else:
+                monthyear = start_date + interval * v
+                quadyear = monthyear * 4
+                if quadyear % 4 == 0:
+                    targetyear = int(monthyear)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
+                elif quadyear % 4 == 1:
+                    targetyear = int(monthyear - .25)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 4, 1).timetuple())
+                elif quadyear % 4 == 2:
+                    targetyear = int(monthyear - .50)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
+                elif quadyear % 4 == 3:
+                    targetyear = int(monthyear - .75)
+                    target_time = calendar.timegm(datetime.datetime(targetyear, 10, 1).timetuple())
             fiveyears = (157766400/5)*time_tolerance
             oneyear=(157766400/5)
             myspots = []
@@ -601,13 +635,14 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     for j in range(0,iterations):
         if len(coordinates[j])>2:
             X = coordinates[i]
-            y = values[i]
-            print X
-            print y
+            if interpolation_options=="depth":
+                y = values[i]
+            else:
+                y=elevations[i]
             variogram_model_parameters.append(generate_variogram(X,y,variogram_function))
         else:
             variogram_model_parameters.append([0,0,0])
-
+    print variogram_model_parameters
     aquiferlist = getaquiferlist(app_workspace, region)
     for i in aquiferlist:
         if i['Id'] == int(aquifer_number):
@@ -644,8 +679,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
 
     if myaquifercaps == region or myaquifercaps == 'NONE' or myaquifercaps.replace(" ","_")==region:
         AquiferShape['features'].append(state['features'][0])
-    print myaquifer
-    print AquiferShape
+
     lonmin, latmin, lonmax, latmax = bbox(AquiferShape['features'][0])
     latgrid = np.mgrid[latmin:latmax:resolution]
     longrid = np.mgrid[lonmin:lonmax:resolution]
@@ -654,7 +688,6 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     nx = (lonmax - lonmin) / resolution
     ny = (latmax - latmin) / resolution
 
-    print latrange, lonrange
 
     bounds = (lonmin, latmin, lonmax, latmax)
     west, south, east, north = bounds
@@ -685,16 +718,15 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     if units=="English":
         dem=dem*3.28084 #use this to convert from meters to feet
     dem_grid = np.reshape(dem, (lonrange, latrange))
-
     outx = np.repeat(longrid, latrange)
     outy = np.tile(latgrid, lonrange)
     depth_grids = []
     elev_grids = []
 
     for i in range(0, iterations):
-        searchradius = 3
-        ndmax = len(elevations[i])
-        ndmin = max(ndmax - 2,0)
+        searchradius = 2#((latmin-latmax)**2+(lonmin-lonmax)**2)**.5
+        ndmax = 15#len(elevations[i])/5
+        ndmin = 5#max(ndmax /4,1)
         noct = 0
         nugget = 0
         sill = variogram_model_parameters[i][0]
@@ -738,16 +770,38 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                 params['ve']=heights[i]
                 params['outextve']=dem
                 params['ktype']=3
+            elif interpolation_options=="elev":
+                params['vr']=elevations[i]
             estimate = pygslib.gslib.kt3d(params)
+            idwarray=estimate[0]['outidpower']
             if interpolation_type=="IDW":
-                array=estimate[0]['outidpower']
+                array=idwarray
             else:
                 array = estimate[0]['outest']
+            if interpolation_options=="both":
+                params['vr']=elevations[i]
+                elev_estimate=pygslib.gslib.kt3d(params)
+                elev_idwarray = elev_estimate[0]['outidpower']
+                if interpolation_type == "IDW":
+                    elev_array = elev_idwarray
+                else:
+                    elev_array = elev_estimate[0]['outest']
+                elev_grid=np.reshape(elev_array,(lonrange,latrange))
+                idw_elev_grid = np.reshape(elev_idwarray, (lonrange, latrange))
+                x = np.isnan(elev_grid)
+                print np.isnan(elev_grid).sum() / elev_grid.size * 100.0, " % idw in Elev Grid"
+                elev_grid[x] = idw_elev_grid[x]
+
             depth_grid = np.reshape(array, (lonrange, latrange))
-            if interpolation_type == "Kriging with External Drift":
+            idw_grid=np.reshape(idwarray, (lonrange, latrange))
+            x = np.isnan(depth_grid)
+            print np.isnan(depth_grid).sum() / depth_grid.size * 100.0, " % idw in Depth Grid"
+            depth_grid[x] = idw_grid[x]
+
+            if interpolation_type == "Kriging with External Drift" or interpolation_options=="elev":
                 elev_grid=depth_grid
                 depth_grid = elev_grid - dem_grid
-            else:
+            elif interpolation_options!="both":
                 elev_grid = dem_grid + depth_grid
             depth_grids.append(depth_grid)
             elev_grids.append(elev_grid)
@@ -794,6 +848,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     h.time_tolerance=time_tolerance
     h.default=make_default
     h.interpolation=interpolation_type
+    h.interp_options=interpolation_options
     h.units=units
 
     time = h.createDimension("time", 0)
@@ -859,7 +914,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
         if sixmonths == False:
             year = int(year)
             timearray.append(datetime.datetime(year, 1, 1).toordinal())
-        else:
+        elif threemonths==False:
             monthyear = start_date + interval * i
             doubleyear = monthyear * 2
             if doubleyear % 2 == 0:
@@ -868,6 +923,23 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
             else:
                 monthyear = int(monthyear - .5)
                 timearray.append(datetime.datetime(monthyear, 7, 1).toordinal())
+        else:
+            monthyear = start_date + interval * i
+            print monthyear
+            quadyear = monthyear * 4
+            if quadyear % 4 == 0:
+                targetyear = int(monthyear)
+                timearray.append(datetime.datetime(targetyear, 1, 1).toordinal())
+            elif quadyear % 4 == 1:
+                targetyear = int(monthyear - .25)
+                timearray.append(datetime.datetime(targetyear, 4, 1).toordinal())
+            elif quadyear % 4 == 2:
+                targetyear = int(monthyear - .50)
+                timearray.append(datetime.datetime(targetyear, 7, 1).toordinal())
+            elif quadyear % 4 == 3:
+                targetyear = int(monthyear - .75)
+                timearray.append(datetime.datetime(targetyear, 10, 1).toordinal())
+
         year += interval
 
         if interpolatable!=False: # for IDW, Kriging, and Kriging with External Drift

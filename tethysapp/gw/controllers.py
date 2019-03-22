@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput
 import pandas as pd
 import urllib
+import contextlib
 from ajax_controllers import *
 
 
@@ -73,6 +74,7 @@ def addregion_nwis(request):
             csv_file=csv_file[0]
             border_file = border_file[0]
             major_file=major_file[0]
+            region = region.replace(' ', '_')
 
             app_workspace = app.get_app_workspace()
             # Function to write the file from the uploaded file
@@ -476,10 +478,19 @@ def interpolation(request):
     select_interpolation = SelectInput(display_text='Interpolation Method',
                                  name='select_interpolation',
                                  multiple=False,
-                                 options=[("IDW (Shepard's Method)", 'IDW'), ('Kriging', 'Kriging')],
+                                 options=[("IDW (Shepard's Method)", 'IDW'), ('Kriging', 'Kriging'), ('Kriging with External Drift', 'Kriging with External Drift')],
                                  initial="IDW (Shepard's Method)",
                                  attributes={
                                  }
+    )
+    interpolation_options=SelectInput(display_text="Interpolation Options",
+                                      name='interpolation_options',
+                                      multiple=False,
+                                      options=[("Interpolate Water Surface Elevation and Depth to Water Table Seperately","both"),
+                                               ("Interpolate Water Surface Elevation, and calculate Depth to Water Table using a DEM","elev"),
+                                               ("Interpolate Depth to Water Table, and calculate Water Surface Elevation using a DEM","depth")],
+                                      attributes={
+                                      }
     )
     dates=[]
     for i in range(1850,2019):
@@ -510,13 +521,13 @@ def interpolation(request):
     frequency = SelectInput(display_text='Time Increment',
                            name='frequency',
                            multiple=False,
-                           options=[("6 months",.5),("1 year",1),("2 years",2),("5 years",5),("10 years",10),("25 years",25)],
+                           options=[("3 months",.25),("6 months",.5),("1 year",1),("2 years",2),("5 years",5),("10 years",10),("25 years",25)],
                            initial="5 years"
                            )
     resolution = SelectInput(display_text='Raster Resolution',
                             name='resolution',
                             multiple=False,
-                            options=[(".01 degree", .01), (".025 degree", .025), (".05 degree", .05), (".1 degree", .10)],
+                            options=[(".001 degree",.001),(".0025 degree",.0025),(".005 degree",.005),(".01 degree", .01), (".025 degree", .025), (".05 degree", .05), (".1 degree", .10)],
                             initial=".05 degree"
                             )
     min_samples=SelectInput(display_text='Minimum Water Level Samples per Well',
@@ -566,7 +577,8 @@ def interpolation(request):
         "default":default,
         "min_samples":min_samples,
         'min_ratio':min_ratio,
-        'time_tolerance':time_tolerance
+        'time_tolerance':time_tolerance,
+        'interpolation_options':interpolation_options
     }
 
     return render(request, 'gw/interpolation.html', context)
@@ -574,79 +586,84 @@ def interpolation(request):
 
 #The pullnwis function pulls data from the web for a specified region and writes the data to a JSON file named Wells.JSON in the appropriate folder.
 def pullnwis(state, app_workspace,region):
-    link = "https://waterservices.usgs.gov/nwis/gwlevels/?format=json&stateCd="+state+"&startDT=1850-01-01&endDT=2018-7-31&parameterCd=72019&siteStatus=all"
-    f = urllib.urlopen(link)
-    myfile = f.read()
-    myfile = json.loads(myfile)
-    print len(myfile['value']['timeSeries'])
-
-    aquifermin = 0.0
+    states=state.split(',')
     points = {
         'type': 'FeatureCollection',
         'features': []
     }
-    for i in range(0, len(myfile['value']['timeSeries'])):
-        times = []
-        values = []
-        for j in myfile['value']['timeSeries'][i]['values'][0]['value']:
-            if float(j['value']) != 999999.0 and float(j['value']) != -999999.0:
-                time = j['dateTime']
-                value = float(j['value']) * -1
-                times.append(time)
-                values.append(value)
-                if value < aquifermin:
-                    aquifermin = value
-        id_name = myfile['value']['timeSeries'][i]['name']
-        pos = id_name.find(":")
-        pos2 = id_name.find(":", pos + 1)
-        id_name = id_name[pos + 1:pos2]
-        latitude = float(
-            myfile['value']['timeSeries'][i]['sourceInfo']['geoLocation']['geogLocation']['latitude'])
-        longitude = float(
-            myfile['value']['timeSeries'][i]['sourceInfo']['geoLocation']['geogLocation']['longitude'])
-        if len(times) > 0:
-            feature = {
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [longitude, latitude]
-                },
-                'TsTime': times,
-                'TsValue': values,
-                'properties': {
-                    'HydroID': int(id_name)
-                }
-            }
-        else:
-            feature = {
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [longitude, latitude]
-                },
-                'properties': {
-                    'HydroID': int(id_name)
-                }
-            }
-        points['features'].append(feature)
+    aquifermin = 0.0
+    for mystate in states:
+        print mystate
+        link = "https://waterservices.usgs.gov/nwis/gwlevels/?format=json&stateCd="+mystate+"&startDT=1850-01-01&endDT=2018-7-31&parameterCd=72019&siteStatus=all"
+        with contextlib.closing(urllib.urlopen(link)) as f:
+        # f=urllib.open(link)
+            myfile=f.read()
+        myfile = json.loads(myfile)
+        print len(myfile['value']['timeSeries'])
 
-    url = "https://waterservices.usgs.gov/nwis/site/?format=rdb&stateCd="+state+"&siteType=GW&siteStatus=all"
-    f = pd.read_csv(url, skiprows=29, sep='\t')
-    length = len(f['site_no'])
-    i = 1
-    for p in points['features']:
-        newstart = i
-        while i < length:
-            if p['properties']['HydroID'] == int(f['site_no'][i]):
-                empty = pd.isnull(f['alt_va'][i])
-                if empty == False:
-                    p['properties']['LandElev'] = float(f['alt_va'][i])
-                break
-            i += 1
-        if i == length:
-            i = newstart
-            continue
 
+        for i in range(0, len(myfile['value']['timeSeries'])):
+            times = []
+            values = []
+            for j in myfile['value']['timeSeries'][i]['values'][0]['value']:
+                if float(j['value']) != 999999.0 and float(j['value']) != -999999.0:
+                    time = j['dateTime']
+                    value = float(j['value']) * -1
+                    times.append(time)
+                    values.append(value)
+                    if value < aquifermin:
+                        aquifermin = value
+            id_name = myfile['value']['timeSeries'][i]['name']
+            pos = id_name.find(":")
+            pos2 = id_name.find(":", pos + 1)
+            id_name = id_name[pos + 1:pos2]
+            latitude = float(
+                myfile['value']['timeSeries'][i]['sourceInfo']['geoLocation']['geogLocation']['latitude'])
+            longitude = float(
+                myfile['value']['timeSeries'][i]['sourceInfo']['geoLocation']['geogLocation']['longitude'])
+            if len(times) > 0:
+                feature = {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [longitude, latitude]
+                    },
+                    'TsTime': times,
+                    'TsValue': values,
+                    'properties': {
+                        'HydroID': int(id_name)
+                    }
+                }
+            else:
+                feature = {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [longitude, latitude]
+                    },
+                    'properties': {
+                        'HydroID': int(id_name)
+                    }
+                }
+            points['features'].append(feature)
+
+        url = "https://waterservices.usgs.gov/nwis/site/?format=rdb&stateCd="+mystate+"&siteType=GW&siteStatus=all"
+        f = pd.read_csv(url, skiprows=29, sep='\t')
+        length = len(f['site_no'])
+        i = 1
+        for p in points['features']:
+            newstart = i
+            while i < length:
+                if p['properties']['HydroID'] == int(f['site_no'][i]):
+                    empty = pd.isnull(f['alt_va'][i])
+                    if empty == False:
+                        p['properties']['LandElev'] = float(f['alt_va'][i])
+                    break
+                i += 1
+            if i == length:
+                i = newstart
+                continue
+    # End Loop
     count = 0
     for i in points['features']:
         if 'TsValue' in i:

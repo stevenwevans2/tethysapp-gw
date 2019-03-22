@@ -1,5 +1,5 @@
-//var thredds_url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/";
-var thredds_url = "http://localhost:8080/thredds/wms/testAll/groundwater/";
+var thredds_url="https://tethys.byu.edu/thredds/wms/testAll/groundwater/";
+//var thredds_url = "http://localhost:8080/thredds/wms/testAll/groundwater/";
 var units="Metric";
 
 //Get a CSRF cookie for request
@@ -1375,7 +1375,19 @@ function list_dates(call_function){
             $("#available_dates").val('Blank.nc');
             for (i=0;i<timelist.length;i++){
                 number=timelist[i].Full_Name;
-                name=timelist[i].Aquifer+' '+ timelist[i].Interpolation+': '+timelist[i].Start_Date+'-'+timelist[i].End_Date+' ('+timelist[i].Interval+ " Year Increments, "+(timelist[i].Resolution)+" Degree Resolution, "+timelist[i].Min_Samples+" Min Samples, "+(timelist[i].Min_Ratio)+ " Min Ratio, "+timelist[i].Time_Tolerance+ " Year Time Tolerance)";
+                if (timelist[i].Interp_Options){
+                    var myoptions="elevation"
+                    if (timelist[i].Interp_Options=="both"){
+                        myoptions="elevation and depth";
+                    }
+                    else if (timelist[i].Interp_Options=="depth"){
+                        myoptions="depth";
+                    }
+                    name=timelist[i].Aquifer+' '+ timelist[i].Interpolation+' using '+myoptions+': '+timelist[i].Start_Date+'-'+timelist[i].End_Date+' ('+timelist[i].Interval+ " Year Increments, "+(timelist[i].Resolution)+" Degree Resolution, "+timelist[i].Min_Samples+" Min Samples, "+(timelist[i].Min_Ratio)+ " Min Ratio, "+timelist[i].Time_Tolerance+ " Year Time Tolerance)";
+                }
+                else{
+                    name=timelist[i].Aquifer+' '+ timelist[i].Interpolation+': '+timelist[i].Start_Date+'-'+timelist[i].End_Date+' ('+timelist[i].Interval+ " Year Increments, "+(timelist[i].Resolution)+" Degree Resolution, "+timelist[i].Min_Samples+" Min Samples, "+(timelist[i].Min_Ratio)+ " Min Ratio, "+timelist[i].Time_Tolerance+ " Year Time Tolerance)";
+                }
                 $("#available_dates").append('<option value="'+number+'">'+name+'</option>');
                 if (timelist.length==1){
                     $("#available_dates").val(number);

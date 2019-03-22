@@ -317,6 +317,7 @@ def loaddata(request):
         resolution = request.GET.get('resolution')
         length=request.GET.get('length')
         interpolation_type=request.GET.get('interpolation_type')
+        interpolation_options = request.GET.get('interpolation_options')
         make_default=request.GET.get("make_default")
         min_samples=request.GET.get("min_samples")
         min_ratio=request.GET.get("min_ratio")
@@ -341,13 +342,12 @@ def loaddata(request):
             min_ratio=float(min_ratio)
             time_tolerance=int(time_tolerance)
 
-
         if aquiferid==9999:
             for i in range(1,length):
                 aquiferid=i
-                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units)
+                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units)
         else:
-            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance,  from_wizard, units)
+            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance,  from_wizard, units)
 
         return_obj['data']=points
         return_obj['message']=returnmessage
@@ -393,11 +393,7 @@ def divideaquifers(region,app_workspace,aquiferid):
     filename=region+"/Wells.json"
     json_file=os.path.join(app_workspace.path,filename)
     with open(json_file, 'r') as f:
-        allwells = ''
-        wells = f.readlines()
-        for i in range(0, len(wells)):
-            allwells += wells[i]
-    all_points = json.loads(allwells)
+        all_points = json.load(f)
 
     if len(aquiferShape)>0:
         polygon = shape(aquiferShape[0]['geometry'])
@@ -411,9 +407,24 @@ def divideaquifers(region,app_workspace,aquiferid):
             if polygon.contains(point):
                 well['properties']['AquiferID']=int(aquiferid)
                 points['features'].append(well)
-                for i in well['TsValue']:
-                    if i<aquifermin:
-                        aquifermin=i
+                array=[]
+                # The following code sorts the timeseries entries for each well so they are in chronological order
+                length = len(well['TsTime'])
+                for j in range(0, len(well['TsTime'])):
+                    array.append((well['TsTime'][j], well['TsValue'][j]))
+                array.sort(key=itemgetter(0))
+                well['TsTime'] = []
+                well['TsValue'] = []
+                # This portion of the sorting code checks to see if the dates are duplicates and does not add them if they are
+                oldtime = -9999.5555
+                for j in range(0, length):
+                    #These next 2 lines calculate the aquifermin
+                    if array[j][1]<aquifermin:
+                        aquifermin=array[j][1]
+                    if oldtime != array[j][0]:
+                        well['TsTime'].append(array[j][0])
+                        well['TsValue'].append(array[j][1])
+                        oldtime = array[j][0]
         print len(points['features'])
         points['aquifermin'] = aquifermin
     else:
@@ -617,12 +628,14 @@ def gettimelist(region,aquifer):
             'Interpolation':h.interpolation,
             'Units':h.units,
         }
+        if 'interp_options' in h.ncattrs():
+            mytime['Interp_Options']=h.interp_options
         h.close()
 
         timelist.append(mytime)
     return timelist
 
-def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units):
+def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units):
     if from_wizard==True:
         interpolate = 1
     else:
@@ -692,7 +705,7 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, start_da
     # Execute the following function to interpolate groundwater levels and create a netCDF File and upload it to the server
     if interpolate == 1:
 
-        returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type, start_date, end_date,
+        returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type, interpolation_options, start_date, end_date,
                       interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units)
 
     end = t.time()
