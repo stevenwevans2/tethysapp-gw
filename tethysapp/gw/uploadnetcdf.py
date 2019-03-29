@@ -18,6 +18,7 @@ from scipy.optimize import least_squares
 import elevation
 import csv
 from .app import Gw as app
+from osgeo import gdal
 # from ajax_controllers import *
 
 porosity=0.3
@@ -103,7 +104,7 @@ def download_DEM(region,myaquifer):
     output = os.path.join(directory, dem_path)
     elevation.clip(bounds=bounds, output=output)
     print "This step works. 90 m DEM downloaded for ", name
-    elevation.clean()
+
 # The following functions are used to automatically fit a variogram to the input data
 def great_circle_distance(lon1, lat1, lon2, lat2):
     """Calculate the great circle distance between one or multiple pairs of
@@ -692,15 +693,22 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     bounds = (lonmin, latmin, lonmax, latmax)
     west, south, east, north = bounds
     # Download and Set up the DEM for the aquifer if it does not exist already
-    dem_path = os.path.join(app_workspace.path, region + "/DEM/" + name.replace(" ", "_") + "_DEM.tif")
+    dem_path = os.path.join(app_workspace.path, region + "/DEM.tif")
+    if not os.path.exists(dem_path):
+        dem_path = os.path.join(app_workspace.path, region + "/DEM/" + name.replace(" ", "_") + "_DEM.tif")
     if not os.path.exists(dem_path):
         download_DEM(region, myaquifer)
+    out_path = os.path.join(app_workspace.path, region + "/Out.tif")
+    ds = gdal.Open(dem_path)
+    ds = gdal.Translate(out_path, ds, outputSRS='EPSG:4326', projWin=[west, north, east, south])
+    ds = None
     # Reproject DEM to 0.01 degree resolution using rasterio
-    dem_raster = rasterio.open(dem_path)
-    src_crs = dem_raster.crs
-    src_shape = src_height, src_width = dem_raster.shape
-    src_transform = from_bounds(west, south, east, north, src_width, src_height)
-    source = dem_raster.read(1)
+    with rasterio.open(out_path) as dem_raster:
+        src_crs = dem_raster.crs
+        src_shape = src_height, src_width = dem_raster.shape
+        src_transform = from_bounds(west, south, east, north, src_width, src_height)
+        source = dem_raster.read(1)
+    os.remove(out_path)
     dst_crs = {'init': 'EPSG:4326'}
     dst_transform = from_origin(lonmin, latmax, resolution, resolution)
     dem_array = np.zeros((latrange, lonrange))
@@ -718,6 +726,8 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     if units=="English":
         dem=dem*3.28084 #use this to convert from meters to feet
     dem_grid = np.reshape(dem, (lonrange, latrange))
+    dem_grid[dem_grid<=-99]=-9999
+    print dem_grid
     outx = np.repeat(longrid, latrange)
     outy = np.tile(latgrid, lonrange)
     depth_grids = []
@@ -803,6 +813,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
                 depth_grid = elev_grid - dem_grid
             elif interpolation_options!="both":
                 elev_grid = dem_grid + depth_grid
+                elev_grid[elev_grid<=-9000]=-9999
             depth_grids.append(depth_grid)
             elev_grids.append(elev_grid)
             print i

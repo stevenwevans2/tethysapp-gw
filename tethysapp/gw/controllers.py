@@ -6,6 +6,7 @@ from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput
 import pandas as pd
 import urllib
 import contextlib
+from osgeo import gdal
 from ajax_controllers import *
 
 
@@ -32,6 +33,7 @@ def addregion_nwis(request):
     border_error=''
     major_error=''
     id_error=''
+    dem_error=''
 
     id=None
     region=None
@@ -39,6 +41,7 @@ def addregion_nwis(request):
     border_file=None
     major_file=None
     minor_file=None
+    dem_file=None
 
     if request.POST and 'add_button' in request.POST:
         has_errors=False
@@ -59,6 +62,8 @@ def addregion_nwis(request):
             major_file=request.FILES.getlist('major-file')
         if request.FILES and 'minor-file' in request.FILES:
             minor_file=request.FILES.getlist('minor-file')
+        if request.FILES and 'dem-file' in request.FILES:
+            dem_file=request.FILES.getlist('dem-file')
 
         if not csv_file or len(csv_file)<1:
             has_errors=True
@@ -69,11 +74,15 @@ def addregion_nwis(request):
         if not major_file or len(major_file)<1:
             has_errors=True
             major_error='JSON file for the major aquifers is required.'
+        if not dem_file or len(dem_file)<1:
+            has_errors=True
+            dem_error='Regional DEM TIF File is required.'
 
         if not has_errors:
             csv_file=csv_file[0]
             border_file = border_file[0]
             major_file=major_file[0]
+            dem_file=dem_file[0]
             region = region.replace(' ', '_')
 
             app_workspace = app.get_app_workspace()
@@ -90,34 +99,62 @@ def addregion_nwis(request):
                 with open(the_csv, 'w') as f:
                     for line in lines:
                         f.write(line)
-            try:
-                writefile(csv_file,region+"_Aquifers.csv")
-                writefile(border_file,region+"_State_Boundary.json")
-                writefile(major_file,"MajorAquifers.json")
-                if minor_file:
-                    minor_file=minor_file[0]
-                    writefile(minor_file, "MinorAquifers.json")
-                pullnwis(id, app_workspace, region)
+            # try:
+            writefile(csv_file,region+"_Aquifers.csv")
+            writefile(border_file,region+"_State_Boundary.json")
+            writefile(major_file,"MajorAquifers.json")
+            writefile(dem_file,'temp.tif')
+            State_Boundary = os.path.join(app_workspace.path, region + '/' + region + '_State_Boundary.json')
+            with open(State_Boundary, 'r') as f:
+                state = json.load(f)
+            AquiferShape=state
+            lonmin=360
+            lonmax=-360
+            latmin=90
+            latmax=-90
+            for shape in AquiferShape['features']:
+                if 'geometry' in shape:
+                    if shape['geometry']is not None:
+                        mylonmin,mylatmin,mylonmax,mylatmax=bbox(shape)
+                        if mylatmin<latmin:
+                            latmin=mylatmin
+                        if mylonmin<lonmin:
+                            lonmin=mylonmin
+                        if mylatmax>latmax:
+                            latmax=mylatmax
+                        if mylonmax>lonmax:
+                            lonmax=mylonmax
+            # lonmin, latmin, lonmax, latmax = bbox(AquiferShape['features'][0])
+            out_path = os.path.join(app_workspace.path, region + "/DEM.tif")
+            dem_path=os.path.join(app_workspace.path, region + "/temp.tif")
+            ds = gdal.Open(dem_path)
+            ds = gdal.Translate(out_path, ds, outputSRS='EPSG:4326', projWin=[lonmin, latmax, lonmax, latmin])
+            ds = None
+            os.remove(dem_path)
+            if minor_file:
+                minor_file=minor_file[0]
+                writefile(minor_file, "MinorAquifers.json")
+            pullnwis(id, app_workspace, region)
 
-                #Set up the appropriate folders on the Thredds server
-                thredds_folder=os.path.join(thredds_serverpath,region)
-                if not os.path.exists(thredds_folder):
-                    os.mkdir(thredds_folder)
+            #Set up the appropriate folders on the Thredds server
+            thredds_folder=os.path.join(thredds_serverpath,region)
+            if not os.path.exists(thredds_folder):
+                os.mkdir(thredds_folder)
 
-                #Addition
-                aquiferlist = getaquiferlist(app_workspace, region)
+            #Addition
+            aquiferlist = getaquiferlist(app_workspace, region)
 
-                well_file = os.path.join(app_workspace.path, region + '/Wells.json')
+            well_file = os.path.join(app_workspace.path, region + '/Wells.json')
+            print "to divide aquifers"
+            for i in range(1, len(aquiferlist) + 1):
+                if os.path.exists(well_file):
+                    divideaquifers(region, app_workspace, i)
+            #End Addition
+            success = True
 
-                for i in range(1, len(aquiferlist) + 1):
-                    if os.path.exists(well_file):
-                        divideaquifers(region, app_workspace, i)
-                #End Addition
-                success = True
-
-            except Exception as e:
-                print e
-                success=False
+            # except Exception as e:
+            #     print e
+            #     success=False
 
             if success:
                 messages.info(request, 'Successfully added region')
@@ -153,7 +190,8 @@ def addregion_nwis(request):
         'add_button':add_button,
         'file_error':file_error,
         'border_error':border_error,
-        'major_error':major_error
+        'major_error':major_error,
+        'dem_error':dem_error
     }
 
     return render(request, 'gw/addregion_nwis.html', context)
@@ -163,116 +201,169 @@ def addregion(request):
     """
     Controller for the addregion page.
     """
-    file_error=''
-    region_error=''
-    border_error=''
-    major_error=''
-    wells_error=''
-    time_error=''
+    file_error = ''
+    region_error = ''
+    border_error = ''
+    major_error = ''
+    wells_error = ''
+    time_error = ''
+    dem_error = ''
 
-    region=None
-    csv_file=None
-    border_file=None
-    major_file=None
-    minor_file=None
-    wells_file=None
-    time_file=None
-
-    if request.POST and 'add_button' in request.POST:
-        has_errors=False
-        region=request.POST.get('region_name')
+    def writefilestoworkspace(request):
+        file_error = ''
+        region_error = ''
+        border_error = ''
+        major_error = ''
+        wells_error = ''
+        time_error = ''
+        dem_error = ''
+        def writefile(input, output):
+            lines = []
+            for line in input:
+                lines.append(line)
+            app_workspace = app.get_app_workspace()
+            directory = os.path.join(app_workspace.path, region)
+            if not os.path.exists(directory):
+                os.mkdir(directory)
+            the_csv = os.path.join(directory, output)
+            with open(the_csv, 'w') as f:
+                for line in lines:
+                    f.write(line)
+        region = None
+        csv_file = None
+        border_file = None
+        major_file = None
+        minor_file = None
+        wells_file = None
+        time_file = None
+        dem_file = None
+        has_errors = False
+        region = request.POST.get('region_name')
         if not region:
-            has_errors=True
-            region_error='Region name is required.'
+            has_errors = True
+            region_error = 'Region name is required.'
 
         if request.FILES and 'csv-file' in request.FILES:
-            csv_file=request.FILES.getlist('csv-file')
+            csv_file = request.FILES.getlist('csv-file')
         if request.FILES and 'border-file' in request.FILES:
-            border_file=request.FILES.getlist('border-file')
+            border_file = request.FILES.getlist('border-file')
         if request.FILES and 'major-file' in request.FILES:
-            major_file=request.FILES.getlist('major-file')
+            major_file = request.FILES.getlist('major-file')
         if request.FILES and 'minor-file' in request.FILES:
-            minor_file=request.FILES.getlist('minor-file')
+            minor_file = request.FILES.getlist('minor-file')
         if request.FILES and 'wells-file' in request.FILES:
-            wells_file=request.FILES.getlist('wells-file')
+            wells_file = request.FILES.getlist('wells-file')
         if request.FILES and 'time-file' in request.FILES:
-            time_file=request.FILES.getlist('time-file')
+            time_file = request.FILES.getlist('time-file')
+        if request.FILES and 'dem-file' in request.FILES:
+            dem_file = request.FILES.getlist('dem-file')
 
-        if not csv_file or len(csv_file)<1:
-            has_errors=True
-            file_error='CSV file of aquifer information is required.'
-        if not border_file or len(border_file)<1:
-            has_errors=True
-            border_error='JSON file for the region boundary is required.'
-        if not major_file or len(major_file)<1:
-            has_errors=True
-            major_error='JSON file for the major aquifers is required.'
-        if not wells_file or len(wells_file)<1:
-            has_errors=True
-            wells_error='JSON file of well locations is required.'
-        if not time_file or len(time_file)<1:
-            has_errors=True
-            time_error='CSV of well time series information is required.'
-
+        if not csv_file or len(csv_file) < 1:
+            has_errors = True
+            file_error = 'CSV file of aquifer information is required.'
+        if not border_file or len(border_file) < 1:
+            has_errors = True
+            border_error = 'JSON file for the region boundary is required.'
+        if not major_file or len(major_file) < 1:
+            has_errors = True
+            major_error = 'JSON file for the major aquifers is required.'
+        if not wells_file or len(wells_file) < 1:
+            has_errors = True
+            wells_error = 'JSON file of well locations is required.'
+        if not time_file or len(time_file) < 1:
+            has_errors = True
+            time_error = 'CSV of well time series information is required.'
+        if not dem_file or len(dem_file) < 1:
+            has_errors = True
+            dem_error = 'DEM for the region is required.'
+        errors=[file_error,border_error,major_error,wells_error,time_error,dem_error,region_error]
         if not has_errors:
-            csv_file=csv_file[0]
+            csv_file = csv_file[0]
             border_file = border_file[0]
-            major_file=major_file[0]
-            wells_file=wells_file[0]
-            time_file=time_file[0]
-            region=region.replace(' ', '_')
+            major_file = major_file[0]
+            wells_file = wells_file[0]
+            time_file = time_file[0]
+            dem_file = dem_file[0]
+            region = region.replace(' ', '_')
             app_workspace = app.get_app_workspace()
-            # Function to write the file from the uploaded file
-            def writefile(input, output):
-                lines = []
-                for line in input:
-                    lines.append(line)
 
-                directory = os.path.join(app_workspace.path, region)
-                if not os.path.exists(directory):
-                    os.mkdir(directory)
-                the_csv = os.path.join(directory, output)
-                with open(the_csv, 'w') as f:
-                    for line in lines:
-                        f.write(line)
-            try:
-                writefile(csv_file,region+"_Aquifers.csv")
-                writefile(border_file,region+"_State_Boundary.json")
-                writefile(major_file,"MajorAquifers.json")
-                writefile(wells_file, "Wells1.json")
-                writefile(time_file, "Wells_Master.csv")
-                if minor_file:
-                    minor_file=minor_file[0]
-                    writefile(minor_file, "MinorAquifers.json")
-
-                #Set up the appropriate folders on the Thredds server
-                thredds_folder=os.path.join(thredds_serverpath,region)
-                if not os.path.exists(thredds_folder):
-                    os.mkdir(thredds_folder)
-
-                aquiferlist = getaquiferlist(app_workspace, region)
-
-                well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
-                times_file=os.path.join(app_workspace.path, region + '/Wells_Master.csv')
-
-                for i in range(1, len(aquiferlist) + 1):
-                    if os.path.exists(well_file) and os.path.exists(times_file):
-                        print "made it to subdivide"
-                        subdivideaquifers(region, app_workspace, i)
-                success=True
-
-            except Exception as e:
-                print e
-                success=False
-
-            if success:
-                messages.info(request, 'Successfully added region')
-                return redirect(reverse('gw:region_map'))
-            else:
-                messages.info(request, 'Unable to add region.')
-                return redirect(reverse('gw:addregion'))
-
+            writefile(csv_file, region + "_Aquifers.csv")
+            writefile(border_file, region + "_State_Boundary.json")
+            writefile(major_file, "MajorAquifers.json")
+            writefile(wells_file, "Wells1.json")
+            writefile(time_file, "Wells_Master.csv")
+            writefile(dem_file, "temp.tif")
+            AquiferShape = {
+                'type': 'FeatureCollection',
+                'features': []
+            }
+            State_Boundary = os.path.join(app_workspace.path, region + '/' + region + '_State_Boundary.json')
+            with open(State_Boundary, 'r') as f:
+                state = json.load(f)
+            AquiferShape = state
+            lonmin = 360
+            lonmax = -360
+            latmin = 90
+            latmax = -90
+            for shape in AquiferShape['features']:
+                if 'geometry' in shape:
+                    if shape['geometry'] is not None:
+                        mylonmin, mylatmin, mylonmax, mylatmax = bbox(shape)
+                        if mylatmin < latmin:
+                            latmin = mylatmin
+                        if mylonmin < lonmin:
+                            lonmin = mylonmin
+                        if mylatmax > latmax:
+                            latmax = mylatmax
+                        if mylonmax > lonmax:
+                            lonmax = mylonmax
+            out_path = os.path.join(app_workspace.path, region + "/DEM.tif")
+            dem_path = os.path.join(app_workspace.path, region + "/temp.tif")
+            ds = gdal.Open(dem_path)
+            ds = gdal.Translate(out_path, ds, outputSRS='EPSG:4326', projWin=[lonmin, latmax, lonmax, latmin])
+            ds = None
+            os.remove(dem_path)
+            if minor_file:
+                minor_file = minor_file[0]
+                writefile(minor_file, "MinorAquifers.json")
+            return region, errors
         messages.error(request, "Please fix errors.")
+    if request.POST and 'add_button' in request.POST:
+        try:
+            region,errors=writefilestoworkspace(request)
+            file_error=errors[0]
+            border_error=errors[1]
+            major_error=errors[2]
+            wells_error=errors[3]
+            time_error=errors[4]
+            dem_error=errors[5]
+            region_error=errors[6]
+            #Set up the appropriate folders on the Thredds server
+            thredds_folder=os.path.join(thredds_serverpath,region)
+            if not os.path.exists(thredds_folder):
+                os.mkdir(thredds_folder)
+            app_workspace=app.get_app_workspace()
+            aquiferlist = getaquiferlist(app_workspace, region)
+
+            well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
+            times_file=os.path.join(app_workspace.path, region + '/Wells_Master.csv')
+
+            for i in range(1, len(aquiferlist) + 1):
+                if os.path.exists(well_file) and os.path.exists(times_file):
+                    print "made it to subdivide"
+                    subdivideaquifers(region, app_workspace, i)
+            success=True
+
+        except Exception as e:
+            print e
+            success=False
+
+        if success:
+            messages.info(request, 'Successfully added region')
+            return redirect(reverse('gw:region_map'))
+        else:
+            messages.info(request, 'Unable to add region.')
+            return redirect(reverse('gw:addregion'))
 
 
     #Define form gizmos
@@ -296,7 +387,8 @@ def addregion(request):
         'border_error':border_error,
         'major_error':major_error,
         'wells_error':wells_error,
-        'time_error':time_error
+        'time_error':time_error,
+        'dem_error':dem_error
     }
 
     return render(request, 'gw/addregion.html', context)
@@ -594,7 +686,11 @@ def pullnwis(state, app_workspace,region):
     aquifermin = 0.0
     for mystate in states:
         print mystate
-        link = "https://waterservices.usgs.gov/nwis/gwlevels/?format=json&stateCd="+mystate+"&startDT=1850-01-01&endDT=2018-7-31&parameterCd=72019&siteStatus=all"
+        todaysdate=datetime.datetime.today()
+        urlyear=str(todaysdate.year)
+        urlmonth=str(todaysdate.month)
+        print urlmonth,urlyear
+        link = "https://waterservices.usgs.gov/nwis/gwlevels/?format=json&stateCd="+mystate+"&startDT=1850-01-01&endDT="+urlyear+"-"+urlmonth+"-28&parameterCd=72019&siteStatus=all"
         with contextlib.closing(urllib.urlopen(link)) as f:
         # f=urllib.open(link)
             myfile=f.read()

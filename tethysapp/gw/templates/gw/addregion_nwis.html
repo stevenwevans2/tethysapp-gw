@@ -50,6 +50,15 @@
       </label>
       <input type="file" name="minor-file">
     </div>
+    <div class="form-group{% if dem_error %} has-error{% endif %}">
+      <label class="control-label">
+        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">Regional DEM TIF FIle
+          <a data-toggle="modal" data-target="#help-modal7"><span class="glyphicon glyphicon-question-sign"></span></a>
+        </div>
+      </label>
+      <input type="file" name="dem-file">
+      {% if dem_error %}<p class="help-block">{{ dem_error }}</p>{% endif %}
+    </div>
     {% gizmo stateId %}
   </form>
 
@@ -149,6 +158,30 @@
           </ul>
           <h6>Example aquifers</h6>
           <img src="{% static 'gw/images/example_minor.png' %}" width="500px" height="400px">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Help Modal for the DEM File-->
+  <div class="modal fade" id="help-modal7" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="help-modal-label7">Instructions</h5>
+        </div>
+        <div class="modal-body">
+          <h2>Regional DEM TIF File</h2>
+          <ul>
+            <li>Upload a TIF File with the DEM for the region</li>
+            <li>Use a coarse reolution DEM, such as 1 kilometer</li>
+            <li>The DEM elevations must be in Meters</li>
+            <li>Coarse resolution DEMs are easily available by downloading the GTOPO30 data set from <a href="https://earthexplorer.usgs.gov/">https://earthexplorer.usgs.gov/</a></li>
+          </ul>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

@@ -404,7 +404,7 @@ def divideaquifers(region,app_workspace,aquiferid):
         aquifermin=0.0
         for well in all_points['features']:
             point=Point(well['geometry']['coordinates'])
-            if polygon.contains(point):
+            if polygon.contains(point) and 'TsTime' in well:
                 well['properties']['AquiferID']=int(aquiferid)
                 points['features'].append(well)
                 array=[]
@@ -441,8 +441,6 @@ def divideaquifers(region,app_workspace,aquiferid):
 
     with open(filename, 'w') as outfile:
         json.dump(points, outfile)
-    # Download and Set up the DEM for the aquifer
-    download_DEM(region, myaquifer)
 
     return points
 
@@ -467,11 +465,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
             aquifer_id_numbers=myaquifer['Contains']
     if myaquifer['Name']!=region and myaquifer['Name'].replace(' ', '_')!=region:
         with open(well_file, 'r') as f:
-            allwells = ''
-            wells = f.readlines()
-            for i in range(0, len(wells)):
-                allwells += wells[i]
-        wells_json = json.loads(allwells)
+            wells_json = json.load(f)
         points = {
             'type': 'FeatureCollection',
             'features': []
@@ -594,8 +588,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
     with open(filename, 'w') as outfile:
         json.dump(points, outfile)
 
-    # Download and Set up the DEM for the aquifer
-    download_DEM(region,myaquifer)
+
     return [points,aquifermin]
 
 

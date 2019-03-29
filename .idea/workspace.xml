@@ -5,23 +5,168 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/interpolation.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/interpolation.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/DR/DEM/Dominican_Republic_DEM.tif" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/DR/DR_Aquifers.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/DR/DR_State_Boundary.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/DR/MajorAquifers.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/DR/Wells1.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/DR/Wells_Master.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/DR/aquifers/Dominican_Republic.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/Colombia_State_Boundary.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/Colombia_State_Boundary.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/DEM/Cauca_Valley_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/CORDILLERA_CENTRAL_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/CORDILLERA_ORIENTAL_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/CORDILLERA_SEPTENTRIONAL_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/Dominican_Republic_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/LOS_HAITISES_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/PENINSULA_DE_SAMANA_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/PENINSULA_SUR_DE_BARAHONA_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/PLANICIE_COSTERA_ORIENTAL_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/PLANICIE_DE_AZUA_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/PLANICIE_DE_BANI_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/SIERRA_DE_BAHORUCO_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/SIERRA_DE_NEIBA_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/VALLE_DEL_CIBAO_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/VALLE_DE_NEIBA_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM/VALLE_DE_SAN_JUAN_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells1.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells1.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells_Master.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells_Master.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_CENTRAL.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_CENTRAL.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_ORIENTAL.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_ORIENTAL.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_SEPTENTRIONAL.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_SEPTENTRIONAL.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Dominican_Republic.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Dominican_Republic.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/LOS_HAITISES.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/LOS_HAITISES.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PENINSULA_DE_SAMANA.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PENINSULA_DE_SAMANA.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PENINSULA_SUR_DE_BARAHONA.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PENINSULA_SUR_DE_BARAHONA.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_COSTERA_ORIENTAL.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_COSTERA_ORIENTAL.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_DE_AZUA.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_DE_AZUA.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_DE_BANI.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_DE_BANI.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/SIERRA_DE_BAHORUCO.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/SIERRA_DE_BAHORUCO.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/SIERRA_DE_NEIBA.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/SIERRA_DE_NEIBA.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DEL_CIBAO.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DEL_CIBAO.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DE_NEIBA.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DE_NEIBA.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DE_SAN_JUAN.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DE_SAN_JUAN.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/DEM/Curry_County_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/DEM/Klamath_County_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/DEM/Linn_County_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Wells.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Wells.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clackamas_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clackamas_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clatsop_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clatsop_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Coos_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Coos_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Crook_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Crook_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Deschutes_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Deschutes_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Gilliam_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Gilliam_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Harney_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Harney_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Jackson_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Jackson_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Josephine_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Josephine_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Klamath_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Klamath_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Lake_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Lake_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Linn_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Linn_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Malheur_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Malheur_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Marion_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Marion_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Morrow_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Morrow_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Multnomah_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Multnomah_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Oregon.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Oregon.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Polk_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Polk_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Sherman_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Sherman_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Umatilla_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Umatilla_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Union_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Union_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Wallowa_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Wallowa_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Wasco_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Wasco_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Washington_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Washington_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Yamhill_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Yamhill_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/DEM/Edwards_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MajorAquifers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MinorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MinorAquifers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/TX_Counties.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Texas_Aquifers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Texas_Aquifers.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Texas_State_Boundary.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Texas_State_Boundary.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Wells1.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Wells1.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Wells_Master.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Wells_Master.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blaine.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blaine.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blossom.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blossom.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Bone_Spring-Victorio_Peak.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Bone_Spring-Victorio_Peak.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Brazos_River_Alluvium.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Brazos_River_Alluvium.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Capitan_Reef_Complex.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Capitan_Reef_Complex.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Carrizo.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Carrizo.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Dockum.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Dockum.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity-High_Plains.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity-High_Plains.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ellenburger-San_Saba.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ellenburger-San_Saba.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Gulf_Coast.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Gulf_Coast.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hickory.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hickory.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hueco_Bolson.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hueco_Bolson.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Igneous.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Igneous.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Lipan.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Lipan.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/None.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/None.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ogallala.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ogallala.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Pecos_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Pecos_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Queen_City.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Queen_City.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Seymour.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Seymour.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Texas.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Texas.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Trinity.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Trinity.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/West_Texas_Bolsons.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/West_Texas_Bolsons.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Woodbine.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Woodbine.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Yegua_Jackson.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Yegua_Jackson.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/DEM/Curlew_Valley_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/DEM/Sevier_Desert_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/DEM/Tooele_Valley_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/MajorAquifers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Utah_Aquifers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Utah_Aquifers.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Utah_State_Boundary.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Utah_State_Boundary.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Wells.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Wells.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Cache_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Cache_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Cedar_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Cedar_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Central_Sevier_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Central_Sevier_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Central_Virgin_River.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Central_Virgin_River.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Curlew_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Curlew_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/East_Shore_Area.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/East_Shore_Area.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Beryl-Enterprise.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Beryl-Enterprise.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Milford.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Milford.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Goshen_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Goshen_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Juab_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Juab_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Northern_Utah_Valley-east.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Northern_Utah_Valley-east.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Northern_Utah_Valley-west.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Northern_Utah_Valley-west.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Pahvant_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Pahvant_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Parowan_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Parowan_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Salt_Lake_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Salt_Lake_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Sevier_Desert.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Sevier_Desert.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Southern_Utah_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Southern_Utah_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Tooele_Valley.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Tooele_Valley.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Utah.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Utah.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/Wells.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/Wells.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/Wisconsin_Aquifers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/Wisconsin_Aquifers.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Bad_Axe_-_La_Crosse.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Bad_Axe_-_La_Crosse.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Black_River.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Black_River.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Buffalo_-_Trempealeau.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Buffalo_-_Trempealeau.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Central_Wisconsin.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Central_Wisconsin.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Fox.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Fox.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Grant_-_Platte.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Grant_-_Platte.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Green_Bay.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Green_Bay.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lake_Superior.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lake_Superior.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Chippewa.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Chippewa.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Fox.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Fox.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Rock.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Rock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Wisconsin.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Wisconsin.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Manitowoc.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Manitowoc.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Milwaukee_River.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Milwaukee_River.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Sheboygan.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Sheboygan.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Southeast.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Southeast.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/St_Croix.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/St_Croix.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Sugar_-_Pecatonica.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Sugar_-_Pecatonica.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Twin_-_Door_-_Kewaunee.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Twin_-_Door_-_Kewaunee.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Chippewa.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Chippewa.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Fox.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Fox.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Rock.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Rock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Wisconsin.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Wisconsin.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Wisconsin.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Wisconsin.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Wolf_River.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Wolf_River.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="tethysapp-gw" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
@@ -37,8 +182,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1568">
-              <caret line="632" column="17" lean-forward="true" selection-start-line="632" selection-start-column="17" selection-end-line="632" selection-end-column="17" />
+            <state relative-caret-position="238">
+              <caret line="408" column="47" selection-start-line="408" selection-start-column="47" selection-end-line="408" selection-end-column="47" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -46,20 +191,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tethysapp/gw/model.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2322">
-              <caret line="137" column="17" selection-start-line="137" selection-start-column="17" selection-end-line="137" selection-end-column="17" />
+            <state relative-caret-position="54">
+              <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="3" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js">
+        <entry file="file://$PROJECT_DIR$/tethysapp/gw/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="588">
-              <caret line="1395" column="44" lean-forward="true" selection-start-line="1395" selection-start-column="44" selection-end-line="1395" selection-end-column="44" />
+            <state relative-caret-position="90">
+              <caret line="13" column="16" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="39" />
             </state>
           </provider>
         </entry>
@@ -76,26 +221,20 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="756">
-              <caret line="42" selection-start-line="42" selection-end-line="42" />
+            <state relative-caret-position="684">
+              <caret line="38" column="38" selection-start-line="38" selection-start-column="38" selection-end-line="38" selection-end-column="38" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/base.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1656">
-              <caret line="92" column="2" selection-start-line="92" selection-start-column="2" selection-end-line="92" selection-end-column="19" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="496">
-              <caret line="939" column="49" lean-forward="true" selection-start-line="939" selection-start-column="49" selection-end-line="939" selection-end-column="49" />
+            <state relative-caret-position="486">
+              <caret line="27" lean-forward="true" selection-start-line="27" selection-end-line="27" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -103,11 +242,29 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gw/controllers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="337">
-              <caret line="524" column="44" lean-forward="true" selection-start-line="524" selection-start-column="44" selection-end-line="524" selection-end-column="44" />
+            <state relative-caret-position="2466">
+              <caret line="137" lean-forward="true" selection-start-line="137" selection-end-line="137" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="167">
+              <caret line="52" column="4" selection-start-line="52" selection-start-column="4" selection-end-line="60" selection-end-column="10" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-212">
+              <caret line="14" column="6" selection-start-line="14" selection-start-column="6" selection-end-line="14" selection-end-column="6" />
             </state>
           </provider>
         </entry>
@@ -123,22 +280,13 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>document.getElementById(&quot;select2</find>
-      <find>''</find>
-      <find>generate</find>
-      <find>datetime</find>
-      <find>past csv reader</find>
-      <find>subdivide</find>
-      <find>_State</find>
       <find>nwis</find>
       <find>Kriging</find>
-      <find>divideaquifers</find>
       <find>print</find>
       <find>generate_variogram</find>
       <find>variogram_model_parameters</find>
       <find>units</find>
       <find>-99999</find>
-      <find>pullnwis</find>
       <find>h.units</find>
       <find>english</find>
       <find>download</find>
@@ -150,9 +298,18 @@
       <find>urlopen</find>
       <find>interp_op</find>
       <find>' in</find>
-      <find>interp_</find>
       <find>.01</find>
+      <find>divide</find>
       <find>sixmonths</find>
+      <find>subdivide</find>
+      <find>divideaquifers</find>
+      <find>divideaq</find>
+      <find>app_workspace</find>
+      <find>interp_</find>
+      <find>into subdivide</find>
+      <find>divideaquifers</find>
+      <find>pullnwis</find>
+      <find>download_dem</find>
     </findStrings>
     <replaceStrings>
       <replace>h3</replace>
@@ -169,9 +326,7 @@
       <list>
         <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/home.html" />
         <option value="$PROJECT_DIR$/tethysapp/gw/public/js/addregion.js" />
-        <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html" />
         <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/base.html" />
-        <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" />
         <option value="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/South_Africa_State_Boundary.json" />
         <option value="$PROJECT_DIR$/tethysapp/gw/public/css/main.css" />
         <option value="$PROJECT_DIR$/tethysapp/gw/app.py" />
@@ -181,13 +336,15 @@
         <option value="$PROJECT_DIR$/tethysapp/gw/UPLOADNETCDF.py" />
         <option value="$PROJECT_DIR$/__init__.py" />
         <option value="$PROJECT_DIR$/tethysapp/gw/model.py" />
-        <option value="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" />
         <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/interpolation.html" />
         <option value="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" />
-        <option value="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" />
+        <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" />
+        <option value="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html" />
         <option value="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" />
         <option value="$PROJECT_DIR$/tethysapp/gw/controllers.py" />
+        <option value="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" />
         <option value="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" />
+        <option value="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" />
       </list>
     </option>
   </component>
@@ -259,38 +416,6 @@
               <item name="templates" type="462c0819:PsiDirectoryNode" />
               <item name="gw" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="tethysapp-gw" type="b2602c69:ProjectViewProjectNode" />
-              <item name="tethysapp-gw" type="462c0819:PsiDirectoryNode" />
-              <item name="tethysapp" type="462c0819:PsiDirectoryNode" />
-              <item name="gw" type="462c0819:PsiDirectoryNode" />
-              <item name="workspaces" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="tethysapp-gw" type="b2602c69:ProjectViewProjectNode" />
-              <item name="tethysapp-gw" type="462c0819:PsiDirectoryNode" />
-              <item name="tethysapp" type="462c0819:PsiDirectoryNode" />
-              <item name="gw" type="462c0819:PsiDirectoryNode" />
-              <item name="workspaces" type="462c0819:PsiDirectoryNode" />
-              <item name="app_workspace" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="tethysapp-gw" type="b2602c69:ProjectViewProjectNode" />
-              <item name="tethysapp-gw" type="462c0819:PsiDirectoryNode" />
-              <item name="tethysapp" type="462c0819:PsiDirectoryNode" />
-              <item name="gw" type="462c0819:PsiDirectoryNode" />
-              <item name="workspaces" type="462c0819:PsiDirectoryNode" />
-              <item name="app_workspace" type="462c0819:PsiDirectoryNode" />
-              <item name="Texas" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="tethysapp-gw" type="b2602c69:ProjectViewProjectNode" />
-              <item name="tethysapp-gw" type="462c0819:PsiDirectoryNode" />
-              <item name="tethysapp" type="462c0819:PsiDirectoryNode" />
-              <item name="gw" type="462c0819:PsiDirectoryNode" />
-              <item name="workspaces" type="462c0819:PsiDirectoryNode" />
-              <item name="user_workspaces" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -337,9 +462,9 @@
     <frame x="64" y="-11" width="1857" height="987" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2319869" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4988263" visible="true" weight="0.2319869" />
       <window_info id="Structure" order="1" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info id="Favorites" order="2" sideWeight="0.50117373" side_tool="true" weight="0.2319869" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32902467" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -403,20 +528,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="20" selection-start-line="14" selection-start-column="20" selection-end-line="14" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="216">
-          <caret line="12" column="2" selection-start-line="12" selection-start-column="2" selection-end-line="12" selection-end-column="83" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/css/main.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="108">
@@ -471,48 +582,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2322">
-          <caret line="137" column="17" selection-start-line="137" selection-start-column="17" selection-end-line="137" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="756">
-          <caret line="42" selection-start-line="42" selection-end-line="42" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/base.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1656">
           <caret line="92" column="2" selection-start-line="92" selection-start-column="2" selection-end-line="92" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="426">
-          <caret line="42" column="88" selection-start-line="42" selection-start-column="88" selection-end-line="42" selection-end-column="88" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="588">
-          <caret line="1395" column="44" lean-forward="true" selection-start-line="1395" selection-start-column="44" selection-end-line="1395" selection-end-column="44" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1568">
-          <caret line="632" column="17" lean-forward="true" selection-start-line="632" selection-start-column="17" selection-end-line="632" selection-end-column="17" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -523,20 +596,75 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="426">
+          <caret line="42" column="88" selection-start-line="42" selection-start-column="88" selection-end-line="42" selection-end-column="88" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="167">
+          <caret line="52" column="4" selection-start-line="52" selection-start-column="4" selection-end-line="60" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="13" column="16" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="408" column="47" selection-start-line="408" selection-start-column="47" selection-end-line="408" selection-end-column="47" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-212">
+          <caret line="14" column="6" selection-start-line="14" selection-start-column="6" selection-end-line="14" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/controllers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="337">
-          <caret line="524" column="44" lean-forward="true" selection-start-line="524" selection-start-column="44" selection-end-line="524" selection-end-column="44" />
+        <state relative-caret-position="2466">
+          <caret line="137" lean-forward="true" selection-start-line="137" selection-end-line="137" />
           <folding>
             <element signature="e#0#35#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="684">
+          <caret line="38" column="38" selection-start-line="38" selection-start-column="38" selection-end-line="38" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="496">
-          <caret line="939" column="49" lean-forward="true" selection-start-line="939" selection-start-column="49" selection-end-line="939" selection-end-column="49" />
+        <state relative-caret-position="486">
+          <caret line="27" lean-forward="true" selection-start-line="27" selection-end-line="27" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54">
+          <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="3" />
         </state>
       </provider>
     </entry>
