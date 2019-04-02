@@ -297,6 +297,34 @@ def defaultnetcdf(request):
 
     return JsonResponse(return_obj)
 
+#THe get_timeseries function returns the timeseries values used for interpolation for a specific netcdf file to be plotted in highcharts
+def get_timeseries(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        netcdf=request.GET.get('netcdf')
+        hydroid=request.GET.get('hydroid')
+
+        directory = os.path.join(thredds_serverpath, region)
+        file=os.path.join(directory,netcdf)
+        h = netCDF4.Dataset(file, 'r+', format="NETCDF4")
+        if 'tsvalue' in h.variables:
+            times = h.variables['time'][:]
+            for i in range(len(h.variables['hydroid'])):
+                if h.variables['hydroid'][i] == hydroid:
+                    depths=h.variables['tsvalue'][:, i]
+                    return_obj['depths'] = depths.tolist()
+                    return_obj['times'] = times.tolist()
+                    break
+        h.close()
+
+    return JsonResponse(return_obj)
+
 #The loaddata ajax function takes id, name, interpolation type, and region as parameters.
 #The function checks whether the NetCDF interpolation file already exists, and checks whether the region is already divided by aquifer
 #If the region is not divided, it calls functions to divide the aquifer. Then the JSON file for the specified aquifer is opened.

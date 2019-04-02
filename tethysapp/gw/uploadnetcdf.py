@@ -379,15 +379,18 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     values = []
     elevations = []
     heights=[]
+    ids=[]
     mylon = []
     mylat = []
     myelevs = []
+    myids=[]
     for wellid in newinterpolation_df.columns:
         for well in points['features']:
             if wellid == str(well['properties']['HydroID']):
                 mylon.append(well['geometry']['coordinates'][0])
                 mylat.append(well['geometry']['coordinates'][1])
                 myelevs.append(well['properties']['LandElev'])
+                myids.append(wellid)
     for i in range(iterations):
         myvalue = np.array(newinterpolation_df.iloc[i].tolist())
         heights.append(myelevs)
@@ -396,11 +399,13 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
         lats.append(mylat)
         values.append(myvalue)
         elevations.append(myelev)
+        ids.append(myids)
         print len(mylon)
     lons = np.array(lons)
     lats = np.array(lats)
     values = np.array(values)
     elevations = np.array(elevations)
+    ids=np.array(ids)
     print "done"
     #Now we prepare the data for the generate_variogram function
     coordinates = []
@@ -651,11 +656,19 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     time = h.createDimension("time", 0)
     lat = h.createDimension("lat", latlen)
     lon = h.createDimension("lon", lonlen)
+    hydroid = h.createDimension("hydroid", len(ids[0]))
     latitude = h.createVariable("lat", np.float64, ("lat"))
     longitude = h.createVariable("lon", np.float64, ("lon"))
     time = h.createVariable("time", np.float64, ("time"), fill_value="NaN")
     depth = h.createVariable("depth", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
     elevation = h.createVariable("elevation", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
+    hydroids = h.createVariable("hydroid", str, ("hydroid"), fill_value="NaN")
+    hydroids.axis = "H"
+
+    tsvalue = h.createVariable("tsvalue", np.float64, ('time', 'hydroid'), fill_value=-9999)
+    tsvalue.units = myunit
+    tsvalue.coordinates = "time hydroid"
+
     elevation.long_name = "Elevation of Water Table"
     elevation.units = myunit
     elevation.grid_mapping = "WGS84"
@@ -692,10 +705,12 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     time.units = 'days since 0001-01-01 00:00:00 UTC'
     latitude[:] = latgrid[:]
     longitude[:] = longrid[:]
+    hydroids[:] = ids[0,:]
     year = start_date
     timearray = []  # [datetime.datetime(2000,1,1).toordinal()-1,datetime.datetime(2002,1,1).toordinal()-1]
     t=0
     for i in range(0, iterations):
+        tsvalue[i, :] = values[i, :]
         a = lons[i]
         b = lats[i]
         c = values[i]

@@ -123,6 +123,11 @@ class Gw(TethysAppBase):
                 url='gw/upload-to-hydroshare',
                 controller='gw.ajax_controllers.upload_to_hydroshare'
             ),
+            UrlMap(
+                name='get_timeseries',
+                url='gw/get_timeseries',
+                controller='gw.ajax_controllers.get_timeseries'
+            ),
         )
 
         return url_maps

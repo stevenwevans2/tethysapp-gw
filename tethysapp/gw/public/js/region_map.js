@@ -998,6 +998,32 @@ function displayallwells(aquifer_number,well_points,required){
                                         })()
                                     }]
                             });
+//                          Ajax controller to get interpolation data for the well
+                            $.ajax({
+                                url: '/apps/gw/get_timeseries/',
+                                type: 'GET',
+                                data: {'region':region, 'netcdf':$("#available_dates").find('option:selected').val(), 'hydroid':feature.properties.HydroID},
+                                contentType: 'application/json',
+                                error: function (status) {
+
+                                }, success: function (response) {
+                                    if (response['depths']){
+                                        var interp_depths=response['depths'];
+                                        var interp_times=response['times'];
+                                        var interpodata=[];
+                                        for (var i=0;i<interp_times.length;i++){
+                                            interpodata[i]=[new Date(interp_times[i]*24*3600*1000)-new Date('3939-1-2'),interp_depths[i]];
+                                        }
+                                        mychart.addSeries({
+                                            name: "Well Depth Used in Interpolation",
+                                            marker:{enabled: true},
+                                            data:interpodata,
+                                            visible:true
+                                        });
+                                    }
+                                }
+                            });
+//                          End of added Ajax Controller
 
                             testTimeLayer._timeDimension.on('timeload', (function() {
                                 if (!mychart){
