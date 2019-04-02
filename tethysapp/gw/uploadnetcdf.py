@@ -15,16 +15,20 @@ import rasterio
 import math
 import pygslib
 from scipy.optimize import least_squares
+from scipy.optimize import curve_fit
+from scipy.interpolate import UnivariateSpline
 import elevation
 import csv
 from .app import Gw as app
 from osgeo import gdal
+import statsmodels.api as sm
+import pandas as pd
 # from ajax_controllers import *
 
 porosity=0.3
 #global variables
-thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
-# thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+# thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
+thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
 def getaquiferlist(app_workspace,region):
@@ -223,6 +227,9 @@ def generate_variogram(X,y,variogram_function):
     indices = np.indices(d.shape)
     d = d[(indices[0, :, :] > indices[1, :, :])]
     g = g[(indices[0, :, :] > indices[1, :, :])]
+    # d=squareform(pdist(X,metric='euclidean'))
+    # g = 0.5 * pdist(y[:, None], metric='sqeuclidean')
+    # print d
 
     # Now we will sort the d and g into bins
     nlags = 10
@@ -276,348 +283,125 @@ def generate_variogram(X,y,variogram_function):
 def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_type,interpolation_options,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units):
     # Execute the following code to interpolate groundwater levels and create a netCDF File and upload it to the server
     # Download and Set up the DEM for the aquifer
-    spots = []
+    iterations = int((end_date - start_date) / interval + 1)
+    sixmonths = False
+    threemonths = False
+    if interval <= .5:
+        sixmonths = True
+        iterations += 1
+        if interval == .25:
+            threemonths = True
+            iterations += 2
+    combined_df = pd.DataFrame()
+    for well in points['features']:
+        if 'TsTime' in well:
+            if len(well['TsTime']) > min_samples and (
+                    np.array(well['TsTime']).max() - np.array(well['TsTime']).min()) > pd.Timedelta(
+                    days=365 * 5).value / 1000000000:
+                if np.array(well['TsTime']).max() > calendar.timegm(
+                        datetime.datetime(end_date, 1, 1).timetuple()) and np.array(
+                        well['TsTime']).min() < calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple()):
+                    name = str(well['properties']['HydroID'])
+                else:
+                    name = str(well['properties']['HydroID']) + 'Short'
+                wells_df = pd.DataFrame(index=pd.to_datetime(well['TsTime'], unit='s', origin='unix'),
+                                        data=well['TsValue'], columns=[name])
+                wells_df.index.drop_duplicates(keep="first")
+                wells_df = wells_df.resample('3M').mean()
+
+                combined_df = pd.concat([combined_df, wells_df], join="outer", axis=1)
+                combined_df.drop_duplicates(inplace=True)
+
+    combined_df = combined_df.resample('3M').mean()
+    corr_df = combined_df.interpolate(method='pchip', limit_area='inside', limit=8)
+    comined_df = combined_df.interpolate(method='pchip', inplace=True, limit_area='inside')
+    interpolation_df = combined_df.drop(combined_df.filter(regex='Short').columns, axis=1)
+    corr_df = corr_df.corr(min_periods=12)
+    corr_df = corr_df - np.identity(len(corr_df))
+    length = len(corr_df) - 1
+    for row in corr_df.index:
+        if 'Short' in str(row):
+            corr_df = corr_df.drop(row)
+
+    for i in range(length):  # length
+        reflist = np.array(corr_df.nlargest(5, corr_df.columns[i]).index)
+        welli = corr_df.columns[i]
+        if 'Short' in str(welli):
+            mydf = combined_df[[welli]].copy()
+            print "Well ", welli
+            corr_values = corr_df.nlargest(5, corr_df.columns[i]).values[:, i]
+            print corr_values
+            delete_list = []
+            for j in range(len(corr_values)):
+                if corr_values[j] <= 0.5:
+                    delete_list.append(j)
+            if len(delete_list) > 0:
+                reflist = np.delete(reflist, delete_list)
+            if len(reflist) >= 1:
+                for ref in reflist:
+                    mydf = pd.concat([mydf, combined_df[ref]], axis=1)
+                norm_exdf = mydf.dropna(how="any", subset=reflist)
+                normz_exdf = norm_exdf.copy()
+                for column in norm_exdf.columns[0:]:
+                    normz_exdf[column] = (norm_exdf[column] - norm_exdf[column].min()) / (
+                                norm_exdf[column].max() - norm_exdf[column].min())
+                exdf = normz_exdf.copy()
+                mymin = max(exdf[welli].first_valid_index(), exdf[reflist[0]].first_valid_index())
+                print mymin
+                myrange = exdf[welli].last_valid_index() - mymin
+                exdf = exdf[mymin:mymin + myrange]  # exdf[welli].first_valid_index()+pd.DateOffset(years=10)
+                y = exdf[welli]
+                x = exdf.as_matrix(columns=reflist)
+                model = sm.OLS(y, x)
+                model_fit = model.fit_regularized(alpha=0.005)
+                b = np.array(model_fit.params)
+                neg_bs = []
+                for j in range(len(b)):
+                    if b[j] < 0:
+                        neg_bs.append(j)
+                if len(neg_bs) > 0:
+                    x = np.delete(x, neg_bs, 1)
+                    reflist = np.delete(reflist, neg_bs)
+                    model = sm.OLS(y, x)
+                    model_fit = model.fit_regularized(alpha=0.005)
+                    b = np.array(model_fit.params)
+                norm_exdf['prediction'] = np.dot(normz_exdf.as_matrix(columns=reflist), b)
+                norm_exdf['prediction'] = norm_exdf['prediction'] * (norm_exdf[welli].max() - norm_exdf[welli].min()) + \
+                                          norm_exdf[welli].min()
+                newname = str(welli).replace('Short', '')
+                interpolation_df = pd.concat([interpolation_df, norm_exdf['prediction']], join="outer", axis=1)
+                interpolation_df = interpolation_df.rename(columns={"prediction": newname})
+    print "finished temporal interpolation"
+
+    newinterpolation_df = interpolation_df[str(start_date):str(end_date)].resample('5Y', closed='left').nearest()
     lons = []
     lats = []
     values = []
     elevations = []
     heights=[]
-    aquifermin=points['aquifermin']
-    iterations=int((end_date-start_date)/interval+1)
-    start_time=calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple())
-    end_time=calendar.timegm(datetime.datetime(end_date, 1, 1).timetuple())
-    sixmonths=False
-    threemonths=False
-    if interval<=.5:
-        sixmonths=True
-        iterations+=1
-        if interval==.25:
-            threemonths=True
-            iterations+=2
-    #old method of interpolation that uses all data
-    if min_samples==1 and min_ratio==0:
-        for v in range(0, iterations):
-            if sixmonths==False:
-                targetyear = int(start_date + interval * v)
-                target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-            elif threemonths==False:
-                monthyear=start_date+interval*v
-                doubleyear=monthyear*2
-                if doubleyear%2==0:
-                    targetyear=int(monthyear)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-                else:
-                    targetyear=int(monthyear-.5)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
-            else:
-                monthyear=start_date+interval*v
-                quadyear=monthyear*4
-                if quadyear%4==0:
-                    targetyear=int(monthyear)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-                elif quadyear%4==1:
-                    targetyear=int(monthyear-.25)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 4, 1).timetuple())
-                elif quadyear%4==2:
-                    targetyear=int(monthyear-.50)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
-                elif quadyear%4==3:
-                    targetyear=int(monthyear-.75)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 10, 1).timetuple())
-            fiveyears = 157766400 * 2
-            myspots = []
-            mylons = []
-            mylats = []
-            myvalues = []
-            myelevations = []
-            myheights=[]
-            slope = 0
-            number = 0
-            timevalue = 0
-
-            for i in points['features']:
-                if 'TsTime' in i and 'LandElev' in i['properties']:
-                    if i['properties']['LandElev']==-9999:
-                        i['properties']['LandElev']=0
-                    tlocation = 0
-                    stop_location = 0
-                    listlength = len(i['TsTime'])
-                    for j in range(0, listlength):
-                        if i['TsTime'][j] >= target_time and stop_location == 0:
-                            tlocation = j
-                            stop_location = 1
-
-                    # target time is larger than max date
-                    if tlocation == 0 and stop_location == 0:
-                        tlocation = -999
-
-                    # target time is smaller than min date
-                    if tlocation == 0 and stop_location == 1:
-                        tlocation = -888
-
-                    # for the case where the target time is in the middle
-                    if tlocation > 0:
-                        timedelta = target_time - i['TsTime'][tlocation - 1]
-                        slope = (i['TsValue'][tlocation] - i['TsValue'][tlocation - 1]) / (
-                                i['TsTime'][tlocation] - i['TsTime'][tlocation - 1])
-                        timevalue = i['TsValue'][tlocation - 1] + slope * timedelta
-
-                    # for the case where the target time is before
-                    if tlocation == -888:
-                        timedelta = i['TsTime'][0] - target_time
-                        if abs(timedelta) > fiveyears:
-                            timevalue = 9999
-                        elif listlength > 1:
-                            if (i['TsTime'][1] - i['TsTime'][0]) != 0:
-                                slope = (i['TsValue'][1] - i['TsValue'][0]) / (i['TsTime'][1] - i['TsTime'][0])
-                                if abs(slope) > (1.0 / (24 * 60 * 60)):
-                                    timevalue = i['TsValue'][0]
-                                else:
-                                    timevalue = i['TsValue'][0] - slope * timedelta
-                                if (timevalue > 0 and timevalue != 9999) or timevalue < aquifermin:
-                                    timevalue = i['TsValue'][0]
-                            else:
-                                timevalue = i['TsValue'][0]
-                        else:
-                            timevalue = i['TsValue'][0]
-
-                    # for the case where the target time is after
-                    if tlocation == -999:
-                        timedelta = target_time - i['TsTime'][listlength - 1]
-                        if abs(timedelta) > fiveyears:
-
-                            timevalue = 9999
-                        elif listlength > 1:
-                            if (i['TsTime'][listlength - 1] - i['TsTime'][listlength - 2]) != 0:
-                                slope = (i['TsValue'][listlength - 1] - i['TsValue'][listlength - 2]) / (
-                                        i['TsTime'][listlength - 1] - i['TsTime'][listlength - 2])
-                                if abs(slope) > (1.0 / (24 * 60 * 60)):
-                                    timevalue = i['TsValue'][listlength - 1]
-                                else:
-                                    timevalue = i['TsValue'][listlength - 1] + slope * timedelta
-                                if (timevalue > 0 and timevalue != 9999) or timevalue < aquifermin:
-                                    timevalue = i['TsValue'][listlength - 1]
-                            else:
-                                timevalue = i['TsValue'][listlength - 1]
-                        else:
-                            timevalue = i['TsValue'][listlength - 1]
-                    if timevalue != 9999:
-                        the_elevation = i['properties']['LandElev'] + timevalue
-                        myelevations.append(the_elevation)
-                        myvalues.append(timevalue)
-                        myspots.append(i['geometry']['coordinates'])
-                        mylons.append(i['geometry']['coordinates'][0])
-                        mylats.append(i['geometry']['coordinates'][1])
-            values.append(myvalues)
-            elevations.append(myelevations)
-            spots.append(myspots)
-            lons.append(mylons)
-            lats.append(mylats)
-            print len(myvalues)
-        lons = np.array(lons)
-        lats = np.array(lats)
-        values = np.array(values)
-        elevations = np.array(elevations)
-
-    #New method for interpolation that uses least squares fit and filters data
-    else:
-        for v in range(0, iterations):
-            if sixmonths == False:
-                targetyear = int(start_date + interval * v)
-                target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-            elif threemonths == False:
-                monthyear = start_date + interval * v
-                doubleyear = monthyear * 2
-                if doubleyear % 2 == 0:
-                    targetyear = int(monthyear)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-                else:
-                    targetyear = int(monthyear - .5)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
-            else:
-                monthyear = start_date + interval * v
-                quadyear = monthyear * 4
-                if quadyear % 4 == 0:
-                    targetyear = int(monthyear)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 1, 1).timetuple())
-                elif quadyear % 4 == 1:
-                    targetyear = int(monthyear - .25)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 4, 1).timetuple())
-                elif quadyear % 4 == 2:
-                    targetyear = int(monthyear - .50)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 7, 1).timetuple())
-                elif quadyear % 4 == 3:
-                    targetyear = int(monthyear - .75)
-                    target_time = calendar.timegm(datetime.datetime(targetyear, 10, 1).timetuple())
-            fiveyears = (157766400/5)*time_tolerance
-            oneyear=(157766400/5)
-            myspots = []
-            mylons = []
-            mylats = []
-            myvalues = []
-            myelevations = []
-            myheights=[]
-            timevalue = 0
-
-
-            for i in points['features']:
-                if 'TsTime' in i and 'LandElev' in i['properties'] and ('Outlier' not in i['properties'] or i['properties']['Outlier']==False):
-                    if i['properties']['LandElev']==-9999:
-                        i['properties']['LandElev']=0
-                    listlength = len(i['TsTime'])
-                    length_time = end_time - start_time
-                    mylength_time = min(i['TsTime'][listlength - 1] - i['TsTime'][0], i['TsTime'][listlength - 1] - start_time, end_time-i['TsTime'][0])
-
-                    ratio = float(mylength_time / length_time)
-                    if ratio > min_ratio:
-                        tlocation = 0
-                        stop_location = 0
-                        for j in range(0, listlength):
-                            if i['TsTime'][j] >= target_time and stop_location == 0:
-                                tlocation = j
-                                stop_location = 1
-
-                        # target time is larger than max date
-                        if tlocation == 0 and stop_location == 0:
-                            tlocation = -999
-
-                        # target time is smaller than min date
-                        if tlocation == 0 and stop_location == 1:
-                            tlocation = -888
-
-                        # for the case where the target time is in the middle
-                        if tlocation > 0:
-                            if listlength > min_samples and listlength > 1:
-                                y_data = np.array(i['TsValue'])
-                                x_data = np.array(i['TsTime'])
-                                timevalue=scipy.interpolate.pchip_interpolate(x_data,y_data,target_time)
-                                # timedelta = target_time - i['TsTime'][tlocation - 1]
-                                # slope = (i['TsValue'][tlocation] - i['TsValue'][tlocation - 1]) / (
-                                #         i['TsTime'][tlocation] - i['TsTime'][tlocation - 1])
-                                # timevalue = i['TsValue'][tlocation - 1] + slope * timedelta
-
-
-                            else:
-                                timevalue = 9999
-
-                        # for the case where the target time is before
-                        if tlocation == -888:
-                            if listlength > min_samples:
-                                consistent = False
-                                if listlength > 10:
-                                    consistent = True
-                                    for step in range(0, 6):
-                                        timechange = i['TsTime'][step+1] - i['TsTime'][step]
-                                        if timechange != 0:
-                                            slope = (i['TsValue'][step+1] - i['TsValue'][step]) / timechange
-                                        else:
-                                            consistent = False
-                                            break
-                                        consistent_slope=5.0/oneyear #5 ft/year
-                                        if abs(slope)>consistent_slope:
-                                            consistent=False
-                                            break
-                                        if (i['TsTime'][step+1] - i['TsTime'][step]) > (oneyear*2):
-                                            consistent = False
-                                            break
-                                if (i['TsTime'][0] - target_time) < fiveyears/2 or (consistent and (i['TsTime'][0]-target_time)<(fiveyears)):
-                                    y_data = np.array(i['TsValue'])
-                                    x_data = np.array(i['TsTime'])
-                                    ymax = np.amax(y_data)
-                                    ymin = np.amin(y_data)
-                                    yrange = ymax - ymin
-                                    toplim = y_data[0] + yrange / 2
-                                    botlim = y_data[0] - yrange / 2
-                                    #sp1 = UnivariateSpline(x_data, y_data, k=1)
-                                    if listlength<2:
-                                        slope=0.0
-                                    elif (i['TsTime'][1]-i['TsTime'][0])!=0:
-                                        slope=float((i['TsValue'][1]-i['TsValue'][0])/(i['TsTime'][1]-i['TsTime'][0]))
-                                    else:
-                                        slope=0.0
-                                    slope_val=i['TsValue'][0]+slope*(target_time-i['TsValue'][0])
-
-                                    average = y_data[0]
-                                    timevalue = (slope_val + 4 * average) / 5
-                                    if timevalue > toplim:
-                                        timevalue = toplim
-                                    if timevalue < botlim:
-                                        timevalue = botlim
-                                else:
-                                    timevalue = 9999
-
-                            else:
-                                timevalue = 9999
-                            # for the case where the target time is after
-                        if tlocation == -999:
-                            if listlength > min_samples:
-                                consistent=False
-                                if listlength>10:
-                                    consistent=True
-                                    for step in range(listlength-1,listlength-6,-1):
-                                        timechange=i['TsTime'][step] - i['TsTime'][step-1]
-                                        if timechange!=0:
-                                            slope = (i['TsValue'][step] - i['TsValue'][step-1]) / timechange
-                                        else:
-                                            consistent=False
-                                            break
-                                        consistent_slope = 5.0 / oneyear  # 5 ft/year
-                                        if abs(slope) > consistent_slope:
-                                            consistent = False
-                                            break
-                                        if (i['TsTime'][step]-i['TsTime'][step-1])>(oneyear*2):
-                                            consistent=False
-                                            break
-                                if (target_time - i['TsTime'][listlength - 1])<(oneyear/2):
-                                    timevalue=i['TsValue'][listlength-1]
-                                elif (target_time - i['TsTime'][listlength - 1]) < fiveyears/2 or (consistent and (target_time - i['TsTime'][listlength - 1]) < fiveyears):
-                                    y_data = np.array(i['TsValue'])
-                                    x_data = np.array(i['TsTime'])
-                                    ymax = np.amax(y_data)
-                                    ymin = np.amin(y_data)
-                                    yrange = ymax - ymin
-                                    toplim = y_data[listlength-1] + yrange / 2
-                                    botlim = y_data[listlength-1] - yrange / 2
-                                    if listlength<2:
-                                        slope=0.0
-                                    elif (i['TsTime'][listlength-1]-i['TsTime'][listlength-2])!=0:
-                                        slope=float((i['TsValue'][listlength-1]-i['TsValue'][listlength-2])/(i['TsTime'][listlength-1]-i['TsTime'][listlength-2]))
-                                    else:
-                                        slope=0.0
-                                    slope_val=i['TsValue'][listlength-1]+slope*(target_time-i['TsValue'][listlength-1])
-
-                                    average = y_data[listlength-1]
-                                    timevalue = (slope_val + 4 * average) / 5
-                                    if timevalue > toplim:
-                                        timevalue = toplim
-                                    if timevalue < botlim:
-                                        timevalue = botlim
-                                else:
-                                    timevalue = 9999
-                            else:
-                                timevalue = 9999
-                        if timevalue != 9999:
-                            the_elevation = i['properties']['LandElev'] + timevalue
-                            myelevations.append(the_elevation)
-                            myvalues.append(timevalue)
-                            myspots.append(i['geometry']['coordinates'])
-                            mylons.append(i['geometry']['coordinates'][0])
-                            mylats.append(i['geometry']['coordinates'][1])
-                            if 'LandElev' in i['properties']:
-                                myheights.append(i['properties']['LandElev'])
-            values.append(myvalues)
-            elevations.append(myelevations)
-            spots.append(myspots)
-            lons.append(mylons)
-            lats.append(mylats)
-            heights.append(myheights)
-            print len(myvalues)
-        lons = np.array(lons)
-        lats = np.array(lats)
-        values = np.array(values)
-        elevations = np.array(elevations)
-        heights=np.array(heights)
-
+    mylon = []
+    mylat = []
+    myelevs = []
+    for wellid in newinterpolation_df.columns:
+        for well in points['features']:
+            if wellid == str(well['properties']['HydroID']):
+                mylon.append(well['geometry']['coordinates'][0])
+                mylat.append(well['geometry']['coordinates'][1])
+                myelevs.append(well['properties']['LandElev'])
+    for i in range(iterations):
+        myvalue = np.array(newinterpolation_df.iloc[i].tolist())
+        heights.append(myelevs)
+        myelev = np.add(np.array(myelevs), myvalue)
+        lons.append(mylon)
+        lats.append(mylat)
+        values.append(myvalue)
+        elevations.append(myelev)
+        print len(mylon)
+    lons = np.array(lons)
+    lats = np.array(lats)
+    values = np.array(values)
+    elevations = np.array(elevations)
+    print "done"
     #Now we prepare the data for the generate_variogram function
     coordinates = []
     all_empty=True
@@ -633,13 +417,15 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     coordinates = np.array(coordinates)
     variogram_function = spherical_variogram_model
     variogram_model_parameters=[]
-    for j in range(0,iterations):
-        if len(coordinates[j])>2:
+    for i in range(0,iterations):
+        print len(coordinates[i])
+        if len(coordinates[i])>2:
             X = coordinates[i]
             if interpolation_options=="depth":
                 y = values[i]
             else:
                 y=elevations[i]
+            print elevations[i]
             variogram_model_parameters.append(generate_variogram(X,y,variogram_function))
         else:
             variogram_model_parameters.append([0,0,0])
