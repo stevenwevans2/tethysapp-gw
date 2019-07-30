@@ -95,9 +95,8 @@
           <h6>The CSV file must have the following headings </h6>
           <ul>
             <li>ID: The id number for each aquifer (this corresponds to the AquiferID attribute in the wells JSON file)</li>
-            <li>Name: The desired display name for each aquifer (this may not contain parenthesis)</li>
-            <li>NameField: The name of the attribute in the aquifers JSON file that holds the aquifer name</li>
-            <li>CapsName: The name of the aquifer as identified in the NameField attribute of the aquifer JSON file</li>
+            <li>Name: The desired display name for each aquifer (this cannot contain parenthesis)</li>
+            <li>CapsName: The name of each aquifer as it appears in the Aquifer_Name attribute of the aquifer JSON file</li>
           </ul>
           <h6>Example Formatting</h6>
           <img src="{% static 'gw/images/example_csv.png' %}">
@@ -146,7 +145,7 @@
           <h2>Major Aquifers JSON File</h2>
           <ul>
             <li>Upload a GeoJSON file of the region major aquifers</li>
-            <li>Each aquifer must have a name stored in the attribute indicated in the aquifer csv file</li>
+            <li>Each aquifer must have a name stored in the ["properties"]["Aquifer_Name"] attribute</li>
           </ul>
           <h6>Example aquifers</h6>
           <img src="{% static 'gw/images/example_major.png' %}" width="500px" height="400px">
@@ -170,7 +169,7 @@
           <h2>Minor Aquifers JSON File</h2>
           <ul>
             <li>Upload a GeoJSON file of the region minor aquifers</li>
-            <li>Each aquifer must have a name stored in the attribute indicated in the aquifer csv file</li>
+            <li>Each aquifer must have a name stored in the ["properties"]["Aquifer_Name"] attribute</li>
             <li>This step is not required. If the region has no minor aquifers, then do not upload a file.</li>
           </ul>
           <h6>Example aquifers</h6>

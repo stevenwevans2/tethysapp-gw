@@ -1011,8 +1011,12 @@ function displayallwells(aquifer_number,well_points,required){
                                         var interp_depths=response['depths'];
                                         var interp_times=response['times'];
                                         var interpodata=[];
+                                        var j=0;
                                         for (var i=0;i<interp_times.length;i++){
-                                            interpodata[i]=[new Date(interp_times[i]*24*3600*1000)-new Date('3939-1-2'),interp_depths[i]];
+                                            if (interp_depths[i]!=-9999){
+                                                interpodata[j]=[new Date(interp_times[i]*24*3600*1000)-new Date('3939-1-2'),interp_depths[i]];
+                                                j=j+1;
+                                            }
                                         }
                                         mychart.addSeries({
                                             name: "Well Depth Used in Interpolation",

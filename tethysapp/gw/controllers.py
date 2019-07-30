@@ -146,7 +146,8 @@ def addregion_nwis(request):
 
             well_file = os.path.join(app_workspace.path, region + '/Wells.json')
             print "to divide aquifers"
-            for i in range(1, len(aquiferlist) + 1):
+            for aq in aquiferlist:
+                i = aq['Id']
                 if os.path.exists(well_file):
                     divideaquifers(region, app_workspace, i)
             #End Addition
@@ -329,34 +330,35 @@ def addregion(request):
             return region, errors
         messages.error(request, "Please fix errors.")
     if request.POST and 'add_button' in request.POST:
-        try:
-            region,errors=writefilestoworkspace(request)
-            file_error=errors[0]
-            border_error=errors[1]
-            major_error=errors[2]
-            wells_error=errors[3]
-            time_error=errors[4]
-            dem_error=errors[5]
-            region_error=errors[6]
-            #Set up the appropriate folders on the Thredds server
-            thredds_folder=os.path.join(thredds_serverpath,region)
-            if not os.path.exists(thredds_folder):
-                os.mkdir(thredds_folder)
-            app_workspace=app.get_app_workspace()
-            aquiferlist = getaquiferlist(app_workspace, region)
+        # try:
+        region,errors=writefilestoworkspace(request)
+        file_error=errors[0]
+        border_error=errors[1]
+        major_error=errors[2]
+        wells_error=errors[3]
+        time_error=errors[4]
+        dem_error=errors[5]
+        region_error=errors[6]
+        #Set up the appropriate folders on the Thredds server
+        thredds_folder=os.path.join(thredds_serverpath,region)
+        if not os.path.exists(thredds_folder):
+            os.mkdir(thredds_folder)
+        app_workspace=app.get_app_workspace()
+        aquiferlist = getaquiferlist(app_workspace, region)
 
-            well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
-            times_file=os.path.join(app_workspace.path, region + '/Wells_Master.csv')
+        well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
+        times_file=os.path.join(app_workspace.path, region + '/Wells_Master.csv')
 
-            for i in range(1, len(aquiferlist) + 1):
-                if os.path.exists(well_file) and os.path.exists(times_file):
-                    print "made it to subdivide"
-                    subdivideaquifers(region, app_workspace, i)
-            success=True
+        for aq in aquiferlist:
+            i = aq['Id']
+            if os.path.exists(well_file) and os.path.exists(times_file):
+                print "made it to subdivide"
+                subdivideaquifers(region, app_workspace, i)
+        success=True
 
-        except Exception as e:
-            print e
-            success=False
+        # except Exception as e:
+        #     print e
+        #     success=False
 
         if success:
             messages.info(request, 'Successfully added region')
@@ -402,6 +404,34 @@ def region_map(request):
     dirs=next(os.walk(app_workspace.path))[1]
     regions=[]
     for entry in dirs:
+        # One time code to fix aquifer names
+        # names_list=['Name','AQ_NAME','AQU_NAME','Hydro_Zone','altName','WMU_NAME']
+        # directory = os.path.join(app_workspace.path,entry)
+        # for filename in os.listdir(directory):
+        #     if filename.startswith('MajorAquifers.json'):
+        #         myfile=os.path.join(directory,'MajorAquifers.json')
+        #         with open(myfile) as f:
+        #             json_object=json.load(f)
+        #         for aquifer in json_object['features']:
+        #             for name in names_list:
+        #                 if name in aquifer['properties']:
+        #                     aquifer['properties']['Aquifer_Name']=aquifer['properties'][name]
+        #                     break
+        #         with open(myfile, 'w') as f:
+        #             json.dump(json_object, f)
+        # for filename in os.listdir(directory):
+        #     myfile = os.path.join(directory, 'MinorAquifers.json')
+        #     if filename.startswith('MinorAquifers.json'):
+        #         with open(myfile) as f:
+        #             json_object=json.load(f)
+        #         for aquifer in json_object['features']:
+        #             for name in names_list:
+        #                 if name in aquifer['properties']:
+        #                     aquifer['properties']['Aquifer_Name']=aquifer['properties'][name]
+        #                     break
+        #         with open(myfile, 'w') as f:
+        #             json.dump(json_object, f)
+
         region=(entry.replace("_"," "),entry)
         regions.append(region)
     select_region = SelectInput(display_text='Select Region',
@@ -567,7 +597,7 @@ def interpolation(request):
     )
 
 
-    select_interpolation = SelectInput(display_text='Interpolation Method',
+    select_interpolation = SelectInput(display_text='Spatial Interpolation Method',
                                  name='select_interpolation',
                                  multiple=False,
                                  options=[("IDW (Shepard's Method)", 'IDW'), ('Kriging', 'Kriging'), ('Kriging with External Drift', 'Kriging with External Drift')],
@@ -575,7 +605,7 @@ def interpolation(request):
                                  attributes={
                                  }
     )
-    interpolation_options=SelectInput(display_text="Interpolation Options",
+    interpolation_options=SelectInput(display_text="Spatial Interpolation Options",
                                       name='interpolation_options',
                                       multiple=False,
                                       options=[("Interpolate Water Surface Elevation and Depth to Water Table Seperately","both"),
@@ -583,6 +613,14 @@ def interpolation(request):
                                                ("Interpolate Depth to Water Table, and calculate Water Surface Elevation using a DEM","depth")],
                                       attributes={
                                       }
+    )
+    temporal_interpolation = SelectInput(display_text='Temporal Interpolation Method',
+                                       name='temporal_interpolation',
+                                       multiple=False,
+                                       options=[("Pchip Interpolation", 'pchip'), ('Multi-Linear Regression', 'MLR')],
+                                       initial="Pchip Interpolation",
+                                       attributes={
+                                       }
     )
     dates=[]
     for i in range(1850,2019):
@@ -670,7 +708,8 @@ def interpolation(request):
         "min_samples":min_samples,
         'min_ratio':min_ratio,
         'time_tolerance':time_tolerance,
-        'interpolation_options':interpolation_options
+        'interpolation_options':interpolation_options,
+        'temporal_interpolation':temporal_interpolation
     }
 
     return render(request, 'gw/interpolation.html', context)

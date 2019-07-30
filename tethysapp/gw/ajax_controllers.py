@@ -33,9 +33,7 @@ def displaygeojson(request):
         app_workspace = app.get_app_workspace()
         geofile = os.path.join(app_workspace.path, region+"/"+geolayer)
         aquiferlist = getaquiferlist(app_workspace, region)
-        fieldnames=[]
-        for i in aquiferlist:
-            fieldnames.append(i['FieldName'])
+        fieldname='Aquifer_Name'
         if os.path.exists(geofile):
             with open(geofile, 'r') as f:
                 return_obj['state']=json.load(f)
@@ -48,14 +46,7 @@ def displaygeojson(request):
         majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
         if os.path.exists(minorfile):
             with open(minorfile, 'r') as f:
-                minor=''
-                entry=f.readlines()
-                for i in range(0, len(entry)):
-                    minor += entry[i]
-                minoraquifers = json.loads(minor)
-                for j in fieldnames:
-                    if j in minoraquifers['features'][0]['properties']:
-                        fieldname=j
+                minoraquifers = json.load(f)
                 for k in minoraquifers['features']:
                     for l in aquiferlist:
                         if k['properties'][fieldname]==l['CapsName']:
@@ -64,14 +55,7 @@ def displaygeojson(request):
             return_obj['minor'] = minoraquifers
         if os.path.exists(majorfile):
             with open(majorfile, 'r') as f:
-                major=''
-                entry=f.readlines()
-                for i in range(0, len(entry)):
-                    major += entry[i]
-                majoraquifers = json.loads(major)
-                for j in fieldnames:
-                    if j in majoraquifers['features'][0]['properties']:
-                        fieldname=j
+                majoraquifers = json.load(f)
                 for k in majoraquifers['features']:
                     for l in aquiferlist:
                         if k['properties'][fieldname]==l['CapsName']:
@@ -102,7 +86,7 @@ def loadjson(request):
         minorfile = os.path.join(app_workspace.path, region+'/MinorAquifers.json')
         majorfile = os.path.join(app_workspace.path, region+'/MajorAquifers.json')
         aquiferShape = []
-        fieldname=myaquifer['FieldName']
+        fieldname='Aquifer_Name'
 
         if os.path.exists(minorfile):
             with open(minorfile, 'r') as f:
@@ -318,6 +302,7 @@ def get_timeseries(request):
             for i in range(len(h.variables['hydroid'])):
                 if h.variables['hydroid'][i] == hydroid:
                     depths=h.variables['tsvalue'][:, i]
+                    depths[np.isnan(depths)]=-9999
                     return_obj['depths'] = depths.tolist()
                     return_obj['times'] = times.tolist()
                     break
@@ -352,6 +337,7 @@ def loaddata(request):
         time_tolerance=request.GET.get('time_tolerance')
         from_wizard=request.GET.get("from_wizard")
         units=request.GET.get("units")
+        temporal_interpolation=request.GET.get("temporal_interpolation")
 
         return_obj['id'] = aquiferid
         app_workspace = app.get_app_workspace()
@@ -373,9 +359,9 @@ def loaddata(request):
         if aquiferid==9999:
             for i in range(1,length):
                 aquiferid=i
-                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units)
+                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units)
         else:
-            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance,  from_wizard, units)
+            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance,  from_wizard, units)
 
         return_obj['data']=points
         return_obj['message']=returnmessage
@@ -392,7 +378,7 @@ def divideaquifers(region,app_workspace,aquiferid):
     minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
     majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
     aquiferShape = []
-    fieldname = myaquifer['FieldName']
+    fieldname = 'Aquifer_Name'
 
     if os.path.exists(minorfile):
         with open(minorfile, 'r') as f:
@@ -620,7 +606,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
     return [points,aquifermin]
 
 
-#This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
+#This function finds all the netcdf files for the aquifer on the Thredds server and returns an object for each one with its attributes
 def gettimelist(region,aquifer):
 
     list = []
@@ -656,7 +642,7 @@ def gettimelist(region,aquifer):
         timelist.append(mytime)
     return timelist
 
-def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units):
+def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units):
     if from_wizard==True:
         interpolate = 1
     else:
@@ -709,24 +695,21 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpol
     well_file = os.path.join(app_workspace.path, region + '/Wells.json')
     if not os.path.exists(filename):
 
-        for i in range(1, len(aquiferlist) + 1):
+        for aq in aquiferlist:
+            i=aq['Id']
             if os.path.exists(well_file):
                 divideaquifers(region, app_workspace, i)
             else:
                 subdivideaquifers(region, app_workspace, i)
     with open(filename, 'r') as f:
-        allwells = ''
-        wells = f.readlines()
-        for i in range(0, len(wells)):
-            allwells += wells[i]
-    points = json.loads(allwells)
+        points = json.load(f)
     print len(points['features'])
 
     returnmessage=''
     # Execute the following function to interpolate groundwater levels and create a netCDF File and upload it to the server
     if interpolate == 1:
 
-        returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type, interpolation_options, start_date, end_date,
+        returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date,
                       interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units)
 
     end = t.time()

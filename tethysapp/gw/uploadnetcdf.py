@@ -42,7 +42,7 @@ def getaquiferlist(app_workspace,region):
                 'Name': row['Name'],
                 'Type': row['Type'],
                 'CapsName': row['CapsName'],
-                'FieldName':row['NameField']
+                # 'FieldName':row['NameField']
             }
             if 'Contains' in row:
                 if row['Contains'] !="":
@@ -81,7 +81,7 @@ def download_DEM(region,myaquifer):
         'type': 'FeatureCollection',
         'features': []
     }
-    fieldname = myaquifer['FieldName']
+    fieldname = 'Aquifer_Name'
 
     if os.path.exists(minorfile):
         with open(minorfile, 'r') as f:
@@ -280,100 +280,165 @@ def generate_variogram(X,y,variogram_function):
     print variogram_model_parameters
     return variogram_model_parameters
 
-def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_type,interpolation_options,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units):
+def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolation_type,interpolation_options,temporal_interpolation,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units):
     # Execute the following code to interpolate groundwater levels and create a netCDF File and upload it to the server
     # Download and Set up the DEM for the aquifer
     iterations = int((end_date - start_date) / interval + 1)
+    start_time = calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple())
+    end_time = calendar.timegm(datetime.datetime(end_date, 1, 1).timetuple())
     sixmonths = False
     threemonths = False
+    time_u = "Y"
+    time_v=0
     if interval <= .5:
         sixmonths = True
+        time_u="M"
+        time_v=6
         iterations += 1
         if interval == .25:
             threemonths = True
             iterations += 2
-    combined_df = pd.DataFrame()
-    for well in points['features']:
-        if 'TsTime' in well:
-            if len(well['TsTime']) > min_samples and (
-                    np.array(well['TsTime']).max() - np.array(well['TsTime']).min()) > pd.Timedelta(
-                    days=365 * 5).value / 1000000000:
-                if np.array(well['TsTime']).max() > calendar.timegm(
-                        datetime.datetime(end_date, 1, 1).timetuple()) and np.array(
-                        well['TsTime']).min() < calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple()):
-                    name = str(well['properties']['HydroID'])
-                else:
-                    name = str(well['properties']['HydroID']) + 'Short'
-                wells_df = pd.DataFrame(index=pd.to_datetime(well['TsTime'], unit='s', origin='unix'),
-                                        data=well['TsValue'], columns=[name])
-                wells_df.index.drop_duplicates(keep="first")
-                wells_df = wells_df.resample('3M').mean()
+            time_v=3
+    else:
+        time_v=int(interval)
+    resample_rate = str(time_v) + time_u
+    existing_interp=False
+    directory = os.path.join(thredds_serverpath, region)
+    aquifer = aq_name.replace(" ", "_")
+    list=[]
+    for filename in os.listdir(directory):
+        if filename.startswith(aquifer + "."):
+            list.append(filename)
+    for item in list:
+        nc_file = os.path.join(directory, item)
+        h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
+        if h.start_date==start_date and h.end_date==end_date and h.interval==interval:
+            if 'tsvalue' in h.variables:
+                times = h.variables['time'][:]
+                depths=h.variables['tsvalue'][:, :]
+                hydroids=h.variables['hydroid'][:]
+                h.close()
+                newinterpolation_df=pd.DataFrame(columns=hydroids,data=depths)
+                existing_interp=True
+                print "used existing temporal interpolation"
+                break
+        h.close()
+    if existing_interp==False:
+        if temporal_interpolation=="MLR":
+            #THe following code predicts the timeseries values for each well at specified time intervals using multi-linear regression with
+            #nearby wells as the regressors.
+            combined_df = pd.DataFrame()
+            for well in points['features']:
+                if 'TsTime' in well:
+                    if len(well['TsTime']) > min_samples and (
+                            np.array(well['TsTime']).max() - np.array(well['TsTime']).min()) > pd.Timedelta(
+                            days=365 * 5).value / 1000000000:
+                        if np.array(well['TsTime']).max() > calendar.timegm(
+                                datetime.datetime(end_date, 1, 1).timetuple()) and np.array(
+                                well['TsTime']).min() < calendar.timegm(datetime.datetime(start_date, 1, 1).timetuple()):
+                            name = str(well['properties']['HydroID'])
+                        else:
+                            name = str(well['properties']['HydroID']) + 'Short'
+                        wells_df = pd.DataFrame(index=pd.to_datetime(well['TsTime'], unit='s', origin='unix'),
+                                                data=well['TsValue'], columns=[name])
+                        wells_df.index.drop_duplicates(keep="first")
+                        wells_df = wells_df.resample('3M').mean()
 
-                combined_df = pd.concat([combined_df, wells_df], join="outer", axis=1)
-                combined_df.drop_duplicates(inplace=True)
+                        combined_df = pd.concat([combined_df, wells_df], join="outer", axis=1)
+                        combined_df.drop_duplicates(inplace=True)
+            #combined_df is a pandas dataframe containing the ts depth to water table values for each well in the aquifer with the min number of points
+            # The columns of combined_df are the HydroIDs of the wells. If the well timeseries data spans the period of interpolation, the column title
+            # is the HydroID. If the timeseries does not span the time period, then the column title is the HydroID + "Short"
+            # The rows of the database are the timeseries values for 3 month intervals from start_date to end_date
+            combined_df = combined_df.resample('3M').mean()
+            corrs_df = combined_df.interpolate(method='pchip', limit_area='inside', limit=8)
+            comined_df = combined_df.interpolate(method='pchip', inplace=True, limit_area='inside')
+            interpolation_df = combined_df.drop(combined_df.filter(regex='Short').columns, axis=1)
+            corr_df = corrs_df.corr(min_periods=12)
+            corr_df = corr_df - np.identity(len(corr_df))
+            length = len(corr_df) - 1
+            for row in corr_df.index:
+                if 'Short' in str(row):
+                    corr_df = corr_df.drop(row)
 
-    combined_df = combined_df.resample('3M').mean()
-    corr_df = combined_df.interpolate(method='pchip', limit_area='inside', limit=8)
-    comined_df = combined_df.interpolate(method='pchip', inplace=True, limit_area='inside')
-    interpolation_df = combined_df.drop(combined_df.filter(regex='Short').columns, axis=1)
-    corr_df = corr_df.corr(min_periods=12)
-    corr_df = corr_df - np.identity(len(corr_df))
-    length = len(corr_df) - 1
-    for row in corr_df.index:
-        if 'Short' in str(row):
-            corr_df = corr_df.drop(row)
-
-    for i in range(length):  # length
-        reflist = np.array(corr_df.nlargest(5, corr_df.columns[i]).index)
-        welli = corr_df.columns[i]
-        if 'Short' in str(welli):
-            mydf = combined_df[[welli]].copy()
-            print "Well ", welli
-            corr_values = corr_df.nlargest(5, corr_df.columns[i]).values[:, i]
-            print corr_values
-            delete_list = []
-            for j in range(len(corr_values)):
-                if corr_values[j] <= 0.5:
-                    delete_list.append(j)
-            if len(delete_list) > 0:
-                reflist = np.delete(reflist, delete_list)
-            if len(reflist) >= 1:
-                for ref in reflist:
-                    mydf = pd.concat([mydf, combined_df[ref]], axis=1)
-                norm_exdf = mydf.dropna(how="any", subset=reflist)
-                normz_exdf = norm_exdf.copy()
-                for column in norm_exdf.columns[0:]:
-                    normz_exdf[column] = (norm_exdf[column] - norm_exdf[column].min()) / (
-                                norm_exdf[column].max() - norm_exdf[column].min())
-                exdf = normz_exdf.copy()
-                mymin = max(exdf[welli].first_valid_index(), exdf[reflist[0]].first_valid_index())
-                print mymin
-                myrange = exdf[welli].last_valid_index() - mymin
-                exdf = exdf[mymin:mymin + myrange]  # exdf[welli].first_valid_index()+pd.DateOffset(years=10)
-                y = exdf[welli]
-                x = exdf.as_matrix(columns=reflist)
-                model = sm.OLS(y, x)
-                model_fit = model.fit_regularized(alpha=0.005)
-                b = np.array(model_fit.params)
-                neg_bs = []
-                for j in range(len(b)):
-                    if b[j] < 0:
-                        neg_bs.append(j)
-                if len(neg_bs) > 0:
-                    x = np.delete(x, neg_bs, 1)
-                    reflist = np.delete(reflist, neg_bs)
-                    model = sm.OLS(y, x)
-                    model_fit = model.fit_regularized(alpha=0.005)
-                    b = np.array(model_fit.params)
-                norm_exdf['prediction'] = np.dot(normz_exdf.as_matrix(columns=reflist), b)
-                norm_exdf['prediction'] = norm_exdf['prediction'] * (norm_exdf[welli].max() - norm_exdf[welli].min()) + \
-                                          norm_exdf[welli].min()
-                newname = str(welli).replace('Short', '')
-                interpolation_df = pd.concat([interpolation_df, norm_exdf['prediction']], join="outer", axis=1)
-                interpolation_df = interpolation_df.rename(columns={"prediction": newname})
-    print "finished temporal interpolation"
-
-    newinterpolation_df = interpolation_df[str(start_date):str(end_date)].resample('5Y', closed='left').nearest()
+            for i in range(length):  # length
+                reflist = np.array(corr_df.nlargest(5, corr_df.columns[i]).index)
+                welli = corr_df.columns[i]
+                if 'Short' in str(welli):
+                    mydf = combined_df[[welli]].copy()
+                    print "Well ", welli
+                    corr_values = corr_df.nlargest(5, corr_df.columns[i]).values[:, i]
+                    print corr_values
+                    delete_list = []
+                    for j in range(len(corr_values)):
+                        if corr_values[j] <= 0.5:
+                            delete_list.append(j)
+                    if len(delete_list) > 0:
+                        reflist = np.delete(reflist, delete_list)
+                    if len(reflist) >= 1:
+                        for ref in reflist:
+                            mydf = pd.concat([mydf, combined_df[ref]], axis=1)
+                        norm_exdf = mydf.dropna(how="any", subset=reflist)
+                        normz_exdf = norm_exdf.copy()
+                        for column in norm_exdf.columns[0:]:
+                            normz_exdf[column] = (norm_exdf[column] - norm_exdf[column].min()) / (
+                                        norm_exdf[column].max() - norm_exdf[column].min())
+                        exdf = normz_exdf.copy()
+                        mymin = max(exdf[welli].first_valid_index(), exdf[reflist[0]].first_valid_index())
+                        print mymin
+                        myrange = exdf[welli].last_valid_index() - mymin
+                        exdf = exdf[mymin:mymin + myrange]  # exdf[welli].first_valid_index()+pd.DateOffset(years=10)
+                        y = exdf[welli]
+                        x = exdf.as_matrix(columns=reflist)
+                        model = sm.OLS(y, x)
+                        model_fit = model.fit_regularized(alpha=0.005)
+                        b = np.array(model_fit.params)
+                        neg_bs = []
+                        for j in range(len(b)):
+                            if b[j] < 0:
+                                neg_bs.append(j)
+                        if len(neg_bs) > 0:
+                            x = np.delete(x, neg_bs, 1)
+                            reflist = np.delete(reflist, neg_bs)
+                            model = sm.OLS(y, x)
+                            model_fit = model.fit_regularized(alpha=0.005)
+                            b = np.array(model_fit.params)
+                        norm_exdf['prediction'] = np.dot(normz_exdf.as_matrix(columns=reflist), b)
+                        norm_exdf['prediction'] = norm_exdf['prediction'] * (norm_exdf[welli].max() - norm_exdf[welli].min()) + \
+                                                  norm_exdf[welli].min()
+                        norm_exdf.loc[corrs_df[welli].notnull(), 'prediction'] = corrs_df[welli]
+                        newname = str(welli).replace('Short', '')
+                        interpolation_df = pd.concat([interpolation_df, norm_exdf['prediction']], join="outer", axis=1)
+                        interpolation_df = interpolation_df.rename(columns={"prediction": newname})
+            print "finished temporal interpolation"
+            newinterpolation_df = interpolation_df[str(start_date):str(end_date)].resample(resample_rate,closed='left').nearest()
+        else:
+            #This code interpolates the timeseries values at each well using the pchip interpolation method. The data is extended up to the
+            #time_tolerance limit using the value of the nearest data point.
+            wells_df = pd.DataFrame()
+            for well in points['features']:
+                welli = well['properties']['HydroID']
+                if 'TsTime' in well:
+                    if len(well['TsTime']) >= min_samples:
+                        listlength = len(well['TsTime'])
+                        length_time = end_time - start_time
+                        mylength_time = min(well['TsTime'][listlength - 1] - well['TsTime'][0],
+                                            well['TsTime'][listlength - 1] - start_time, end_time - well['TsTime'][0])
+                        ratio = abs((float(mylength_time) / length_time))
+                        if ratio > min_ratio:
+                            df = pd.DataFrame(index=pd.to_datetime(well['TsTime'], unit='s', origin='unix'),data=well['TsValue'], columns=[welli])
+                            df = df[np.logical_not(df.index.duplicated())]
+                            try:
+                                wells_df = pd.concat([wells_df, df], join="outer", axis=1)
+                            except:
+                                print "exception"
+                                continue
+            wells_df = wells_df.interpolate(method='pchip', limit_area='inside')[
+                       str(start_date - 1):str(end_date - 1)].resample('3M').nearest()
+            wells_df = wells_df.interpolate('nearest', limit=4 * time_tolerance, limit_direction='both',
+                                            fill_value="extrapolate").resample(resample_rate).nearest()
+            print "done with temporal interpolation"
+            newinterpolation_df = wells_df
     lons = []
     lats = []
     values = []
@@ -386,19 +451,27 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     myids=[]
     for wellid in newinterpolation_df.columns:
         for well in points['features']:
-            if wellid == str(well['properties']['HydroID']):
+            if wellid == str(well['properties']['HydroID']) or wellid==well['properties']['HydroID']:
                 mylon.append(well['geometry']['coordinates'][0])
                 mylat.append(well['geometry']['coordinates'][1])
                 myelevs.append(well['properties']['LandElev'])
-                myids.append(wellid)
+                myids.append(str(wellid))
+                break
+    mylon = np.array(mylon)
+    mylat = np.array(mylat)
+    myelevs = np.array(myelevs)
+    myids = np.array(myids)
+    valueslist = []
     for i in range(iterations):
         myvalue = np.array(newinterpolation_df.iloc[i].tolist())
         heights.append(myelevs)
+        valueslist.append(myvalue)
+        x = np.isnan(myvalue)
         myelev = np.add(np.array(myelevs), myvalue)
-        lons.append(mylon)
-        lats.append(mylat)
-        values.append(myvalue)
-        elevations.append(myelev)
+        lons.append(mylon[np.logical_not(x)])
+        lats.append(mylat[np.logical_not(x)])
+        values.append(myvalue[np.logical_not(x)])
+        elevations.append(myelev[np.logical_not(x)])
         ids.append(myids)
         print len(mylon)
     lons = np.array(lons)
@@ -406,6 +479,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     values = np.array(values)
     elevations = np.array(elevations)
     ids=np.array(ids)
+    valueslist = np.array(valueslist)
     print "done"
     #Now we prepare the data for the generate_variogram function
     coordinates = []
@@ -440,7 +514,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
         if i['Id'] == int(aquifer_number):
             myaquifer = i
     myaquifercaps = myaquifer['CapsName']
-    fieldname = myaquifer['FieldName']
+    fieldname = 'Aquifer_Name'
 
     AquiferShape = {
         'type': 'FeatureCollection',
@@ -486,7 +560,7 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     # Download and Set up the DEM for the aquifer if it does not exist already
     dem_path = os.path.join(app_workspace.path, region + "/DEM.tif")
     if not os.path.exists(dem_path):
-        dem_path = os.path.join(app_workspace.path, region + "/DEM/" + name.replace(" ", "_") + "_DEM.tif")
+        dem_path = os.path.join(app_workspace.path, region + "/DEM/" + aq_name.replace(" ", "_") + "_DEM.tif")
     if not os.path.exists(dem_path):
         download_DEM(region, myaquifer)
     out_path = os.path.join(app_workspace.path, region + "/Out.tif")
@@ -710,17 +784,9 @@ def upload_netcdf(points,name,app_workspace,aquifer_number,region,interpolation_
     timearray = []  # [datetime.datetime(2000,1,1).toordinal()-1,datetime.datetime(2002,1,1).toordinal()-1]
     t=0
     for i in range(0, iterations):
-        tsvalue[i, :] = values[i, :]
-        a = lons[i]
-        b = lats[i]
-        c = values[i]
-        d = elevations[i]
-        a = np.array(a)
-        b = np.array(b)
-        c = np.array(c)
-        d = np.array(d)
+        tsvalue[i, :] = valueslist[i, :]
         interpolatable=True
-        if len(c)<3 or len(d) <3:
+        if len(values[i])<3 or len(elevations[i]) <3:
             interpolatable=False
 
         if sixmonths == False:

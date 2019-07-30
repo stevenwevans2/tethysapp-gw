@@ -1,16 +1,16 @@
 ID,Name,CapsName,NameField,Type
-1,PLANICIE COSTERA ORIENTAL,PLANICIE COSTERA ORIENTAL,Name,Major
-2,CORDILLERA ORIENTAL,CORDILLERA ORIENTAL,Name,Major
-3,LOS HAITISES,LOS HAITISES,Name,Major
-4,PENINSULA DE SAMANA,PENINSULA DE SAMANA,Name,Major
-5,CORDILLERA SEPTENTRIONAL,CORDILLERA SEPTENTRIONAL,Name,Major
-6,VALLE DEL CIBAO,VALLE DEL CIBAO,Name,Major
-7,CORDILLERA CENTRAL,CORDILLERA CENTRAL,Name,Major
-8,VALLE DE SAN JUAN,VALLE DE SAN JUAN,Name,Major
-9,SIERRA DE NEIBA,SIERRA DE NEIBA,Name,Major
-10,VALLE DE NEIBA,VALLE DE NEIBA,Name,Major
-11,SIERRA DE BAHORUCO,SIERRA DE BAHORUCO,Name,Major
-12,PENINSULA SUR DE BARAHONA,PENINSULA SUR DE BARAHONA,Name,Major
-13,PLANICIE DE AZUA,PLANICIE DE AZUA,Name,Major
-14,PLANICIE DE BANI,PLANICIE DE BANI,Name,Major
-15,Dominican Republic,Dominican Republic,Name,None
+1,Pensinsula Sur De Barahona,Pensinsula Sur De Barahona,Hydro_Zone,Major
+2,Sierra De Bahoruco ,Sierra De Bahoruco ,Hydro_Zone,Major
+3,Planicie De Bani,Planicie De Bani,Hydro_Zone,Major
+4,Planicie De Azua,Planicie De Azua,Hydro_Zone,Major
+5,Valle De Neiba,Valle De Neiba,Hydro_Zone,Major
+6,Sierra De Neiba,Sierra De Neiba,Hydro_Zone,Major
+7,Planicie Costera Oriental,Planicie Costera Oriental,Hydro_Zone,Major
+8,Valle De San Juan,Valle De San Juan,Hydro_Zone,Major
+9,Cordillera Oriental,Cordillera Oriental,Hydro_Zone,Major
+10,Los Haitises,Los Haitises,Hydro_Zone,Major
+11,Peninsula De Samana,Peninsula De Samana,Hydro_Zone,Major
+12,Cordillera Central,Cordillera Central,Hydro_Zone,Major
+13,Valle De Cibao ,Valle De Cibao ,Hydro_Zone,Major
+14,Cordillera Septentrional,Cordillera Septentrional,Hydro_Zone,Major
+15,Dominican Republic,Dominican Republic,Hydro_Zone,None

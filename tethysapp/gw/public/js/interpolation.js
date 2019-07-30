@@ -41,6 +41,7 @@ function submit_form(){
     var min_ratio=$("#min_ratio").find('option:selected').val();
     var units=$("#select_units").find('option:selected').val();
     var interpolation_options=$("#interpolation_options").find('option:selected').val();
+    var temporal_interpolation=$("#temporal_interpolation").find('option:selected').val();
     if (start_date>=end_date){
         alert("Error, Start Date must be before End Date");
         document.getElementById('waiting_output').innerHTML = '';
@@ -49,7 +50,7 @@ function submit_form(){
         $.ajax({
             url: '/apps/gw/loaddata/',
             type: 'GET',
-            data: {'id':id, 'interpolation_options':interpolation_options,'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units},
+            data: {'id':id, 'temporal_interpolation':temporal_interpolation, 'interpolation_options':interpolation_options,'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units},
             contentType: 'application/json',
             error: function (status) {
 
