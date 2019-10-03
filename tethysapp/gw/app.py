@@ -64,6 +64,26 @@ class Gw(TethysAppBase):
                 controller='gw.controllers.addregion'
             ),
             UrlMap(
+                name='finish_addregion',
+                url='gw/finish_addregion',
+                controller='gw.ajax_controllers.finish_addregion'
+            ),
+            UrlMap(
+                name='addregion2',
+                url='addregion2/{region}',
+                controller='gw.controllers.addregion2'
+            ),
+            UrlMap(
+                name='removeregion',
+                url='removeregion',
+                controller='gw.controllers.removeregion'
+            ),
+            UrlMap(
+                name='deleteregion',
+                url='gw/deleteregion',
+                controller='gw.ajax_controllers.deleteregion'
+            ),
+            UrlMap(
                 name='create_wells',
                 url='gw/displaygeojson',
                 controller='gw.ajax_controllers.displaygeojson'

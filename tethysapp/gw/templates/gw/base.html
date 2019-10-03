@@ -25,6 +25,7 @@
     <li class="{% if request.path == interpolation %}active{% endif %}"><a href="{% url 'gw:interpolation' %}">Interpolation Wizard</a></li>
     <li class="{% if request.path == addregion_nwis %}active{% endif %}"><a href="{% url 'gw:addregion_nwis' %}">Add Region (USGS)</a></li>
     <li class="{% if request.path == addregion %}active{% endif %}"><a href="{% url 'gw:addregion' %}">Add Region</a></li>
+    <li class="{% if request.path == removeregion %}active{% endif %}"><a href="{% url 'gw:removeregion' %}">Remove Region</a></li>
   {% endif%}
 {% endblock %}
 

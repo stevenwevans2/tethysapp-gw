@@ -2,6 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 from django.http import Http404, HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.shortcuts import redirect, reverse
+from django.contrib import messages
 import netCDF4
 import numpy as np
 import time as t
@@ -219,6 +222,163 @@ def deletenetcdf(request):
 
     return JsonResponse(return_obj)
 
+def deleteregion(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        try:
+            directory = os.path.join(thredds_serverpath, region)
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            app_workspace = app.get_app_workspace()
+            directory = os.path.join(app_workspace.path, region)
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            success=True
+        except Exception as e:
+            print e
+            success=False
+        url = ''
+        if success:
+            messages.info(request, 'Successfully removed region')
+            url = reverse('gw:region_map')
+        else:
+            messages.error(request, 'Failed to remove region')
+            url = reverse('gw:removeregion')
+        return_obj['url']=url
+    return JsonResponse(return_obj)
+
+def finish_addregion(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        region=request.GET.get('region')
+        AquiferID=request.GET.get('AquiferID')
+        DisplayName=request.GET.get('DisplayName')
+        Aquifer_Name=request.GET.get('Aquifer_Name')
+        porosity=request.GET.get('porosity')
+        HydroID=request.GET.get('HydroID')
+        AqID=request.GET.get('AqID')
+        Elev=request.GET.get('Elev')
+        Type=request.GET.get('Type')
+        Depth=request.GET.get('Depth')
+
+        app_workspace=app.get_app_workspace()
+        directory = os.path.join(app_workspace.path, region)
+        print(AquiferID)
+        print(directory)
+        aqs=[]
+        for filename in os.listdir(directory):
+            if filename.startswith('MinorAquifers.json'):
+                minorfile = os.path.join(directory, 'MinorAquifers.json')
+                with open(minorfile) as f:
+                    minor_json = json.load(f)
+                for a in minor_json['features']:
+                    aq = [a['properties'][AquiferID], a['properties'][DisplayName], a['properties'][Aquifer_Name]]
+                    if porosity!='Unused':
+                        aq.append(a['properties'][porosity])
+                    aqs.append(aq)
+                    a['properties']['AquiferID']=a['properties'].pop(AquiferID)
+                    a['properties']['DisplayName']=a['properties'].pop(DisplayName)
+                    a['properties']['Aquifer_Name']=a['properties'].pop(Aquifer_Name)
+                    if porosity!='Unused':
+                        a['properties']['Storage_Coefficient']=a['properties'].pop(porosity)
+                with open(minorfile,'w') as f:
+                    json.dump(minor_json,f)
+        majorfile = os.path.join(directory, 'MajorAquifers.json')
+        with open(majorfile) as f:
+            major_json = json.load(f)
+        for a in major_json['features']:
+            aq = [a['properties'][AquiferID], a['properties'][DisplayName], a['properties'][Aquifer_Name]]
+            if porosity != 'Unused':
+                aq.append(a['properties'][porosity])
+            aqs.append(aq)
+            a['properties']['AquiferID'] = a['properties'].pop(AquiferID)
+            a['properties']['DisplayName'] = a['properties'].pop(DisplayName)
+            a['properties']['Aquifer_Name'] = a['properties'].pop(Aquifer_Name)
+            if porosity != 'Unused':
+                a['properties']['Storage_Coefficient'] = a['properties'].pop(porosity)
+
+        with open(majorfile, 'w') as f:
+            json.dump(major_json, f)
+
+        #This section is for updating and saving the well properties
+        wellfile = os.path.join(directory, 'Wells1.json')
+        with open(wellfile) as f:
+            well_json = json.load(f)
+        for w in well_json['features']:
+            w['properties']['HydroID'] = w['properties'].pop(HydroID)
+            w['properties']['AquiferID'] = w['properties'].pop(AqID)
+            if Elev != "Unused":
+                w['properties']['LandElev'] = w['properties'].pop(Elev)
+            if Type != "Unused":
+                w['properties']['FType'] = w['properties'].pop(Type)
+            if Depth != "Unused":
+                w['properties']['WellDepth'] = w['properties'].pop(Depth)
+        with open(wellfile, 'w') as f:
+            json.dump(well_json, f)
+        #end well properties
+
+        the_csv = os.path.join(directory, region + '_Aquifers.csv')
+        with open(the_csv, mode='w') as csv_file:
+            if porosity == 'Unused':
+                fieldnames = ['ID', 'Name', 'CapsName']
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                writer.writeheader()
+                for aq in aqs:
+                    writer.writerow({'ID': aq[0], 'Name': aq[1], 'CapsName': aq[2]})
+            else:
+                fieldnames=['ID', 'Name', 'CapsName','Storage_Coefficient']
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                writer.writeheader()
+                for aq in aqs:
+                    writer.writerow({'ID': aq[0], 'Name': aq[1], 'CapsName': aq[2], 'Storage_Coefficient': aq[3]})
+            writer.writerow({'ID': '-999', 'Name': region.replace("_", " ").title(), 'CapsName': region})
+        try:
+            # Set up the appropriate folders on the Thredds server
+            thredds_folder = os.path.join(thredds_serverpath, region)
+            if not os.path.exists(thredds_folder):
+                os.mkdir(thredds_folder)
+            app_workspace = app.get_app_workspace()
+            aquiferlist = getaquiferlist(app_workspace, region)
+
+            well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
+            times_file = os.path.join(app_workspace.path, region + '/Wells_Master.csv')
+            well_nwis_file = os.path.join(app_workspace.path, region + '/Wells.json')
+
+
+            for aq in aquiferlist:
+                i = aq['Id']
+                if os.path.exists(well_file) and os.path.exists(times_file):
+                    print "made it to subdivide"
+                    subdivideaquifers(region, app_workspace, i)
+                if os.path.exists(well_nwis_file):
+                    print("Made it to divide")
+                    divideaquifers(region, app_workspace, i)
+            success = True
+
+        except Exception as e:
+            print e
+            success = False
+        url=''
+        if success:
+            messages.info(request, 'Successfully added region')
+            url=reverse('gw:region_map')
+        else:
+            url=reverse('gw:addregion')
+        print(url)
+        return_obj['url']=url
+    return JsonResponse(return_obj)
+
 def addoutlier(request):
     return_obj = {
         'success': False
@@ -296,17 +456,18 @@ def get_timeseries(request):
 
         directory = os.path.join(thredds_serverpath, region)
         file=os.path.join(directory,netcdf)
-        h = netCDF4.Dataset(file, 'r+', format="NETCDF4")
-        if 'tsvalue' in h.variables:
-            times = h.variables['time'][:]
-            for i in range(len(h.variables['hydroid'])):
-                if h.variables['hydroid'][i] == hydroid:
-                    depths=h.variables['tsvalue'][:, i]
-                    depths[np.isnan(depths)]=-9999
-                    return_obj['depths'] = depths.tolist()
-                    return_obj['times'] = times.tolist()
-                    break
-        h.close()
+        if os.path.exists(file):
+            h = netCDF4.Dataset(file, 'r+', format="NETCDF4")
+            if 'tsvalue' in h.variables:
+                times = h.variables['time'][:]
+                for i in range(len(h.variables['hydroid'])):
+                    if h.variables['hydroid'][i] == hydroid:
+                        depths=h.variables['tsvalue'][:, i]
+                        depths[np.isnan(depths)]=-9999
+                        return_obj['depths'] = depths.tolist()
+                        return_obj['times'] = times.tolist()
+                        break
+            h.close()
 
     return JsonResponse(return_obj)
 
@@ -338,6 +499,7 @@ def loaddata(request):
         from_wizard=request.GET.get("from_wizard")
         units=request.GET.get("units")
         temporal_interpolation=request.GET.get("temporal_interpolation")
+        porosity=request.GET.get("porosity")
 
         return_obj['id'] = aquiferid
         app_workspace = app.get_app_workspace()
@@ -355,13 +517,14 @@ def loaddata(request):
             min_samples=int(min_samples)
             min_ratio=float(min_ratio)
             time_tolerance=int(time_tolerance)
+            porosity=float(porosity)
 
         if aquiferid==9999:
             for i in range(1,length):
                 aquiferid=i
-                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units)
+                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity)
         else:
-            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance,  from_wizard, units)
+            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance,  from_wizard, units,porosity)
 
         return_obj['data']=points
         return_obj['message']=returnmessage
@@ -477,7 +640,7 @@ def subdivideaquifers(region,app_workspace,aquiferid):
     if 'Contains' in myaquifer:
         if len(myaquifer['Contains'])>1:
             aquifer_id_numbers=myaquifer['Contains']
-    if myaquifer['Name']!=region and myaquifer['Name'].replace(' ', '_')!=region:
+    if myaquifer['Name']!=region and myaquifer['Name'].replace(' ', '_')!=region and myaquifer['Name'].replace(' ','_').title()!=region:
         with open(well_file, 'r') as f:
             wells_json = json.load(f)
         points = {
@@ -505,14 +668,10 @@ def subdivideaquifers(region,app_workspace,aquiferid):
                             time_csv.append(timestep)
         print "past csv reader"
     else:
+        print("Region: ",region)
         with open(well_file, 'r') as f:
-            wells_json = json.load(f)
-        points = {
-            'type': 'FeatureCollection',
-            'features': []
-        }
-        for feature in wells_json['features']:
-            points['features'].append(feature)
+            points = json.load(f)
+
         points['features'].sort(key=lambda x: x['properties']['HydroID'])
         print len(points['features'])
 
@@ -642,7 +801,7 @@ def gettimelist(region,aquifer):
         timelist.append(mytime)
     return timelist
 
-def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units):
+def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units, porosity):
     if from_wizard==True:
         interpolate = 1
     else:
@@ -710,7 +869,7 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpol
     if interpolate == 1:
 
         returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date,
-                      interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units)
+                      interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity)
 
     end = t.time()
     print(end - start)

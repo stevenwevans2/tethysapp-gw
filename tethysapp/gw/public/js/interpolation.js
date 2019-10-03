@@ -21,6 +21,34 @@ function update_aquifers(){
                 });
 }
 
+function get_porosity(){
+    var region=$("#select_region").find('option:selected').val();
+    var aquifer=$("#select_aquifer").find('option:selected').text();
+    console.log(aquifer);
+    $.ajax({
+                    url: '/apps/gw/loadaquiferlist/',
+                    type: 'GET',
+                    data: {'region':region},
+                    contentType: 'application/json',
+                    error: function (status) {
+
+                    }, success: function (response) {
+                        aquiferlist=response.aquiferlist;
+                        for (i=0;i<aquiferlist.length;i++){
+                            if (aquiferlist[i].Name==aquifer){
+                                if ('Storage_Coefficient' in aquiferlist[i]){
+                                   var porosity=aquiferlist[i].Storage_Coefficient;
+                                   document.getElementById("select_porosity").value=porosity;
+                                }
+                            }
+                        }
+                    }
+                });
+}
+
+
+
+
 function submit_form(){
     document.getElementById('chart').innerHTML='';
     var wait_text = "<strong>Loading Data...</strong><br>" +
@@ -42,6 +70,8 @@ function submit_form(){
     var units=$("#select_units").find('option:selected').val();
     var interpolation_options=$("#interpolation_options").find('option:selected').val();
     var temporal_interpolation=$("#temporal_interpolation").find('option:selected').val();
+    var porosity=$("#select_porosity").val();
+    console.log(porosity);
     if (start_date>=end_date){
         alert("Error, Start Date must be before End Date");
         document.getElementById('waiting_output').innerHTML = '';
@@ -50,7 +80,7 @@ function submit_form(){
         $.ajax({
             url: '/apps/gw/loaddata/',
             type: 'GET',
-            data: {'id':id, 'temporal_interpolation':temporal_interpolation, 'interpolation_options':interpolation_options,'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units},
+            data: {'id':id, 'temporal_interpolation':temporal_interpolation, 'interpolation_options':interpolation_options,'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units, 'porosity':porosity},
             contentType: 'application/json',
             error: function (status) {
 

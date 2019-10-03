@@ -1,16 +1,16 @@
-ID,Name,CapsName,NameField,Type
-1,Pensinsula Sur De Barahona,Pensinsula Sur De Barahona,Hydro_Zone,Major
-2,Sierra De Bahoruco ,Sierra De Bahoruco ,Hydro_Zone,Major
-3,Planicie De Bani,Planicie De Bani,Hydro_Zone,Major
-4,Planicie De Azua,Planicie De Azua,Hydro_Zone,Major
-5,Valle De Neiba,Valle De Neiba,Hydro_Zone,Major
-6,Sierra De Neiba,Sierra De Neiba,Hydro_Zone,Major
-7,Planicie Costera Oriental,Planicie Costera Oriental,Hydro_Zone,Major
-8,Valle De San Juan,Valle De San Juan,Hydro_Zone,Major
-9,Cordillera Oriental,Cordillera Oriental,Hydro_Zone,Major
-10,Los Haitises,Los Haitises,Hydro_Zone,Major
-11,Peninsula De Samana,Peninsula De Samana,Hydro_Zone,Major
-12,Cordillera Central,Cordillera Central,Hydro_Zone,Major
-13,Valle De Cibao ,Valle De Cibao ,Hydro_Zone,Major
-14,Cordillera Septentrional,Cordillera Septentrional,Hydro_Zone,Major
-15,Dominican Republic,Dominican Republic,Hydro_Zone,None
+ID,Name,CapsName
+1,Pensinsula Sur De Barahona,Pensinsula Sur De Barahona
+2,Sierra De Bahoruco,Sierra De Bahoruco
+3,Planicie De Bani,Planicie De Bani
+4,Planicie De Azua,Planicie De Azua
+5,Valle De Neiba,Valle De Neiba
+6,Sierra De Neiba,Sierra De Neiba
+7,Planicie Costera Oriental,Planicie Costera Oriental
+8,Valle De San Juan,Valle De San Juan
+9,Cordillera Oriental,Cordillera Oriental
+10,Los Haitises,Los Haitises
+11,Peninsula De Samana,Peninsula De Samana
+12,Cordillera Central,Cordillera Central
+13,Valle De Cibao,Valle De Cibao
+14,Cordillera Septentrional,Cordillera Septentrional
+-999,Dominican Republic,Dominican_Republic

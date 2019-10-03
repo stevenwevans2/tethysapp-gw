@@ -2,12 +2,14 @@ from django.shortcuts import render
 from django.shortcuts import redirect, reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required,user_passes_test
-from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput
+from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput, TableView
 import pandas as pd
 import urllib
+from urllib.parse import urlencode
 import contextlib
 from osgeo import gdal
 from ajax_controllers import *
+import copy
 
 
 
@@ -23,12 +25,52 @@ def home(request):
 
     return render(request, 'gw/home.html', context)
 
+
+@user_passes_test(user_permission_test)
+def removeregion(request):
+    """
+    Controller for the remove region page.
+    """
+    app_workspace = app.get_app_workspace()
+    dirs = next(os.walk(app_workspace.path))[1]
+    regions = []
+    for entry in dirs:
+        region = (entry, entry)
+        regions.append(region)
+    select_region = SelectInput(display_text='Select a Region to Remove:',
+        name='select_region',
+        multiple=False,
+        options=regions,
+        initial='Texas',
+        attributes={
+        }
+    )
+    submit_button = Button(display_text='Delete Region',
+       name='submit_button',
+       icon='glyphicon glyphicon-remove',
+       style='danger',
+       disabled=False,
+       attributes={
+           'data-toggle': 'tooltip',
+           'data-placement': 'top',
+           'title': 'Delete Selected Region from the app',
+           'onclick': "delete_region()",
+       }
+   )
+
+    context = {
+        'select_region':select_region,
+        'submit_button':submit_button
+    }
+
+    return render(request, 'gw/remove_region.html', context)
+
+
 @user_passes_test(user_permission_test)
 def addregion_nwis(request):
     """
     Controller for the addregion page.
     """
-    file_error=''
     region_error=''
     border_error=''
     major_error=''
@@ -37,7 +79,6 @@ def addregion_nwis(request):
 
     id=None
     region=None
-    csv_file=None
     border_file=None
     major_file=None
     minor_file=None
@@ -54,8 +95,6 @@ def addregion_nwis(request):
             has_errors=True
             id_error='Two letter ID is required.'
 
-        if request.FILES and 'csv-file' in request.FILES:
-            csv_file=request.FILES.getlist('csv-file')
         if request.FILES and 'border-file' in request.FILES:
             border_file=request.FILES.getlist('border-file')
         if request.FILES and 'major-file' in request.FILES:
@@ -65,9 +104,6 @@ def addregion_nwis(request):
         if request.FILES and 'dem-file' in request.FILES:
             dem_file=request.FILES.getlist('dem-file')
 
-        if not csv_file or len(csv_file)<1:
-            has_errors=True
-            file_error='CSV file of aquifer information is required.'
         if not border_file or len(border_file)<1:
             has_errors=True
             border_error='JSON file for the region boundary is required.'
@@ -79,7 +115,6 @@ def addregion_nwis(request):
             dem_error='Regional DEM TIF File is required.'
 
         if not has_errors:
-            csv_file=csv_file[0]
             border_file = border_file[0]
             major_file=major_file[0]
             dem_file=dem_file[0]
@@ -100,7 +135,7 @@ def addregion_nwis(request):
                     for line in lines:
                         f.write(line)
             # try:
-            writefile(csv_file,region+"_Aquifers.csv")
+            # writefile(csv_file,region+"_Aquifers.csv")
             writefile(border_file,region+"_State_Boundary.json")
             writefile(major_file,"MajorAquifers.json")
             writefile(dem_file,'temp.tif')
@@ -134,6 +169,34 @@ def addregion_nwis(request):
             if minor_file:
                 minor_file=minor_file[0]
                 writefile(minor_file, "MinorAquifers.json")
+            Code for writing the aquifers_csv file
+            directory = os.path.join(app_workspace.path, region)
+            aqs = []
+            for filename in os.listdir(directory):
+                if filename.startswith('MinorAquifers.json'):
+                    minorfile = os.path.join(directory, 'MinorAquifers.json')
+                    with open(minorfile) as f:
+                        minor_json = json.load(f)
+                    for a in minor_json['features']:
+                        aq = [a['properties']['AquiferID'], a['properties']['DisplayName'],
+                              a['properties']['Aquifer_Name']]
+                        aqs.append(aq)
+            majorfile = os.path.join(directory, 'MajorAquifers.json')
+            with open(majorfile) as f:
+                major_json = json.load(f)
+            for a in major_json['features']:
+                aq = [a['properties']['AquiferID'], a['properties']['DisplayName'], a['properties']['Aquifer_Name']]
+                aqs.append(aq)
+            the_csv = os.path.join(directory, region + '_Aquifers.csv')
+            with open(the_csv, mode='w') as csv_file:
+                fieldnames = ['ID', 'Name', 'CapsName']
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                writer.writeheader()
+                for aq in aqs:
+                    writer.writerow({'ID': aq[0], 'Name': aq[1], 'CapsName': aq[2]})
+                writer.writerow({'ID': '-999', 'Name': region.replace("_", " ").title(), 'CapsName': region})
+            end code for writing the aquifers_csv file
+
             pullnwis(id, app_workspace, region)
 
             #Set up the appropriate folders on the Thredds server
@@ -162,6 +225,11 @@ def addregion_nwis(request):
             else:
                 messages.info(request, 'Unable to add region.')
             return redirect(reverse('gw:region_map'))
+        # if not has_errors:
+        #     messages.info(request, 'Files uploaded successfully.')
+        #     return redirect(reverse('gw:addregion_nwis2', kwargs={'region': region}))
+        # else:
+        #     messages.info(request, 'Unable to upload files.')
 
         messages.error(request, "Please fix errors.")
 
@@ -189,7 +257,6 @@ def addregion_nwis(request):
         'region_name':region_name,
         'stateId':stateId,
         'add_button':add_button,
-        'file_error':file_error,
         'border_error':border_error,
         'major_error':major_error,
         'dem_error':dem_error
@@ -202,7 +269,6 @@ def addregion(request):
     """
     Controller for the addregion page.
     """
-    file_error = ''
     region_error = ''
     border_error = ''
     major_error = ''
@@ -211,13 +277,12 @@ def addregion(request):
     dem_error = ''
 
     def writefilestoworkspace(request):
-        file_error = ''
-        region_error = ''
-        border_error = ''
-        major_error = ''
-        wells_error = ''
-        time_error = ''
-        dem_error = ''
+        region_error1 = ''
+        border_error1 = ''
+        major_error1 = ''
+        wells_error1 = ''
+        time_error1 = ''
+        dem_error1 = ''
         def writefile(input, output):
             lines = []
             for line in input:
@@ -231,7 +296,6 @@ def addregion(request):
                 for line in lines:
                     f.write(line)
         region = None
-        csv_file = None
         border_file = None
         major_file = None
         minor_file = None
@@ -244,8 +308,6 @@ def addregion(request):
             has_errors = True
             region_error = 'Region name is required.'
 
-        if request.FILES and 'csv-file' in request.FILES:
-            csv_file = request.FILES.getlist('csv-file')
         if request.FILES and 'border-file' in request.FILES:
             border_file = request.FILES.getlist('border-file')
         if request.FILES and 'major-file' in request.FILES:
@@ -259,27 +321,23 @@ def addregion(request):
         if request.FILES and 'dem-file' in request.FILES:
             dem_file = request.FILES.getlist('dem-file')
 
-        if not csv_file or len(csv_file) < 1:
-            has_errors = True
-            file_error = 'CSV file of aquifer information is required.'
         if not border_file or len(border_file) < 1:
             has_errors = True
-            border_error = 'JSON file for the region boundary is required.'
+            border_error1 = 'JSON file for the region boundary is required.'
         if not major_file or len(major_file) < 1:
             has_errors = True
-            major_error = 'JSON file for the major aquifers is required.'
+            major_error1 = 'JSON file for the major aquifers is required.'
         if not wells_file or len(wells_file) < 1:
             has_errors = True
-            wells_error = 'JSON file of well locations is required.'
+            wells_error1 = 'JSON file of well locations is required.'
         if not time_file or len(time_file) < 1:
             has_errors = True
-            time_error = 'CSV of well time series information is required.'
+            time_error1 = 'CSV of well time series information is required.'
         if not dem_file or len(dem_file) < 1:
             has_errors = True
-            dem_error = 'DEM for the region is required.'
-        errors=[file_error,border_error,major_error,wells_error,time_error,dem_error,region_error]
+            dem_error1 = 'DEM for the region is required.'
+        errors=[border_error1,major_error1,wells_error1,time_error1,dem_error1,region_error1]
         if not has_errors:
-            csv_file = csv_file[0]
             border_file = border_file[0]
             major_file = major_file[0]
             wells_file = wells_file[0]
@@ -288,16 +346,14 @@ def addregion(request):
             region = region.replace(' ', '_')
             app_workspace = app.get_app_workspace()
 
-            writefile(csv_file, region + "_Aquifers.csv")
+            # writefile(csv_file, region + "_Aquifers.csv")
             writefile(border_file, region + "_State_Boundary.json")
             writefile(major_file, "MajorAquifers.json")
             writefile(wells_file, "Wells1.json")
             writefile(time_file, "Wells_Master.csv")
             writefile(dem_file, "temp.tif")
-            AquiferShape = {
-                'type': 'FeatureCollection',
-                'features': []
-            }
+            #Code for adding the DEM
+
             State_Boundary = os.path.join(app_workspace.path, region + '/' + region + '_State_Boundary.json')
             with open(State_Boundary, 'r') as f:
                 state = json.load(f)
@@ -327,46 +383,30 @@ def addregion(request):
             if minor_file:
                 minor_file = minor_file[0]
                 writefile(minor_file, "MinorAquifers.json")
+            #Code for writing the aquifers_csv file
+
             return region, errors
         messages.error(request, "Please fix errors.")
+        return region,errors
     if request.POST and 'add_button' in request.POST:
-        # try:
-        region,errors=writefilestoworkspace(request)
-        file_error=errors[0]
-        border_error=errors[1]
-        major_error=errors[2]
-        wells_error=errors[3]
-        time_error=errors[4]
-        dem_error=errors[5]
-        region_error=errors[6]
-        #Set up the appropriate folders on the Thredds server
-        thredds_folder=os.path.join(thredds_serverpath,region)
-        if not os.path.exists(thredds_folder):
-            os.mkdir(thredds_folder)
-        app_workspace=app.get_app_workspace()
-        aquiferlist = getaquiferlist(app_workspace, region)
-
-        well_file = os.path.join(app_workspace.path, region + '/Wells1.json')
-        times_file=os.path.join(app_workspace.path, region + '/Wells_Master.csv')
-
-        for aq in aquiferlist:
-            i = aq['Id']
-            if os.path.exists(well_file) and os.path.exists(times_file):
-                print "made it to subdivide"
-                subdivideaquifers(region, app_workspace, i)
-        success=True
-
-        # except Exception as e:
-        #     print e
-        #     success=False
-
-        if success:
-            messages.info(request, 'Successfully added region')
-            return redirect(reverse('gw:region_map'))
+        region, errors = writefilestoworkspace(request)
+        border_error = errors[0]
+        major_error = errors[1]
+        wells_error = errors[2]
+        time_error = errors[3]
+        dem_error = errors[4]
+        region_error = errors[5]
+        has_errors=False
+        for i in errors:
+            if i!="":
+                has_errors=True
+        success=False
+        if not has_errors:
+            messages.info(request, 'Files uploaded successfully.')
+            return redirect(reverse('gw:addregion2',kwargs={'region':region}))
         else:
-            messages.info(request, 'Unable to add region.')
-            return redirect(reverse('gw:addregion'))
-
+            messages.info(request, 'Unable to upload files.')
+            # return redirect(reverse('gw:addregion'))
 
     #Define form gizmos
     region_name = TextInput(display_text='Enter a name for the region:',
@@ -374,7 +414,7 @@ def addregion(request):
                            placeholder='e.g.: Texas',
                             error=region_error)
     add_button=Button(
-        display_text='Add Region',
+        display_text='Upload Files',
         name='add_button',
         icon='glyphicon-plus',
         style='success',
@@ -385,15 +425,169 @@ def addregion(request):
     context = {
         'region_name':region_name,
         'add_button':add_button,
-        'file_error':file_error,
         'border_error':border_error,
         'major_error':major_error,
         'wells_error':wells_error,
         'time_error':time_error,
-        'dem_error':dem_error
+        'dem_error':dem_error,
     }
 
     return render(request, 'gw/addregion.html', context)
+
+@login_required()
+def addregion2(request,region):
+    success=False
+
+    print("Region on next line:")
+    print(region)
+    app_workspace=app.get_app_workspace()
+    # Code for writing the aquifers_csv file
+    #options for the user to select which property in the aquifers json file to use as DisplayName, ID, and Name
+    directory = os.path.join(app_workspace.path, region)
+    aqs = []
+    majorfile = os.path.join(directory, 'MajorAquifers.json')
+    with open(majorfile) as f:
+        major_json = json.load(f)
+    major_props=major_json['features'][0]['properties'].viewkeys()
+    print(major_props)
+
+    add_button = Button(
+        display_text='Add Region',
+        name='add_button',
+        icon='glyphicon-plus',
+        style='success',
+        attributes={'onclick': 'add_aquifer_settings()'},
+        submit=True
+    )
+    ids=[]
+    for i in major_props:
+        id = (i, i)
+        ids.append(id)
+    select_region = SelectInput(display_text='Region',
+       name='select_region',
+       multiple=False,
+       options=[(region,region)],
+       initial=region,
+       attributes={
+       }
+   )
+    select_AquiferID = SelectInput(display_text='Select AquiferID Attribute',
+        name='select_AquiferID',
+        multiple=False,
+        options=ids,
+        initial='AquiferID',
+        attributes={
+        }
+    )
+    select_DisplayName = SelectInput(display_text='Select DisplayName Attribute',
+       name='select_DisplayName',
+       multiple=False,
+       options=ids,
+       initial='DisplayName',
+       attributes={
+       }
+   )
+    select_Aquifer_Name = SelectInput(display_text='Select Aquifer_Name Attribute',
+       name='select_Aquifer_Name',
+       multiple=False,
+       options=ids,
+       initial='Aquifer_Name',
+       attributes={
+       }
+   )
+    opt_a_ids = copy.deepcopy(ids)
+    opt_a_ids.insert(0, ('Unused', 'Unused'))
+    select_porosity = SelectInput(display_text='Select Aquifer Storage Coefficient Attribute (optional)',
+      name='select_porosity',
+      multiple=False,
+      options=opt_a_ids,
+      initial='Unused',
+      attributes={
+      }
+  )
+
+    # These options are for choosing the well attributes for your region
+    well_file = os.path.join(directory, 'Wells1.json')
+    with open(well_file) as f:
+        well_json = json.load(f)
+    well_props = well_json['features'][0]['properties'].viewkeys()
+    count=min(3,len(well_json['features']))
+    myrows=[]
+    for i in range(0,count):
+        row=well_json['features'][i]['properties'].viewvalues()
+        myrows.append(row)
+
+    w_ids = []
+    for i in well_props:
+        id = (i, i)
+        w_ids.append(id)
+    table_view = TableView(column_names=(well_props),
+       rows=myrows,
+       hover=True,
+       striped=False,
+       bordered=False,
+       condensed=False)
+
+    opt_ids = copy.deepcopy(w_ids)
+    opt_ids.insert(0, ('Unused', 'Unused'))
+
+    select_hydroid = SelectInput(display_text='Select Well HydroID Attribute',
+                                 name='select_hydroid',
+                                 multiple=False,
+                                 options=w_ids,
+                                 initial='HydroID',
+                                 attributes={
+                                 }
+                                 )
+    select_elev = SelectInput(display_text='Select Well Elevation Attribute (optional)',
+                                 name='select_elev',
+                                 multiple=False,
+                                 options=opt_ids,
+                                 initial='LandElev',
+                                 attributes={
+                                 }
+                                 )
+    select_aqid = SelectInput(display_text='Select Well AquiferID Attribute',
+                                 name='select_aqid',
+                                 multiple=False,
+                                 options=w_ids,
+                                 initial='AquiferID',
+                                 attributes={
+                                 }
+                                 )
+    select_depth = SelectInput(display_text='Select Well Depth Attribute (optional)',
+                                 name='select_depth',
+                                 multiple=False,
+                                 options=opt_ids,
+                                 initial='Unused',
+                                 attributes={
+                                 }
+                                 )
+    select_type = SelectInput(display_text='Select Well Type Attribute (optional)',
+                               name='select_type',
+                               multiple=False,
+                               options=opt_ids,
+                               initial='Unused',
+                               attributes={
+                               }
+                               )
+    context={
+        'add_button':add_button,
+        'select_AquiferID':select_AquiferID,
+        'select_DisplayName':select_DisplayName,
+        'select_Aquifer_Name':select_Aquifer_Name,
+        'select_porosity':select_porosity,
+        'select_region':select_region,
+        'table_view':table_view,
+        'select_hydroid':select_hydroid,
+        'select_aqid':select_aqid,
+        'select_elev':select_elev,
+        'select_type':select_type,
+        'select_depth':select_depth
+
+
+    }
+    return render(request, 'gw/addregion2.html', context)
 
 @login_required()
 def region_map(request):
@@ -405,20 +599,56 @@ def region_map(request):
     regions=[]
     for entry in dirs:
         # One time code to fix aquifer names
-        # names_list=['Name','AQ_NAME','AQU_NAME','Hydro_Zone','altName','WMU_NAME']
         # directory = os.path.join(app_workspace.path,entry)
+        # the_csv=os.path.join(directory,entry+'_Aquifers.csv')
+        # majorfile=os.path.join(directory,'MajorAquifers.json')
+        # aquifercsv=[]
+        # with open(the_csv) as csvfile:
+        #     reader = csv.DictReader(csvfile)
+        #     for row in reader:
+        #         if row:
+        #             aq=((row['ID']),(row["Name"]),(row['CapsName']))
+        #             aquifercsv.append(aq)
+        # with open(majorfile) as f:
+        #     json_object=json.load(f)
+        # for aq in aquifercsv:
+        #     for aquifer in json_object['features']:
+        #         if aq[2]==aquifer['properties']['Aquifer_Name']:
+        #             if 'DisplayName' in aquifer:
+        #                 del aquifer['DisplayName']
+        #             aquifer['properties']['AquiferID']=aq[0]
+        #             aquifer['properties']['DisplayName']=aq[1]
+        #             print(aq[1])
+        #             break
+        # with open(majorfile,'w') as f:
+        #     json.dump(json_object,f)
         # for filename in os.listdir(directory):
-        #     if filename.startswith('MajorAquifers.json'):
-        #         myfile=os.path.join(directory,'MajorAquifers.json')
-        #         with open(myfile) as f:
-        #             json_object=json.load(f)
-        #         for aquifer in json_object['features']:
-        #             for name in names_list:
-        #                 if name in aquifer['properties']:
-        #                     aquifer['properties']['Aquifer_Name']=aquifer['properties'][name]
+        #     if filename.startswith('MinorAquifers.json'):
+        #         minorfile=os.path.join(directory,'MinorAquifers.json')
+        #         with open(minorfile) as f:
+        #             json_object = json.load(f)
+        #         for aq in aquifercsv:
+        #             for aquifer in json_object['features']:
+        #                 if aq[2] == aquifer['properties']['Aquifer_Name']:
+        #                     if 'DisplayName' in aquifer:
+        #                         del aquifer['DisplayName']
+        #                     aquifer['properties']['AquiferID'] = aq[0]
+        #                     aquifer['properties']['DisplayName'] = aq[1]
         #                     break
-        #         with open(myfile, 'w') as f:
+        #         with open(minorfile, 'w') as f:
         #             json.dump(json_object, f)
+       #for filename in os.listdir(directory)
+            # if filename.startswith('MajorAquifers.json'):
+            #     myfile=os.path.join(directory,'MajorAquifers.json')
+            #     with open(myfile) as f:
+            #         json_object=json.load(f)
+            #     for aquifer in json_object['features']:
+            #         for name in names_list:
+            #             if name in aquifer['properties']:
+            #                 aquifer['properties']['Aquifer_Name']=aquifer['properties'][name]
+            #                 break
+            #     with open(myfile, 'w') as f:
+            #         json.dump(json_object, f)
         # for filename in os.listdir(directory):
         #     myfile = os.path.join(directory, 'MinorAquifers.json')
         #     if filename.startswith('MinorAquifers.json'):
@@ -593,7 +823,13 @@ def interpolation(request):
                                         ('Sparta',27),('West Texas Bolsons',2),('Woodbine',29),('Yegua Jackson',31),('None',22),('Texas',32)],
                                initial='',
                                attributes={
+                                   'onchange':'get_porosity()'
                                }
+    )
+
+    select_porosity = TextInput(display_text='Enter the storage coefficient for the aquifer:',
+                            name='select_porosity',
+                            initial='0.1',
     )
 
 
@@ -709,7 +945,8 @@ def interpolation(request):
         'min_ratio':min_ratio,
         'time_tolerance':time_tolerance,
         'interpolation_options':interpolation_options,
-        'temporal_interpolation':temporal_interpolation
+        'temporal_interpolation':temporal_interpolation,
+        'select_porosity':select_porosity
     }
 
     return render(request, 'gw/interpolation.html', context)

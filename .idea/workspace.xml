@@ -2,29 +2,43 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="97f68757-facc-4a7f-848b-c9ced2909061" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/fix_names.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/remove_region.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/base.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/interpolation.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/interpolation.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/MajorAquifers.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Dominican_Republic_Aquifers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Dominican_Republic_Aquifers.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/MajorAquifers.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells1.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells1.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells_Master.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells_Master.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Central.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Central.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Oriental.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Oriental.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Septentrional.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Septentrional.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Dominican_Republic.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Dominican_Republic.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Los_Haitises.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Los_Haitises.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Peninsula_De_Samana.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Peninsula_De_Samana.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Pensinsula_Sur_De_Barahona.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Pensinsula_Sur_De_Barahona.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_Costera_Oriental.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_Costera_Oriental.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_De_Azua.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_De_Azua.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_De_Bani.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_De_Bani.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Sierra_De_Neiba.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Sierra_De_Neiba.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Valle_De_Neiba.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Valle_De_Neiba.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Valle_De_San_Juan.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Valle_De_San_Juan.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/MajorAquifers.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/MajorAquifers.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/MajorAquifers.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MajorAquifers.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MinorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MinorAquifers.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ogallala.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/MajorAquifers.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/MajorAquifers.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/MajorAquifers.json" afterDir="false" />
     </list>
@@ -50,23 +64,17 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" root0="FORCE_HIGHLIGHTING" />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="907" />
-    <option name="y" value="55" />
-    <option name="width" value="1008" />
-    <option name="height" value="942" />
-  </component>
   <component name="ProjectId" id="1Ohv7x3gRCt9PWvysk88FSM8jaw" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/tethysapp/gw/templates/gw" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace" />
       <recent name="$PROJECT_DIR$/tethysapp/gw/templates/gw" />
+      <recent name="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace" />
       <recent name="$PROJECT_DIR$/tethysapp/gw/public/js" />
     </key>
   </component>

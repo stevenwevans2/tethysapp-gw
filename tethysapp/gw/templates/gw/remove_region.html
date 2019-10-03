@@ -1,0 +1,21 @@
+{% extends "gw/base.html" %}
+{% load tethys_gizmos %}
+
+{% block header_buttons %}
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="Help">
+    <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
+  </div>
+{% endblock %}
+
+{% block app_content %}
+  <h1>Add Region</h1>
+  <h6>Use this page to remove regions from the Groundwater Level Mapping Tool</h6>
+  {% gizmo select_region %}
+  {% gizmo submit_button %}
+{% endblock %}
+
+
+
+{% block app_actions %}
+
+{% endblock %}

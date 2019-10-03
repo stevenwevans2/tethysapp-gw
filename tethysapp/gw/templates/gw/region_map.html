@@ -61,7 +61,16 @@
     </head>
     <body>
         <span class="leg_min_max">
-
+            <span style="white-space:nowrap;float:left;">Map Height:
+                <select onchange="enlarge_map()" id="map_height">
+                        <option value="400px">400</option>
+                        <option selected="selected" value="500px">500</option>
+                        <option value="600px">600</option>
+                        <option value="700px">700</option>
+                        <option value="800px">800</option>
+                        <option value="900px">900</option>
+                </select> pixels
+            </span>
                 <span style="white-space:nowrap;float:right;">Select Symbology:
                     <select onchange="updateWMS()" id="select_symbology">
                         <option value="grace">GRACE</option>
