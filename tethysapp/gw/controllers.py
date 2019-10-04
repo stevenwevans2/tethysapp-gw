@@ -281,6 +281,23 @@ def addregion_nwis2(request,region):
     major_props=major_json['features'][0]['properties'].viewkeys()
     print(major_props)
 
+    count = min(3, len(major_json['features']))
+    myrows = []
+    for i in range(0, count):
+        row = major_json['features'][i]['properties'].viewvalues()
+        myrows.append(row)
+
+    w_ids = []
+    for i in major_props:
+        id = (i, i)
+        w_ids.append(id)
+    table_view_aq = TableView(column_names=(major_props),
+                              rows=myrows,
+                              hover=True,
+                              striped=False,
+                              bordered=False,
+                              condensed=False)
+
     add_button = Button(
         display_text='Add Region',
         name='add_button',
@@ -344,8 +361,7 @@ def addregion_nwis2(request,region):
         'select_Aquifer_Name':select_Aquifer_Name,
         'select_porosity':select_porosity,
         'select_region':select_region,
-
-
+        'table_view_aq':table_view_aq,
     }
     return render(request, 'gw/addregion_nwis2.html', context)
 
@@ -539,6 +555,23 @@ def addregion2(request,region):
     major_props=major_json['features'][0]['properties'].viewkeys()
     print(major_props)
 
+    count = min(3, len(major_json['features']))
+    myrows = []
+    for i in range(0, count):
+        row = major_json['features'][i]['properties'].viewvalues()
+        myrows.append(row)
+
+    w_ids = []
+    for i in major_props:
+        id = (i, i)
+        w_ids.append(id)
+    table_view_aq = TableView(column_names=(major_props),
+                           rows=myrows,
+                           hover=True,
+                           striped=False,
+                           bordered=False,
+                           condensed=False)
+
     add_button = Button(
         display_text='Add Region',
         name='add_button',
@@ -671,9 +704,8 @@ def addregion2(request,region):
         'select_aqid':select_aqid,
         'select_elev':select_elev,
         'select_type':select_type,
-        'select_depth':select_depth
-
-
+        'select_depth':select_depth,
+        'table_view_aq':table_view_aq,
     }
     return render(request, 'gw/addregion2.html', context)
 
@@ -1046,6 +1078,7 @@ def interpolation(request):
 #The pullnwis function pulls data from the web for a specified region and writes the data to a JSON file named Wells.JSON in the appropriate folder.
 def pullnwis(state, app_workspace,region):
     states=state.split(',')
+    print(states)
     points = {
         'type': 'FeatureCollection',
         'features': []
@@ -1128,6 +1161,7 @@ def pullnwis(state, app_workspace,region):
                 continue
     # End Loop
     count = 0
+    print("Starting the TsValue loop")
     for i in points['features']:
         if 'TsValue' in i:
             array = []
@@ -1155,8 +1189,8 @@ def pullnwis(state, app_workspace,region):
                 i['TsTime'].append(array[j][0])
                 i['TsValue'].append(array[j][1])
             count += 1
-
     points['aquifermin']=aquifermin
     mywellsfile = os.path.join(app_workspace.path, region + "/Wells.json")
     with open(mywellsfile, 'w') as outfile:
         json.dump(points, outfile)
+    print("done with this function")

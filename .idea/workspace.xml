@@ -2,13 +2,32 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="97f68757-facc-4a7f-848b-c9ced2909061" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis2.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis2.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis2.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/DEM.tif" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/DEM.tif" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/MajorAquifers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Oregon_Aquifers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Oregon_Aquifers.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Wells.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Wells.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Benton_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Benton_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clackamas_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clackamas_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Grant_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Grant_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Harney_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Harney_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Jackson_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Jackson_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Klamath_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Klamath_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Morrow_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Morrow_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Multnomah_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Multnomah_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Oregon.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Oregon.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Umatilla_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Umatilla_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Yamhill_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Yamhill_County.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/United_States_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/United_States_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/Wells.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/aquifers/Central_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/aquifers/High_Plains.json" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
