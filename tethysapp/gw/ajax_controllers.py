@@ -271,6 +271,7 @@ def finish_addregion(request):
         Elev=request.GET.get('Elev')
         Type=request.GET.get('Type')
         Depth=request.GET.get('Depth')
+        come_from=request.GET.get("come_from")
 
         app_workspace=app.get_app_workspace()
         directory = os.path.join(app_workspace.path, region)
@@ -311,22 +312,23 @@ def finish_addregion(request):
         with open(majorfile, 'w') as f:
             json.dump(major_json, f)
 
-        #This section is for updating and saving the well properties
-        wellfile = os.path.join(directory, 'Wells1.json')
-        with open(wellfile) as f:
-            well_json = json.load(f)
-        for w in well_json['features']:
-            w['properties']['HydroID'] = w['properties'].pop(HydroID)
-            w['properties']['AquiferID'] = w['properties'].pop(AqID)
-            if Elev != "Unused":
-                w['properties']['LandElev'] = w['properties'].pop(Elev)
-            if Type != "Unused":
-                w['properties']['FType'] = w['properties'].pop(Type)
-            if Depth != "Unused":
-                w['properties']['WellDepth'] = w['properties'].pop(Depth)
-        with open(wellfile, 'w') as f:
-            json.dump(well_json, f)
-        #end well properties
+        if come_from=="upload":
+            #This section is for updating and saving the well properties
+            wellfile = os.path.join(directory, 'Wells1.json')
+            with open(wellfile) as f:
+                well_json = json.load(f)
+            for w in well_json['features']:
+                w['properties']['HydroID'] = w['properties'].pop(HydroID)
+                w['properties']['AquiferID'] = w['properties'].pop(AqID)
+                if Elev != "Unused":
+                    w['properties']['LandElev'] = w['properties'].pop(Elev)
+                if Type != "Unused":
+                    w['properties']['FType'] = w['properties'].pop(Type)
+                if Depth != "Unused":
+                    w['properties']['WellDepth'] = w['properties'].pop(Depth)
+            with open(wellfile, 'w') as f:
+                json.dump(well_json, f)
+            #end well properties
 
         the_csv = os.path.join(directory, region + '_Aquifers.csv')
         with open(the_csv, mode='w') as csv_file:
@@ -359,10 +361,10 @@ def finish_addregion(request):
             for aq in aquiferlist:
                 i = aq['Id']
                 if os.path.exists(well_file) and os.path.exists(times_file):
-                    print "made it to subdivide"
+                    print "made it to subdivide: upload"
                     subdivideaquifers(region, app_workspace, i)
-                if os.path.exists(well_nwis_file):
-                    print("Made it to divide")
+                elif os.path.exists(well_nwis_file):
+                    print("Made it to divide: NWIS")
                     divideaquifers(region, app_workspace, i)
             success = True
 

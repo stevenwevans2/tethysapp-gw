@@ -1,0 +1,31 @@
+{% extends "gw/base.html" %}
+{% load tethys_gizmos %}
+{% load staticfiles %}
+
+{% block header_buttons %}
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="Help">
+    <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
+  </div>
+{% endblock %}
+
+{% block app_content %}
+  {% gizmo select_region %}
+  <h1>Select Aquifer Properties</h1>
+  <h6>Use the dropdown menus below to select the appropriate properties from you uploaded aquifer JSON file to be used in the app.</h6>
+  {% gizmo select_AquiferID %}
+  {% gizmo select_DisplayName %}
+  {% gizmo select_Aquifer_Name %}
+  {% gizmo select_porosity %}
+{% endblock %}
+
+
+{% block after_app_content %}
+
+{% endblock %}
+
+
+
+
+{% block app_actions %}
+  {% gizmo add_button %}
+{% endblock %}

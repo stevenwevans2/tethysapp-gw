@@ -1,20 +1,20 @@
-ID,Name,Type,CapsName,NameField
-1,Curlew Valley,Major,3,Name
-2,Cache Valley,Major,5,Name
-3,Tooele Valley,Major,12,Name
-4,East Shore Area,Major,9,Name
-5,Northern Utah Valley-west,Major,16b,Name
-6,Northern Utah Valley-east,Major,16a,Name
-7,Salt Lake Valley,Major,10,Name
-8,Goshen Valley,Major,16d,Name
-9,Southern Utah Valley,Major,16c,Name
-10,Juab Valley,Major,21,Name
-11,Pahvant Valley,Major,23,Name
-12,Sevier Desert,Major,24,Name
-13,Central Sevier Valley,Major,22,Name
-14,Escalante Valley-Milford,Major,26,Name
-15,Central Virgin River,Major,34,Name
-16,Cedar Valley,Major,32,Name
-17,Parowan Valley,Major,31,Name
-18,Escalante Valley-Beryl-Enterprise,Major,33,Name
-19,Utah,None,Utah,Name
+ID,Name,CapsName
+1,Curlew Valley,3
+2,Cache Valley,5
+3,Tooele Valley,12
+4,East Shore Area,9
+5,Northern Utah Valley-west,16b
+6,Northern Utah Valley-east,16a
+7,Salt Lake Valley,10
+8,Goshen Valley,16d
+9,Southern Utah Valley,16c
+10,Juab Valley,21
+11,Pahvant Valley,23
+12,Sevier Desert,24
+13,Central Sevier Valley,22
+14,Escalante Valley-Milford,26
+15,Central Virgin River,34
+16,Cedar Valley,32
+17,Parowan Valley,31
+18,Escalante Valley-Beryl-Enterprise,33
+-999,Utah,Utah

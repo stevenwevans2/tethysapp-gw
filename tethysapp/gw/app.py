@@ -74,6 +74,11 @@ class Gw(TethysAppBase):
                 controller='gw.controllers.addregion2'
             ),
             UrlMap(
+                name='addregion_nwis2',
+                url='addregion_nwis2/{region}',
+                controller='gw.controllers.addregion_nwis2'
+            ),
+            UrlMap(
                 name='removeregion',
                 url='removeregion',
                 controller='gw.controllers.removeregion'
