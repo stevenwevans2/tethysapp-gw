@@ -13,7 +13,7 @@ from shapely.geometry import Point
 from shapely.geometry import shape
 from hs_restclient import HydroShare, HydroShareAuthBasic
 from .uploadnetcdf import *
-
+from .model import *
 
 #Check if the user is superuser or staff. Only the superuser or staff have the permission to add and manage watersheds.
 def user_permission_test(user):
@@ -30,41 +30,30 @@ def displaygeojson(request):
     # Check if its an ajax post request
     if request.is_ajax() and request.method == 'GET':
         return_obj['success'] = True
-        geolayer = request.GET.get('geolayer')
         region=request.GET.get('region')
-        return_obj['geolayer'] = geolayer
-        app_workspace = app.get_app_workspace()
-        geofile = os.path.join(app_workspace.path, region+"/"+geolayer)
-        aquiferlist = getaquiferlist(app_workspace, region)
-        fieldname='Aquifer_Name'
-        if os.path.exists(geofile):
-            with open(geofile, 'r') as f:
-                return_obj['state']=json.load(f)
-            #     allwells = ''
-            #     wells = f.readlines()
-            #     for i in range(0, len(wells)):#len(wells)
-            #         allwells += wells[i]
-            # return_obj['state'] = json.loads(allwells)
-        minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
-        majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
-        if os.path.exists(minorfile):
-            with open(minorfile, 'r') as f:
-                minoraquifers = json.load(f)
-                for k in minoraquifers['features']:
-                    for l in aquiferlist:
-                        if k['properties'][fieldname]==l['CapsName']:
-                            k['properties']['Id']=l['Id']
-                            k['properties']['Name']=l["Name"]
-            return_obj['minor'] = minoraquifers
-        if os.path.exists(majorfile):
-            with open(majorfile, 'r') as f:
-                majoraquifers = json.load(f)
-                for k in majoraquifers['features']:
-                    for l in aquiferlist:
-                        if k['properties'][fieldname]==l['CapsName']:
-                            k['properties']['Id']=l['Id']
-                            k['properties']['Name']=l['Name']
-            return_obj['major']=majoraquifers
+
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
+
+        majoraquifers = session.query(Aquifers.AquiferName,Aquifers.AquiferShapeJSON).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="Major")
+        major=[]
+        for aquifer in majoraquifers:
+            mymajor=aquifer.AquiferShapeJSON
+            mymajor['features'][0]['properties']['Name']=aquifer.AquiferName
+            major.append(mymajor)
+        return_obj['major'] = major
+        minoraquifers=session.query(Aquifers.AquiferName,Aquifers.AquiferShapeJSON).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="(Minor)")
+        minor=[]
+        if minoraquifers:
+            for aquifer in minoraquifers:
+                myminor = aquifer.AquiferShapeJSON
+                myminor['features'][0]['properties']['Name'] = aquifer.AquiferName
+                minor.append(myminor)
+            return_obj['minor']=minor
+        state=session.query(Regions.RegionJSON).filter(Regions.RegionName == region.replace("_"," "))
+        for entry in state:
+            return_obj['state']=entry.RegionJSON
+        session.close()
 
     return JsonResponse(return_obj)
 
@@ -80,43 +69,15 @@ def loadjson(request):
         return_obj['success'] = True
         aquifer_number = request.GET.get('aquifer_number')
         region=request.GET.get('region')
-        app_workspace = app.get_app_workspace()
-        aquiferlist=getaquiferlist(app_workspace,region)
 
-        for i in aquiferlist:
-            if i['Id'] == int(aquifer_number):
-                myaquifer = i
-        minorfile = os.path.join(app_workspace.path, region+'/MinorAquifers.json')
-        majorfile = os.path.join(app_workspace.path, region+'/MajorAquifers.json')
-        aquiferShape = []
-        fieldname='Aquifer_Name'
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
+        aquiferlist = session.query(Aquifers.AquiferShapeJSON,Aquifers.AquiferName).filter(Aquifers.RegionName == region.replace("_", " "),Aquifers.AquiferID==aquifer_number)
+        for aquifer in aquiferlist:
+            return_obj['data']=aquifer.AquiferShapeJSON
+            return_obj['aquifer'] = aquifer.AquiferName
+        session.close()
 
-        if os.path.exists(minorfile):
-            with open(minorfile, 'r') as f:
-                minor = ''
-                entry = f.readlines()
-                for i in range(0, len(entry)):
-                    minor += entry[i]
-            minor = json.loads(minor)
-            for i in minor['features']:
-                if fieldname in i['properties']:
-                    if i['properties'][fieldname]==myaquifer['CapsName']:
-                        aquiferShape.append(i)
-
-        if os.path.exists(majorfile):
-            with open(majorfile, 'r') as f:
-                major = ''
-                entry = f.readlines()
-                for i in range(0, len(entry)):
-                    major += entry[i]
-            major=json.loads(major)
-            for i in major['features']:
-                if fieldname in i['properties']:
-                    if i['properties'][fieldname]==myaquifer['CapsName']:
-                        aquiferShape.append(i)
-
-        return_obj['data']=aquiferShape
-        return_obj['aquifer']=myaquifer
     return JsonResponse(return_obj)
 
 
@@ -133,8 +94,19 @@ def loadaquiferlist(request):
         return_obj['success'] = True
         region=request.GET.get('region')
 
-        app_workspace = app.get_app_workspace()
-        aquiferlist=getaquiferlist(app_workspace,region)
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
+        aquifersession = session.query(Aquifers.AquiferID, Aquifers.AquiferName, Aquifers.AquiferType).filter(Aquifers.RegionName == region.replace("_", " "))
+        aquiferlist=[]
+        for aquifer in aquifersession:
+            myaquifer={
+                'Id': aquifer.AquiferID,
+                'Name': aquifer.AquiferName,
+                'Type': aquifer.AquiferType,
+            }
+            aquiferlist.append(myaquifer)
+
+        session.close()
         return_obj['aquiferlist']=aquiferlist
     return JsonResponse(return_obj)
 
@@ -272,6 +244,7 @@ def finish_addregion(request):
         Type=request.GET.get('Type')
         Depth=request.GET.get('Depth')
         come_from=request.GET.get("come_from")
+        units=request.GET.get("units")
 
         app_workspace=app.get_app_workspace()
         directory = os.path.join(app_workspace.path, region)
@@ -357,15 +330,15 @@ def finish_addregion(request):
             times_file = os.path.join(app_workspace.path, region + '/Wells_Master.csv')
             well_nwis_file = os.path.join(app_workspace.path, region + '/Wells.json')
 
-
+            add_region(region, units)
             for aq in aquiferlist:
                 i = aq['Id']
                 if os.path.exists(well_file) and os.path.exists(times_file):
                     print "made it to subdivide: upload"
-                    subdivideaquifers(region, app_workspace, i)
+                    subdivideaquifers(region, app_workspace, i,units)
                 elif os.path.exists(well_nwis_file):
                     print("Made it to divide: NWIS")
-                    divideaquifers(region, app_workspace, i)
+                    divideaquifers(region, app_workspace, i,units)
             success = True
 
         except Exception as e:
@@ -374,10 +347,11 @@ def finish_addregion(request):
         url=''
         if success:
             messages.info(request, 'Successfully added region')
+            shutil.rmtree(os.path.join(app_workspace.path, region))
             url=reverse('gw:region_map')
         else:
+            shutil.rmtree(os.path.join(app_workspace.path, region))
             url=reverse('gw:addregion')
-        print(url)
         return_obj['url']=url
     return JsonResponse(return_obj)
 
@@ -526,7 +500,7 @@ def loaddata(request):
                 aquiferid=i
                 points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity)
         else:
-            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance,  from_wizard, units,porosity)
+            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity)
 
         return_obj['data']=points
         return_obj['message']=returnmessage
@@ -535,7 +509,7 @@ def loaddata(request):
 
 #This function takes a region and aquiferid number and writes a new JSON file with data for the specified aquifer
 #This function uses data from the Wells.json file for the region.
-def divideaquifers(region,app_workspace,aquiferid):
+def divideaquifers(region,app_workspace,aquiferid,units):
     aquiferlist = getaquiferlist(app_workspace, region)
     for i in aquiferlist:
         if i['Id'] == int(aquiferid):
@@ -621,11 +595,14 @@ def divideaquifers(region,app_workspace,aquiferid):
     with open(filename, 'w') as outfile:
         json.dump(points, outfile)
 
+    if name != 'NONE' and name != "None":
+        add_aquifer(points, region, name, myaquifer, units)
+
     return points
 
 #This function takes a region and aquiferid number and writes a new JSON file with data for the specified aquifer.
 # This function divides the data from a CSV and JSON file combination.
-def subdivideaquifers(region,app_workspace,aquiferid):
+def subdivideaquifers(region,app_workspace,aquiferid,units):
     print "into subdivide"
     aquiferlist = getaquiferlist(app_workspace, region)
 
@@ -763,6 +740,9 @@ def subdivideaquifers(region,app_workspace,aquiferid):
     with open(filename, 'w') as outfile:
         json.dump(points, outfile)
 
+    if name != 'NONE' and name != "None":
+        add_aquifer(points, region, name, myaquifer, units)
+
 
     return [points,aquifermin]
 
@@ -803,23 +783,24 @@ def gettimelist(region,aquifer):
         timelist.append(mytime)
     return timelist
 
-def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units, porosity):
+def interp_wizard(app_workspace, aquiferid, region, interpolation_type,interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity):
     if from_wizard==True:
         interpolate = 1
     else:
         interpolate=0
 
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    aquiferlist = session.query(Aquifers.AquiferFileName,Aquifers.AquiferWellsJSON).filter(Aquifers.RegionName == region.replace("_", " "),
+                                                 Aquifers.AquiferID == str(aquiferid))
+    for aquifer in aquiferlist:
+        print "got one"
+        name = aquifer.AquiferFileName
+        points=aquifer.AquiferWellsJSON
+    session.close()
 
-
-    aquiferlist = getaquiferlist(app_workspace, region)
-
-    for i in aquiferlist:
-        if i['Id'] == aquiferid:
-            myaquifer = i
-    name = myaquifer['Name'].replace(' ', '_')
-    aquifer=name
     if interpolation_type:
-        date_name=aquifer+"."+str(start_date)+"."+str(end_date)+"."+str(interval)+"."+str(int(resolution*100))+"."+str(min_samples)+"."+str(int(min_ratio*100))+"."+str(time_tolerance)+"."+interpolation_type[0]
+        date_name=name+"."+str(start_date)+"."+str(end_date)+"."+str(interval)+"."+str(int(resolution*100))+"."+str(min_samples)+"."+str(int(min_ratio*100))+"."+str(time_tolerance)+"."+interpolation_type[0]
     else:
         date_name="Nothing will be named this"
     netcdf_directory = os.path.join(thredds_serverpath, region)
@@ -846,31 +827,14 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpol
 
     start = t.time()
 
-    # Check whether the region has been divided. If not, then divide it
-    directory = os.path.join(app_workspace.path, region + '/aquifers')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
 
-    filename = name + '.json'
-    filename = os.path.join(app_workspace.path, region + '/aquifers/' + filename)
-    well_file = os.path.join(app_workspace.path, region + '/Wells.json')
-    if not os.path.exists(filename):
-
-        for aq in aquiferlist:
-            i=aq['Id']
-            if os.path.exists(well_file):
-                divideaquifers(region, app_workspace, i)
-            else:
-                subdivideaquifers(region, app_workspace, i)
-    with open(filename, 'r') as f:
-        points = json.load(f)
     print len(points['features'])
 
     returnmessage=''
     # Execute the following function to interpolate groundwater levels and create a netCDF File and upload it to the server
     if interpolate == 1:
 
-        returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date,
+        returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type,interpolation_options, temporal_interpolation, start_date, end_date,
                       interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity)
 
     end = t.time()

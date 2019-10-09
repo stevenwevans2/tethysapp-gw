@@ -9,12 +9,13 @@ function add_aquifer_settings(){
     var Elev=$("#select_elev").find('option:selected').val();
     var Type=$("#select_type").find('option:selected').val();
     var Depth=$("#select_depth").find('option:selected').val();
-    var come_from="upload"
+    var come_from="upload";
+    var units=$("#select_units").find('option:selected').val();
 
     $.ajax({
         url: '/apps/gw/finish_addregion/',
         type: 'GET',
-        data: {'region':region,'AquiferID':AquiferID,'DisplayName':DisplayName,'Aquifer_Name':Aquifer_Name,'HydroID':HydroID,'AqID':AqID,'Elev':Elev,'Type':Type,'Depth':Depth,'porosity':porosity,"come_from":come_from},
+        data: {'region':region,'AquiferID':AquiferID,'DisplayName':DisplayName,'Aquifer_Name':Aquifer_Name,'HydroID':HydroID,'AqID':AqID,'Elev':Elev,'Type':Type,'Depth':Depth,'porosity':porosity,"come_from":come_from,'units':units},
         contentType: 'application/json',
         error: function (status) {
 
@@ -37,11 +38,12 @@ function add_aquifer_nwis_settings(){
     var DisplayName=$("#select_DisplayName").find('option:selected').val();
     var Aquifer_Name=$("#select_Aquifer_Name").find('option:selected').val();
     var porosity=$("#select_porosity").find('option:selected').val();
-    var come_from="nwis"
+    var come_from="nwis";
+    var units="English";
     $.ajax({
         url: '/apps/gw/finish_addregion/',
         type: 'GET',
-        data: {'region':region,'AquiferID':AquiferID,'DisplayName':DisplayName,'Aquifer_Name':Aquifer_Name,'porosity':porosity,"come_from":come_from},
+        data: {'region':region,'AquiferID':AquiferID,'DisplayName':DisplayName,'Aquifer_Name':Aquifer_Name,'porosity':porosity,"come_from":come_from,'units':units},
         contentType: 'application/json',
         error: function (status) {
 

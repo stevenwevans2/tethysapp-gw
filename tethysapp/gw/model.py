@@ -3,39 +3,21 @@ import ujson as json
 import os
 import csv
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, Float, String, ForeignKey, UniqueConstraint, PickleType
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy import and_
 from.app import Gw as app
 from django.http import Http404, HttpResponse, JsonResponse
+from rasterio.transform import from_bounds, from_origin
+from rasterio.warp import reproject, Resampling
+import rasterio
+import numpy as np
+import elevation
+from sqlalchemy import literal
 
 Base=declarative_base()
-csv_file="csv/Wells_time.csv"
 app_workspace = app.get_app_workspace()
 
-def read_well_data():
-    geolayer="Wells1.json"
-    geofile = os.path.join(app_workspace.path, geolayer)
-    with open(geofile, 'r') as f:
-        allwells = ''
-        wells = f.readlines()
-        for i in range(0, len(wells)):
-            allwells += wells[i]
-    wells_json = json.loads(allwells)
-    return wells_json
-
-def read_time_data():
-
-    file_path = os.path.join(app_workspace.path, csv_file)
-    time_csv=[]
-
-    with open(file_path) as csvfile:
-        reader=csv.DictReader(csvfile)
-        for row in reader:
-            timestep=((row['FeatureID']),(row['TsTime']),(row['TsValue']),(row['TsValue_normalized']))
-            time_csv.append(timestep)
-
-    return time_csv
 
 
 
@@ -68,166 +50,282 @@ class Timeseries(Base):
     TsTime=Column(String)
     TsValue=Column(Float)
     TsValue_normalized=Column(Float)
+    # Relationships
+    # wells=relationship('Well', back_populates='timeseries')
+
+class Aquifers(Base):
+    """SQLAlchemy Aquifers DB Model"""
+    __tablename__ = 'aquifers'
+
+    # Columns
+    id = Column(Integer, primary_key=True)
+    AquiferID = Column(String)
+    AquiferName=Column(String)
+    AquiferFileName=Column(String)
+    AquiferWellsJSON=Column(PickleType)
+    AquiferShapeJSON=Column(PickleType)
+    AquiferDEM=Column(PickleType)
+    AquiferType=Column(String)
+    RegionName=Column(String)
+
+class Regions(Base):
+    """SQLAlchemy Regions DB Model"""
+    __tablename__ = 'regions'
+
+    # Columns
+    id = Column(Integer, primary_key=True)
+    RegionName=Column(String)
+    RegionFileName=Column(String)
+    RegionJSON=Column(PickleType)
+    Units=Column(String)
 
 
-    #Relationships
-    #wells=relationship('Well', back_populates='timeseries')
 
 def init_primary_db(engine, first_time):
     # Initializer for the primary database.
     # Create all the tables
     Base.metadata.create_all(engine)
+    # if first_time:
+    #     # Make session
+    Session=sessionmaker(bind=engine)
+    session=Session()
+    # dirs = next(os.walk(app_workspace.path))[1]
+    # for region in dirs:
+    #     print region
+    #     aquifer_dir=os.path.join(app_workspace.path,region,'aquifers')
+    #     for aquiferfile in os.listdir(aquifer_dir):
+    #         print aquiferfile
+    #         file_path = os.path.join(app_workspace.path, region,'aquifers',aquiferfile)
+    #         aquiferpath=os.path.join(app_workspace.path, region,'MajorAquifers.json')
+    #         if os.path.exists(file_path) and os.path.exists(aquiferpath):
+    #             with open(file_path, 'r') as f:
+    #                 aquifer_json = json.load(f)
+    #             with open(aquiferpath) as f:
+    #                 aquifer_attr=json.load(f)
+    #             if 'AquiferID' in aquifer_json['features'][0]['properties']:
+    #                 aquifer=Aquifers(
+    #                     AquiferID=aquifer_json['features'][0]['properties']['AquiferID'],
+    #                     AquiferWellsJSON=aquifer_json,
+    #                     AquiferName=aquiferfile[:-5].replace("_",""),
+    #                     AquiferFileName = aquiferfile[:-5],
+    #                     # AquiferShapeJSON = Column(PickleType),
+    #                     # AquiferDEM = Column(PickleType),
+    #                     # AquiferType = Column(String),
+    #                     RegionName = region.replace("_","")
+    #                 )
+    #                 session.add(aquifer)
+    #             else:
+    #                 print "No AquiferID for", aquiferfile
 
-    if first_time:
-        # Make session
-        Session=sessionmaker(bind=engine)
-        session=Session()
+    print("Added the aquifer to persistent store")
+    session.commit()
+    print("aquifer committed to persistent store")
+    session.close()
 
-        time_data=read_time_data()
-        well_data=read_well_data()
+def add_region(region,units):
 
-        for well in well_data['features']:
-            well=Well(
-                latitude=well['geometry']['coordinates'][1],
-                longitude=well['geometry']['coordinates'][0],
-                HydroID=well['properties']['HydroID'],
-                Elevation=well['properties']['LandElev'],
-                Depth=well['properties']['WellDepth'],
-                AquiferID=well['properties']['AquiferID'],
-                FType=well['properties']['FType']
-            )
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session=Session()
+    q = session.query(Regions).filter(Regions.RegionFileName==region)
+    exists=session.query(literal(True)).filter(q.exists()).scalar()
+    print exists
 
-            session.add(well)
-
-        print("Added the well_data to persistent store")
+    if exists==None:
+        regionfile=os.path.join(app_workspace.path, region + '/'+region+'_State_Boundary.json')
+        with open(regionfile,'r') as f:
+            regionfile=json.load(f)
+        myregion =Regions(
+            RegionName=region.replace("_"," "),
+            RegionFileName = region,
+            RegionJSON = regionfile,
+            Units = units
+        )
+        session.add(myregion)
+        print("Added the region to persistent store")
         session.commit()
-        print("well_data committed to persistent store")
+        print("region committed to persistent store")
+    session.close()
+    return
 
-        for item in time_data:
-            print(item[0])
-            if item[0]!='':
-                data=Timeseries(
-                FeatureID=item[0],
+def add_aquifer(points,region,name,myaquifer,units):
+
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session=Session()
+    q = session.query(Aquifers).filter(Aquifers.AquiferName == name)
+    exists = session.query(literal(True)).filter(q.exists()).scalar()
+    print exists
+    print name
+
+    if exists == None:
+
+        # Download and Set up the DEM for the aquifer
+        dem_json=download_DEM(region, myaquifer, units)
+        minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
+        majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
+        regionfile=os.path.join(app_workspace.path, region,region+ '_State_Boundary.json')
+
+        aquiferShape = {
+            'type': 'FeatureCollection',
+            'features': []
+        }
+        fieldname = 'Aquifer_Name'
+        match=False
+        region_override=False
+        if os.path.exists(minorfile):
+            with open(minorfile, 'r') as f:
+                minor = json.load(f)
+            for i in minor['features']:
+                if fieldname in i['properties']:
+                    if i['properties'][fieldname] == myaquifer['CapsName']:
+                        i['properties']['Name'] = i['properties'][fieldname]
+                        i['properties']['Id'] = myaquifer['Id']
+                        aquiferShape['features'].append(i)
+                        mytype="Minor"
+                        match=True
+        if os.path.exists(majorfile) and match==False:
+            with open(majorfile, 'r') as f:
+                major = json.load(f)
+            for i in major['features']:
+                if fieldname in i['properties']:
+                    if i['properties'][fieldname] == myaquifer['CapsName']:
+                        i['properties']['Name']=i['properties'][fieldname]
+                        i['properties']['Id'] = myaquifer['Id']
+                        aquiferShape['features'].append(i)
+                        mytype="Major"
+                        match=True
+        if os.path.exists(regionfile) and match==False:
+            with open(regionfile, 'r') as f:
+                aquiferShape = json.load(f)
+                region_override=True
+            mytype="Region"
+            #id=-999
+        if len(aquiferShape['features'])>0:
+            if 'AquiferID' in points['features'][0]['properties'] or region_override:
+                aquifer=Aquifers(
+                    AquiferID=myaquifer['Id'],
+                    AquiferWellsJSON=points,
+                    AquiferName=name,
+                    AquiferFileName = name.replace(" ","_"),
+                    AquiferShapeJSON = aquiferShape,
+                    AquiferDEM = dem_json,
+                    AquiferType = mytype,
+                    RegionName = region.replace("_"," ")
                 )
-                if item[1]!='':
-                    data.TsTime=item[1]
-                if item[2]!='':
-                    data.TsValue=item[2]
-                if item[3]!='':
-                    data.TsValue_normalized=item[3]
-                if data:
-                    session.add(data)
+                session.add(aquifer)
+                print("Added the aquifer to persistent store")
+                session.commit()
+                print("aquifer committed to persistent store")
 
+        else:
+            print "No AquiferID for", name
+    else:
+        print "No Aquifer named ", name
+    session.close()
+    return
 
-        print("Time data added")
-        session.commit()
-        print("Time data committed")
-        session.close()
-
-
-
-def retrieve_Wells(request):
+def get_aquifer_wells(request):
     return_obj = {
         'success': False
     }
-
     # Check if its an ajax post request
     if request.is_ajax() and request.method == 'GET':
         return_obj['success'] = True
-        geolayer = request.GET.get('geolayer')
-        min_num=request.GET.get('min_num')
-        return_obj['geolayer'] = geolayer
-        return_obj['min_num']=min_num
+        aquifer_id=request.GET.get('aquifer_id')
+        region=request.GET.get('region')
+
         Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
         session = Session()
-        n=int(geolayer)
-        min_num=int(min_num)
-        if min_num>0:
-            all_wells = session.query(Well).filter(and_(Well.AquiferID == n,Well.timeseries))
-        else:
-            all_wells = session.query(Well).filter(Well.AquiferID==n)
-
-        # features=[]
-        #
-        # for well in all_wells:
-        #     if well.timeseries:
-        #         TsTime=[]
-        #         TsValue=[]
-        #         TsValue_normalized=[]
-        #         for point in well.timeseries:
-        #             TsTime.append(point.TsTime)
-        #             TsValue.append(point.TsValue)
-        #             TsValue_normalized.append(point.TsValue_normalized)
-        #         well_feature={
-        #             'type': 'Feature',
-        #             'geometry':{
-        #                 'type':'Point',
-        #                 'coordinates':[well.longitude,well.latitude]
-        #             },
-        #             'properties':{
-        #                 'HydroID':well.HydroID,
-        #                 'LandElev':well.Elevation,
-        #                 'WellDepth':well.Depth,
-        #                 'AquiferID':well.AquiferID,
-        #                 'FType':well.FType
-        #             },
-        #             'timeseries':{
-        #                 'TsTime':TsTime,
-        #                 'TsValue':TsValue,
-        #                 'TsValue_normalized':TsValue_normalized
-        #             }
-        #         }
-        #     else:
-        #         well_feature = {
-        #             'type': 'Feature',
-        #             'geometry': {
-        #                 'type': 'Point',
-        #                 'coordinates': [well.longitude, well.latitude]
-        #             },
-        #             'properties': {
-        #                 'HydroID': well.HydroID,
-        #                 'LandElev': well.Elevation,
-        #                 'WellDepth': well.Depth,
-        #                 'AquiferID': well.AquiferID,
-        #                 'FType': well.FType
-        #             }
-        #         }
-        #     features.append(well_feature)
-        #     print(well_feature['properties']['HydroID'])
-        # json_string=json.dumps(features)
-
-        json_string='{"type":"FeatureCollection", "features": ['
+        all_wells = session.query(Aquifers).filter(Aquifers.AquiferID == aquifer_id, Aquifers.RegionName == region.replace("_"," "))
         for well in all_wells:
-            json_string+='{"type":"Feature","geometry":{"type":"Point","coordinates":['+str(well.longitude)+','+str(well.latitude)+']},'\
-                         +'"properties":{"HydroID":'+str(well.HydroID)+',"LandElev":'+str(well.Elevation)+',"WellDepth":'+str(well.Depth)\
-                         +',"AquiferID":'+str(well.AquiferID)+',"FType":"'+str(well.FType)+'"}'
-            if well.timeseries:
-                json_string+=',"timeseries":{"TsTime":'
-                time='['
-                tsvalue=',"TsValue":['
-                tsvaluenorm=',"TsValue_normalized":['
-                for point in well.timeseries:
-                    time+='"'+str(point.TsTime)+'",'
-                    tsvalue+=str(point.TsValue)+','
-                    tsvaluenorm+=str(point.TsValue_normalized)+','
-                time=time[:-1]
-                tsvalue=tsvalue[:-1]
-                tsvaluenorm=tsvaluenorm[:-1]
-                time+=']'
-                tsvalue+=']'
-                tsvaluenorm+=']'
-                json_string+=time
-                json_string+=tsvalue
-                if point.TsValue_normalized:
-                    json_string+=tsvaluenorm
-                json_string+='}},'
-            else:
-                json_string+='},'
-        json_string=json_string[:-1]
-        json_string+=']}'
-
-        return_obj=json.loads(json_string)
+            return_obj['data'] = well.AquiferWellsJSON
         session.close()
     return JsonResponse(return_obj)
 
-#
+#The explode and bbox functions are used to get the bounding box of a geoJSON object
+def explode(coords):
+    """Explode a GeoJSON geometry's coordinates object and yield coordinate tuples.
+    As long as the input is conforming, the type of the geometry doesn't matter."""
+    for e in coords:
+        if isinstance(e, (float, int, long)):
+            yield coords
+            break
+        else:
+            for f in explode(e):
+                yield f
+
+def bbox(f):
+    x, y = zip(*list(explode(f['geometry']['coordinates'])))
+    return round(np.min(x)-.05,1), round(np.min(y)-.05,1), round(np.max(x)+.05,1), round(np.max(y)+.05,1)
+
+def download_DEM(region,myaquifer, units):
+    # Download and Set up the DEM for the aquifer
+    app_workspace = app.get_app_workspace()
+    name=myaquifer['Name']
+    directory = os.path.join(app_workspace.path, region + '/DEM')
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
+    majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
+    regionfile = os.path.join(app_workspace.path, region, region + '_State_Boundary.json')
+    aquiferShape = {
+        'type': 'FeatureCollection',
+        'features': []
+    }
+    fieldname = 'Aquifer_Name'
+    print("into download_DEM")
+    match=False
+    if os.path.exists(minorfile):
+        with open(minorfile, 'r') as f:
+            minor = json.load(f)
+        for i in minor['features']:
+            if fieldname in i['properties']:
+                if i['properties'][fieldname] == myaquifer['CapsName']:
+                    aquiferShape['features'].append(i)
+                    match=True
+    if os.path.exists(majorfile) and match==False:
+        with open(majorfile, 'r') as f:
+            major = json.load(f)
+        for i in major['features']:
+            if fieldname in i['properties']:
+                if i['properties'][fieldname] == myaquifer['CapsName']:
+                    aquiferShape['features'].append(i)
+                    match=True
+    if os.path.exists(regionfile) and match==False:
+        with open(regionfile, 'r') as f:
+            aquiferShape = json.load(f)
+    try:
+        lonmin, latmin, lonmax, latmax = bbox(aquiferShape['features'][0])
+    except:
+        long=0
+        answer=0
+        for f in range(len(aquiferShape['features'])):
+            if aquiferShape['features'][f]['geometry']!=None:
+                x, y = zip(*list(explode(aquiferShape['features'][f]['geometry']['coordinates'])))
+                if len(x)>long:
+                    long=len(x)
+                    answer=f
+        print(answer)
+        lonmin, latmin, lonmax, latmax = bbox(aquiferShape['features'][answer])
+
+    bounds = (lonmin - .1, latmin - .1, lonmax + .1, latmax + .1)
+    dem_path = name.replace(' ', '_') + '_DEM.tif'
+    demfile = os.path.join(app_workspace.path, region + '/DEM.tif')
+    if(os.path.exists(demfile)):
+        output=demfile
+    else:
+        output = os.path.join(directory, dem_path)
+        elevation.clip(bounds=bounds, output=output, product='SRTM3')
+    print "This step works. 90 m DEM downloaded for ", name
+
+    if units:
+        # Reproject DEM to 0.01 degree resolution using rasterio
+        resolution=.01
+        dem_raster = rasterio.open(output)
+        src_crs = dem_raster.crs
+        src_shape = src_height, src_width = dem_raster.shape
+        src_transform = from_bounds(lonmin, latmin, lonmax, latmax, src_width, src_height)
+        source = dem_raster.read(1)
+        dem_json={'source':source,
+                  'src_crs':src_crs,
+                  'src_transform':src_transform}
+        return dem_json

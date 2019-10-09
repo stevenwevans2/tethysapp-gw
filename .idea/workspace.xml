@@ -3,31 +3,217 @@
   <component name="ChangeListManager">
     <list default="true" id="97f68757-facc-4a7f-848b-c9ced2909061" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis2.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis2.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/DEM.tif" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/DEM.tif" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/MajorAquifers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/MajorAquifers.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Oregon_Aquifers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Oregon_Aquifers.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Wells.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Wells.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Benton_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Benton_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clackamas_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clackamas_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Grant_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Grant_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Harney_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Harney_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Jackson_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Jackson_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Klamath_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Klamath_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Morrow_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Morrow_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Multnomah_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Multnomah_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Oregon.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Oregon.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Umatilla_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Umatilla_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Yamhill_County.json" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Yamhill_County.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/DEM.tif" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/MajorAquifers.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/United_States_Aquifers.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/United_States_State_Boundary.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/Wells.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/aquifers/Central_Valley.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/United_States/aquifers/High_Plains.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/Colombia_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/Colombia_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/Wells1.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/Wells_Master.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Colombia/aquifers/Cauca_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Dominican_Republic_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Dominican_Republic_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells1.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/Wells_Master.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_CENTRAL.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_ORIENTAL.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/CORDILLERA_SEPTENTRIONAL.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Central.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Oriental.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Cordillera_Septentrional.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Dominican_Republic.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/LOS_HAITISES.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Los_Haitises.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PENINSULA_DE_SAMANA.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PENINSULA_SUR_DE_BARAHONA.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_COSTERA_ORIENTAL.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_DE_AZUA.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/PLANICIE_DE_BANI.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Peninsula_De_Samana.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Pensinsula_Sur_De_Barahona.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_Costera_Oriental.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_De_Azua.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Planicie_De_Bani.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/SIERRA_DE_BAHORUCO.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/SIERRA_DE_NEIBA.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Sierra_De_Bahoruco.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Sierra_De_Bahoruco_.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Sierra_De_Neiba.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DEL_CIBAO.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DE_NEIBA.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/VALLE_DE_SAN_JUAN.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Valle_De_Cibao.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Valle_De_Cibao_.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Valle_De_Neiba.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Dominican_Republic/aquifers/Valle_De_San_Juan.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/DEM/Parma_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/Italy_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/Italy_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/Wells1.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/Wells_Master.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Italy/aquifers/Parma.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Oregon_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Oregon_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/Wells.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Baker_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Benton_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clackamas_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Clatsop_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Columbia_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Coos_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Crook_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Curry_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Deschutes_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Douglas_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Gilliam_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Grant_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Harney_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Hood_River_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Jackson_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Jefferson_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Josephine_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Klamath_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Lake_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Lane_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Lincoln_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Linn_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Malheur_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Marion_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Morrow_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Multnomah_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Oregon.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Polk_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Sherman_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Tillamook_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Umatilla_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Union_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Wallowa_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Wasco_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Washington_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Wheeler_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Oregon/aquifers/Yamhill_County.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/DEM/Crocodile_Catchment_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/DEM/Inkomati_Water_Management_Unit_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/DEM/Komati_Catchment_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/DEM/Sabie_Catchment_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/DEM/Usuthu_Catchment_DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/South_Africa_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/South_Africa_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/Wells1.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/Wells_Master.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/aquifers/Crocodile_Catchment.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/aquifers/Inkomati_Water_Management_Unit.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/aquifers/Komati_Catchment.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/aquifers/Sabie_Catchment.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/South_Africa/aquifers/Usuthu_Catchment.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/MinorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Texas_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Texas_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Wells1.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/Wells_Master.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blaine.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Blossom.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Bone_Spring-Victorio_Peak.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Brazos_River_Alluvium.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Capitan_Reef_Complex.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Carrizo.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Dockum.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity-High_Plains.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards-Trinity.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Edwards.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ellenburger-San_Saba.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Gulf_Coast.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hickory.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Hueco_Bolson.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Igneous.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Lipan.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Marathon.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Marble_Falls.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Nacatoch.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/None.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Ogallala.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Pecos_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Queen_City.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Rita_Blanca.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Rustler.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Seymour.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Sparta.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Texas.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Trinity.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/West_Texas_Bolsons.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Woodbine.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Texas/aquifers/Yegua_Jackson.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Utah_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Utah_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/Wells.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Cache_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Cedar_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Central_Sevier_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Central_Virgin_River.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Curlew_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/East_Shore_Area.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Beryl-Enterprise.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Escalante_Valley-Milford.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Goshen_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Juab_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Northern_Utah_Valley-east.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Northern_Utah_Valley-west.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Pahvant_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Parowan_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Salt_Lake_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Sevier_Desert.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Southern_Utah_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Tooele_Valley.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Utah/aquifers/Utah.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/DEM.tif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/MajorAquifers.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/Wells.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/Wisconsin_Aquifers.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/Wisconsin_State_Boundary.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Bad_Axe_-_La_Crosse.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Black_River.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Buffalo_-_Trempealeau.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Central_Wisconsin.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Fox.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Grant_-_Platte.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Green_Bay.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lake_Superior.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Chippewa.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Fox.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Rock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Lower_Wisconsin.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Manitowoc.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Milwaukee_River.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Sheboygan.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Southeast.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/St_Croix.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Sugar_-_Pecatonica.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Twin_-_Door_-_Kewaunee.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Chippewa.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Fox.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Rock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Upper_Wisconsin.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Wisconsin.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/Wisconsin/aquifers/Wolf_River.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

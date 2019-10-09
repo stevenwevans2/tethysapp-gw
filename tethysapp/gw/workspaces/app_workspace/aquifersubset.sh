@@ -38,8 +38,8 @@ ncks -O -x -v volume temp.nc temp.nc
 
 ncks -C -A -v totalvolume volume.nc temp.nc
 
-#d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
-d='/opt/tomcat/content/thredds/public/testdata/groundwater/'
+d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
+#d='/opt/tomcat/content/thredds/public/testdata/groundwater/'
 
 destination=$d$4
 

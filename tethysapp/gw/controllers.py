@@ -169,63 +169,9 @@ def addregion_nwis(request):
             if minor_file:
                 minor_file=minor_file[0]
                 writefile(minor_file, "MinorAquifers.json")
-            # # Code for writing the aquifers_csv file
-            # directory = os.path.join(app_workspace.path, region)
-            # aqs = []
-            # for filename in os.listdir(directory):
-            #     if filename.startswith('MinorAquifers.json'):
-            #         minorfile = os.path.join(directory, 'MinorAquifers.json')
-            #         with open(minorfile) as f:
-            #             minor_json = json.load(f)
-            #         for a in minor_json['features']:
-            #             aq = [a['properties']['AquiferID'], a['properties']['DisplayName'],
-            #                   a['properties']['Aquifer_Name']]
-            #             aqs.append(aq)
-            # majorfile = os.path.join(directory, 'MajorAquifers.json')
-            # with open(majorfile) as f:
-            #     major_json = json.load(f)
-            # for a in major_json['features']:
-            #     aq = [a['properties']['AquiferID'], a['properties']['DisplayName'], a['properties']['Aquifer_Name']]
-            #     aqs.append(aq)
-            # the_csv = os.path.join(directory, region + '_Aquifers.csv')
-            # with open(the_csv, mode='w') as csv_file:
-            #     fieldnames = ['ID', 'Name', 'CapsName']
-            #     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-            #     writer.writeheader()
-            #     for aq in aqs:
-            #         writer.writerow({'ID': aq[0], 'Name': aq[1], 'CapsName': aq[2]})
-            #     writer.writerow({'ID': '-999', 'Name': region.replace("_", " ").title(), 'CapsName': region})
-            # # end code for writing the aquifers_csv file
 
             pullnwis(id, app_workspace, region)
 
-            # #Set up the appropriate folders on the Thredds server
-            # thredds_folder=os.path.join(thredds_serverpath,region)
-            # if not os.path.exists(thredds_folder):
-            #     os.mkdir(thredds_folder)
-            #
-            # #Addition
-            # aquiferlist = getaquiferlist(app_workspace, region)
-            #
-            # well_file = os.path.join(app_workspace.path, region + '/Wells.json')
-            # print "to divide aquifers"
-            # for aq in aquiferlist:
-            #     i = aq['Id']
-            #     if os.path.exists(well_file):
-            #         divideaquifers(region, app_workspace, i)
-            # #End Addition
-            # success = True
-            #
-            # # except Exception as e:
-            # #     print e
-            # #     success=False
-            #
-            # if success:
-            #     messages.info(request, 'Successfully added region')
-            # else:
-            #     messages.info(request, 'Unable to add region.')
-            # return redirect(reverse('gw:region_map'))
-        # if not has_errors:
             messages.info(request, 'Files uploaded successfully.')
             return redirect(reverse('gw:addregion_nwis2', kwargs={'region': region}))
         else:
@@ -318,6 +264,12 @@ def addregion_nwis2(request,region):
        attributes={
        }
    )
+    select_units = SelectInput(display_text='Select Units',
+       name='select_units',
+       options=[('English', 'English'), ("Metric", "Metric")],
+       initial='English',
+   )
+
     select_AquiferID = SelectInput(display_text='Select AquiferID Attribute',
         name='select_AquiferID',
         multiple=False,
@@ -362,6 +314,7 @@ def addregion_nwis2(request,region):
         'select_porosity':select_porosity,
         'select_region':select_region,
         'table_view_aq':table_view_aq,
+        'select_units':select_units,
     }
     return render(request, 'gw/addregion_nwis2.html', context)
 
@@ -592,6 +545,12 @@ def addregion2(request,region):
        attributes={
        }
    )
+    select_units = SelectInput(display_text='Select Units',
+       name='select_units',
+       options=[('English', 'English'), ("Metric", "Metric")],
+       initial='English',
+   )
+
     select_AquiferID = SelectInput(display_text='Select AquiferID Attribute',
         name='select_AquiferID',
         multiple=False,
@@ -706,6 +665,7 @@ def addregion2(request,region):
         'select_type':select_type,
         'select_depth':select_depth,
         'table_view_aq':table_view_aq,
+        'select_units':select_units,
     }
     return render(request, 'gw/addregion2.html', context)
 
@@ -715,78 +675,14 @@ def region_map(request):
     """
     Controller for the app home page.
     """
-    app_workspace=app.get_app_workspace()
-    dirs=next(os.walk(app_workspace.path))[1]
-    regions=[]
-    for entry in dirs:
-        # One time code to fix aquifer names
-        # names_list = ['Name', 'AQ_NAME', 'AQU_NAME', 'Hydro_Zone', 'altName', 'WMU_NAME']
-        # directory = os.path.join(app_workspace.path,entry)
-        # the_csv=os.path.join(directory,entry+'_Aquifers.csv')
-        # majorfile=os.path.join(directory,'MajorAquifers.json')
-        # aquifercsv=[]
-        # with open(the_csv) as csvfile:
-        #     reader = csv.DictReader(csvfile)
-        #     for row in reader:
-        #         if row:
-        #             aq=((row['ID']),(row["Name"]),(row['CapsName']))
-        #             aquifercsv.append(aq)
-        # with open(majorfile) as f:
-        #     json_object=json.load(f)
-        # for aq in aquifercsv:
-        #     for aquifer in json_object['features']:
-        #         if aq[2]==aquifer['properties']['Aquifer_Name']:
-        #             if 'DisplayName' in aquifer:
-        #                 del aquifer['DisplayName']
-        #             aquifer['properties']['AquiferID']=aq[0]
-        #             aquifer['properties']['DisplayName']=aq[1]
-        #             print(aq[1])
-        #             break
-        # with open(majorfile,'w') as f:
-        #     json.dump(json_object,f)
-        # for filename in os.listdir(directory):
-        #     if filename.startswith('MinorAquifers.json'):
-        #         minorfile=os.path.join(directory,'MinorAquifers.json')
-        #         with open(minorfile) as f:
-        #             json_object = json.load(f)
-        #         for aq in aquifercsv:
-        #             for aquifer in json_object['features']:
-        #                 if aq[2] == aquifer['properties']['Aquifer_Name']:
-        #                     if 'DisplayName' in aquifer:
-        #                         del aquifer['DisplayName']
-        #                     aquifer['properties']['AquiferID'] = aq[0]
-        #                     aquifer['properties']['DisplayName'] = aq[1]
-        #                     break
-        #         with open(minorfile, 'w') as f:
-        #             json.dump(json_object, f)
-        # for filename in os.listdir(directory):
-        #     if filename.startswith('MajorAquifers.json'):
-        #         myfile=os.path.join(directory,'MajorAquifers.json')
-        #         with open(myfile) as f:
-        #             json_object=json.load(f)
-        #         for aquifer in json_object['features']:
-        #             for name in names_list:
-        #                 if name in aquifer['properties']:
-        #                     aquifer['properties']['Aquifer_Name']=aquifer['properties'][name]
-        #                     break
-        #         with open(myfile, 'w') as f:
-        #             json.dump(json_object, f)
-        # for filename in os.listdir(directory):
-        #     myfile = os.path.join(directory, 'MinorAquifers.json')
-        #     if filename.startswith('MinorAquifers.json'):
-        #         with open(myfile) as f:
-        #             json_object=json.load(f)
-        #         for aquifer in json_object['features']:
-        #             for name in names_list:
-        #                 if name in aquifer['properties']:
-        #                     aquifer['properties']['Aquifer_Name']=aquifer['properties'][name]
-        #                     break
-        #         with open(myfile, 'w') as f:
-        #             json.dump(json_object, f)
-        # #end one time fix code
-
-        region=(entry.replace("_"," "),entry)
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    regionlist = session.query(Regions)
+    regions = []
+    for entry in regionlist:
+        region = (entry.RegionName, entry.RegionFileName)
         regions.append(region)
+    session.close()
     select_region = SelectInput(display_text='Select Region',
                                  name='select_region',
                                  multiple=False,
@@ -918,12 +814,14 @@ def interpolation(request):
                              initial='English',
     )
 
-    app_workspace = app.get_app_workspace()
-    dirs = next(os.walk(app_workspace.path))[1]
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    regionlist = session.query(Regions)
     regions = []
-    for entry in dirs:
-        region = (entry, entry)
+    for entry in regionlist:
+        region = (entry.RegionName, entry.RegionFileName)
         regions.append(region)
+    session.close()
 
     select_region = SelectInput(display_text='Select Region',
                                  name='select_region',
