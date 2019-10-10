@@ -10,14 +10,25 @@
 
 {% block app_content %}
   {% gizmo select_region %}
-  <h1>Select Aquifer Properties</h1>
-  <h6>Use the dropdown menus below to select the appropriate properties from you uploaded aquifer JSON file to be used in the app.</h6>
+  {% gizmo toggle_region %}
+  <h1>Select Major Aquifer Properties</h1>
+  <h6>Use the dropdown menus below to select the appropriate properties from you uploaded Major Aquifer JSON file to be used in the app.</h6>
   {% gizmo select_units %}
   {% gizmo table_view_aq %}
   {% gizmo select_AquiferID %}
   {% gizmo select_DisplayName %}
   {% gizmo select_Aquifer_Name %}
   {% gizmo select_porosity %}
+  <input type="hidden" id="showminor" value="{{ displayminor }}">
+  {% if displayminor %}
+    <h1>Select Minor Aquifer Properties</h1>
+    <h6>Use the dropdown menus below to select the appropriate properties from you uploaded Minor Aquifer JSON file to be used in the app.</h6>
+    {% gizmo minor_table_view_aq %}
+    {% gizmo select_minor_AquiferID %}
+    {% gizmo select_minor_DisplayName %}
+    {% gizmo select_minor_Aquifer_Name %}
+    {% gizmo select_minor_porosity %}
+  {% endif %}
 {% endblock %}
 
 

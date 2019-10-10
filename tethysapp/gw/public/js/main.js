@@ -4,6 +4,20 @@ function add_aquifer_settings(){
     var DisplayName=$("#select_DisplayName").find('option:selected').val();
     var Aquifer_Name=$("#select_Aquifer_Name").find('option:selected').val();
     var porosity=$("#select_porosity").find('option:selected').val();
+    var toggle_region=$("toggle_region").find('option:selected').val();
+
+    var minor_AquiferID='';
+    var minor_DisplayName='';
+    var minor_Aquifer_Name='';
+    var minor_porosity='';
+    var showminor=document.getElementById("showminor").value;
+    if (showminor==true || showminor=="True"){
+        minor_AquiferID=$("#select_minor_AquiferID").find('option:selected').val();
+        minor_DisplayName=$("#select_minor_DisplayName").find('option:selected').val();
+        minor_Aquifer_Name=$("#select_minor_Aquifer_Name").find('option:selected').val();
+        minor_porosity=$("#select_minor_porosity").find('option:selected').val();
+    }
+
     var HydroID=$("#select_hydroid").find('option:selected').val();
     var AqID=$("#select_aqid").find('option:selected').val();
     var Elev=$("#select_elev").find('option:selected').val();
@@ -11,11 +25,10 @@ function add_aquifer_settings(){
     var Depth=$("#select_depth").find('option:selected').val();
     var come_from="upload";
     var units=$("#select_units").find('option:selected').val();
-
     $.ajax({
         url: '/apps/gw/finish_addregion/',
         type: 'GET',
-        data: {'region':region,'AquiferID':AquiferID,'DisplayName':DisplayName,'Aquifer_Name':Aquifer_Name,'HydroID':HydroID,'AqID':AqID,'Elev':Elev,'Type':Type,'Depth':Depth,'porosity':porosity,"come_from":come_from,'units':units},
+        data: {'region':region,'AquiferID':AquiferID,'DisplayName':DisplayName,'Aquifer_Name':Aquifer_Name,'HydroID':HydroID,'AqID':AqID,'Elev':Elev,'Type':Type,'Depth':Depth,'porosity':porosity,"come_from":come_from,'units':units, 'minor_AquiferID':minor_AquiferID, 'minor_DisplayName':minor_DisplayName,'minor_Aquifer_Name':minor_Aquifer_Name,'minor_porosity':minor_porosity,'toggle_region':toggle_region},
         contentType: 'application/json',
         error: function (status) {
 
@@ -38,12 +51,26 @@ function add_aquifer_nwis_settings(){
     var DisplayName=$("#select_DisplayName").find('option:selected').val();
     var Aquifer_Name=$("#select_Aquifer_Name").find('option:selected').val();
     var porosity=$("#select_porosity").find('option:selected').val();
+    var toggle_region=$("toggle_region").find('option:selected').val();
+    console.log(toggle_region);
+    var minor_AquiferID='';
+    var minor_DisplayName='';
+    var minor_Aquifer_Name='';
+    var minor_porosity='';
+    var showminor=document.getElementById("showminor").value;
+    if (showminor==true || showminor=="True"){
+        minor_AquiferID=$("#select_minor_AquiferID").find('option:selected').val();
+        minor_DisplayName=$("#select_minor_DisplayName").find('option:selected').val();
+        minor_Aquifer_Name=$("#select_minor_Aquifer_Name").find('option:selected').val();
+        minor_porosity=$("#select_minor_porosity").find('option:selected').val();
+    }
+
     var come_from="nwis";
     var units="English";
     $.ajax({
         url: '/apps/gw/finish_addregion/',
         type: 'GET',
-        data: {'region':region,'AquiferID':AquiferID,'DisplayName':DisplayName,'Aquifer_Name':Aquifer_Name,'porosity':porosity,"come_from":come_from,'units':units},
+        data: {'region':region,'AquiferID':AquiferID,'DisplayName':DisplayName,'Aquifer_Name':Aquifer_Name,'porosity':porosity,"come_from":come_from,'units':units,'minor_AquiferID':minor_AquiferID, 'minor_DisplayName':minor_DisplayName,'minor_Aquifer_Name':minor_Aquifer_Name,'minor_porosity':minor_porosity,'toggle_region':toggle_region},
         contentType: 'application/json',
         error: function (status) {
 

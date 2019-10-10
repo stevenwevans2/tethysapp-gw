@@ -165,13 +165,6 @@ def checktotalvolume(request):
             h = netCDF4.Dataset(nc_file, 'r+')
             if 'totalvolume' in h.variables:
                 exists=True
-            aquifer=name.split('.')[0].replace('_',' ')
-            return_obj['abstract']='This resource contains a NetCDF file containing groundwater elevation, depth to groundwater, and groundwater drawdown in the '+aquifer+' aquifer, located in '+region.replace("_"," ")+', between '+str(h.start_date)+' and '+str(h.end_date)+', at '+str(h.resolution)+' degree resolution. The NetCDF file was created using the Tethys Groundwater Level Mapping Tool.'
-            return_obj['filepath']=os.path.join(thredds_serverpath, region+'/'+name)
-            return_obj['keywords']="Groundwater,"+region.replace("_"," ")
-            return_obj['title']="Groundwater levels for "+aquifer+" in "+region.replace("_"," ")
-            return_obj['type']='GenericResource'
-            return_obj['metadata'] = '[{"coverage":{"type":"period", "value":{"start":'+str(h.start_date)+', "end":'+str(h.end_date)+'}}},{"creator":{"name":"stevenwevans2@gmail.com"}}]'
             h.close()
 
         return_obj['exists']=exists
@@ -204,6 +197,14 @@ def deleteregion(request):
         return_obj['success'] = True
         region=request.GET.get('region')
         try:
+            Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+            session = Session()
+            session.query(Aquifers).filter(Aquifers.RegionName == region.replace('_'," ")).delete()
+
+            session.query(Regions).filter(Regions.RegionFileName == region).delete()
+
+            session.commit()
+            session.close()
             directory = os.path.join(thredds_serverpath, region)
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -245,7 +246,12 @@ def finish_addregion(request):
         Depth=request.GET.get('Depth')
         come_from=request.GET.get("come_from")
         units=request.GET.get("units")
-
+        minor_AquiferID=request.GET.get('minor_AquiferID')
+        minor_DisplayName=request.GET.get('minor_DisplayName')
+        minor_Aquifer_Name=request.GET.get('minor_Aquifer_Name')
+        minor_porosity=request.GET.get('minor_porosity')
+        toggle_region=request.GET.get("toggle_region")
+        print(minor_Aquifer_Name)
         app_workspace=app.get_app_workspace()
         directory = os.path.join(app_workspace.path, region)
         print(AquiferID)
@@ -257,15 +263,15 @@ def finish_addregion(request):
                 with open(minorfile) as f:
                     minor_json = json.load(f)
                 for a in minor_json['features']:
-                    aq = [a['properties'][AquiferID], a['properties'][DisplayName], a['properties'][Aquifer_Name]]
+                    aq = [a['properties'][minor_AquiferID], a['properties'][minor_DisplayName], a['properties'][minor_Aquifer_Name]]
                     if porosity!='Unused':
-                        aq.append(a['properties'][porosity])
+                        aq.append(a['properties'][minor_porosity])
                     aqs.append(aq)
-                    a['properties']['AquiferID']=a['properties'].pop(AquiferID)
-                    a['properties']['DisplayName']=a['properties'].pop(DisplayName)
-                    a['properties']['Aquifer_Name']=a['properties'].pop(Aquifer_Name)
-                    if porosity!='Unused':
-                        a['properties']['Storage_Coefficient']=a['properties'].pop(porosity)
+                    a['properties']['AquiferID']=a['properties'].pop(minor_AquiferID)
+                    a['properties']['DisplayName']=a['properties'].pop(minor_DisplayName)
+                    a['properties']['Aquifer_Name']=a['properties'].pop(minor_Aquifer_Name)
+                    if minor_porosity!='Unused':
+                        a['properties']['Storage_Coefficient']=a['properties'].pop(minor_porosity)
                 with open(minorfile,'w') as f:
                     json.dump(minor_json,f)
         majorfile = os.path.join(directory, 'MajorAquifers.json')
@@ -317,7 +323,8 @@ def finish_addregion(request):
                 writer.writeheader()
                 for aq in aqs:
                     writer.writerow({'ID': aq[0], 'Name': aq[1], 'CapsName': aq[2], 'Storage_Coefficient': aq[3]})
-            writer.writerow({'ID': '-999', 'Name': region.replace("_", " ").title(), 'CapsName': region})
+            if toggle_region=="Yes":
+                writer.writerow({'ID': '-999', 'Name': region.replace("_", " ").title(), 'CapsName': region})
         try:
             # Set up the appropriate folders on the Thredds server
             thredds_folder = os.path.join(thredds_serverpath, region)
@@ -368,25 +375,22 @@ def addoutlier(request):
         hydroId=request.GET.get('hydroId')
         edit=request.GET.get('edit')
 
-        app_workspace=app.get_app_workspace()
-
-        aquifer=aquifer.replace(" ","_")
-        file = os.path.join(app_workspace.path, region + '/aquifers/'+aquifer+'.json')
-        if os.path.exists(file):
-            with open(file, 'r') as f:
-                wells = ''
-                entry = f.readlines()
-                for i in range(0, len(entry)):
-                    wells += entry[i]
-            wells = json.loads(wells)
-            for i in wells['features']:
-                if i['properties']['HydroID']==int(hydroId):
-                    if edit=="add":
-                        i['properties']['Outlier']=True
-                    elif edit=="remove":
-                        i['properties']['Outlier']=False
-            with open(file, 'w') as outfile:
-                json.dump(wells, outfile)
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
+        all_wells = session.query(Aquifers).filter(Aquifers.AquiferName == aquifer,
+                                                   Aquifers.RegionName == region.replace("_", " "))
+        for well in all_wells:
+            wells= well.AquiferWellsJSON
+        for i in wells['features']:
+            if i['properties']['HydroID'] == int(hydroId):
+                if edit == "add":
+                    i['properties']['Outlier'] = True
+                elif edit == "remove":
+                    i['properties']['Outlier'] = False
+        session.query(Aquifers).filter(Aquifers.AquiferName == aquifer,
+                                       Aquifers.RegionName == region.replace("_", " ")).AquiferWellsJSON=wells
+        session.commit()
+        session.close()
 
     return JsonResponse(return_obj)
 
@@ -514,91 +518,96 @@ def divideaquifers(region,app_workspace,aquiferid,units):
     for i in aquiferlist:
         if i['Id'] == int(aquiferid):
             myaquifer = i
-    minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
-    majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
-    aquiferShape = []
-    fieldname = 'Aquifer_Name'
+    name=myaquifer['Name']
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    q = session.query(Aquifers).filter(Aquifers.AquiferName == name)
+    exists = session.query(literal(True)).filter(q.exists()).scalar()
+    session.close()
+    if exists==None:
+        minorfile = os.path.join(app_workspace.path, region + '/MinorAquifers.json')
+        majorfile = os.path.join(app_workspace.path, region + '/MajorAquifers.json')
+        aquiferShape = []
+        fieldname = 'Aquifer_Name'
 
-    if os.path.exists(minorfile):
-        with open(minorfile, 'r') as f:
-            minor = ''
-            entry = f.readlines()
-            for i in range(0, len(entry)):
-                minor += entry[i]
-        minor = json.loads(minor)
-        for i in minor['features']:
-            if fieldname in i['properties']:
-                if i['properties'][fieldname] == myaquifer['CapsName']:
-                    aquiferShape.append(i)
+        if os.path.exists(minorfile):
+            with open(minorfile, 'r') as f:
+                minor = ''
+                entry = f.readlines()
+                for i in range(0, len(entry)):
+                    minor += entry[i]
+            minor = json.loads(minor)
+            for i in minor['features']:
+                if fieldname in i['properties']:
+                    if i['properties'][fieldname] == myaquifer['CapsName']:
+                        aquiferShape.append(i)
 
-    if os.path.exists(majorfile):
-        with open(majorfile, 'r') as f:
-            major = ''
-            entry = f.readlines()
-            for i in range(0, len(entry)):
-                major += entry[i]
-        major = json.loads(major)
-        for i in major['features']:
-            if fieldname in i['properties']:
-                if i['properties'][fieldname] == myaquifer['CapsName']:
-                    aquiferShape.append(i)
+        if os.path.exists(majorfile):
+            with open(majorfile, 'r') as f:
+                major = ''
+                entry = f.readlines()
+                for i in range(0, len(entry)):
+                    major += entry[i]
+            major = json.loads(major)
+            for i in major['features']:
+                if fieldname in i['properties']:
+                    if i['properties'][fieldname] == myaquifer['CapsName']:
+                        aquiferShape.append(i)
 
-    filename=region+"/Wells.json"
-    json_file=os.path.join(app_workspace.path,filename)
-    with open(json_file, 'r') as f:
-        all_points = json.load(f)
+        filename=region+"/Wells.json"
+        json_file=os.path.join(app_workspace.path,filename)
+        with open(json_file, 'r') as f:
+            all_points = json.load(f)
 
-    if len(aquiferShape)>0:
-        polygon = shape(aquiferShape[0]['geometry'])
-        points = {
-            'type': 'FeatureCollection',
-            'features': []
-        }
-        aquifermin=0.0
-        for well in all_points['features']:
-            point=Point(well['geometry']['coordinates'])
-            if polygon.contains(point) and 'TsTime' in well:
-                well['properties']['AquiferID']=int(aquiferid)
-                points['features'].append(well)
-                array=[]
-                # The following code sorts the timeseries entries for each well so they are in chronological order
-                length = len(well['TsTime'])
-                for j in range(0, len(well['TsTime'])):
-                    array.append((well['TsTime'][j], well['TsValue'][j]))
-                array.sort(key=itemgetter(0))
-                well['TsTime'] = []
-                well['TsValue'] = []
-                # This portion of the sorting code checks to see if the dates are duplicates and does not add them if they are
-                oldtime = -9999.5555
-                for j in range(0, length):
-                    #These next 2 lines calculate the aquifermin
-                    if array[j][1]<aquifermin:
-                        aquifermin=array[j][1]
-                    if oldtime != array[j][0]:
-                        well['TsTime'].append(array[j][0])
-                        well['TsValue'].append(array[j][1])
-                        oldtime = array[j][0]
-        print len(points['features'])
-        points['aquifermin'] = aquifermin
-    else:
-        points=all_points
+        if len(aquiferShape)>0:
+            polygon = shape(aquiferShape[0]['geometry'])
+            points = {
+                'type': 'FeatureCollection',
+                'features': []
+            }
+            aquifermin=0.0
+            for well in all_points['features']:
+                point=Point(well['geometry']['coordinates'])
+                if polygon.contains(point) and 'TsTime' in well:
+                    well['properties']['AquiferID']=int(aquiferid)
+                    points['features'].append(well)
+                    array=[]
+                    # The following code sorts the timeseries entries for each well so they are in chronological order
+                    length = len(well['TsTime'])
+                    for j in range(0, len(well['TsTime'])):
+                        array.append((well['TsTime'][j], well['TsValue'][j]))
+                    array.sort(key=itemgetter(0))
+                    well['TsTime'] = []
+                    well['TsValue'] = []
+                    # This portion of the sorting code checks to see if the dates are duplicates and does not add them if they are
+                    oldtime = -9999.5555
+                    for j in range(0, length):
+                        #These next 2 lines calculate the aquifermin
+                        if array[j][1]<aquifermin:
+                            aquifermin=array[j][1]
+                        if oldtime != array[j][0]:
+                            well['TsTime'].append(array[j][0])
+                            well['TsValue'].append(array[j][1])
+                            oldtime = array[j][0]
+            print len(points['features'])
+            points['aquifermin'] = aquifermin
+        else:
+            points=all_points
 
-    name = myaquifer['Name']
-    directory = os.path.join(app_workspace.path, region + '/aquifers')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    # Write a json file to the app workspace for the specified aquifer.
-    # This file includes all the geographical, time series, and properties data for the aquifer.
-    filename = name.replace(' ', '_') + '.json'
-    filename = os.path.join(app_workspace.path, region + '/aquifers/' + filename)
+        directory = os.path.join(app_workspace.path, region + '/aquifers')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        # Write a json file to the app workspace for the specified aquifer.
+        # This file includes all the geographical, time series, and properties data for the aquifer.
+        filename = name.replace(' ', '_') + '.json'
+        filename = os.path.join(app_workspace.path, region + '/aquifers/' + filename)
 
-    with open(filename, 'w') as outfile:
-        json.dump(points, outfile)
+        with open(filename, 'w') as outfile:
+            json.dump(points, outfile)
 
-    if name != 'NONE' and name != "None":
-        add_aquifer(points, region, name, myaquifer, units)
-
-    return points
+        if name != 'NONE' and name != "None":
+            add_aquifer(points, region, name, myaquifer, units)
+        return points
 
 #This function takes a region and aquiferid number and writes a new JSON file with data for the specified aquifer.
 # This function divides the data from a CSV and JSON file combination.
@@ -619,132 +628,139 @@ def subdivideaquifers(region,app_workspace,aquiferid,units):
     if 'Contains' in myaquifer:
         if len(myaquifer['Contains'])>1:
             aquifer_id_numbers=myaquifer['Contains']
-    if myaquifer['Name']!=region and myaquifer['Name'].replace(' ', '_')!=region and myaquifer['Name'].replace(' ','_').title()!=region:
-        with open(well_file, 'r') as f:
-            wells_json = json.load(f)
-        points = {
-            'type': 'FeatureCollection',
-            'features': []
-        }
-        for feature in wells_json['features']:
-            feature['properties']['HydroID']=str(feature['properties']['HydroID'])
-            if feature['properties']['AquiferID'] == aquifer_id_number or feature['properties']['AquiferID'] in aquifer_id_numbers:
-                points['features'].append(feature)
-        points['features'].sort(key=lambda x: x['properties']['HydroID'])
-        time_csv = []
-        mycsv=region+'/Wells_Master.csv'
-        the_csv=os.path.join(app_workspace.path,mycsv)
-        aquifer_id_number = str(aquifer_id_number)
-        print "to csv reader"
-        with open(the_csv) as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row:
-                    if row['AquiferID'] == aquifer_id_number or int(float(row['AquiferID'])) in aquifer_id_numbers:
-                        if row['TsValue_normalized'] != '':
-                            timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
-                                        (float(row['TsValue_normalized'])))
-                            time_csv.append(timestep)
-        print "past csv reader"
-    else:
-        print("Region: ",region)
-        with open(well_file, 'r') as f:
-            points = json.load(f)
 
-        points['features'].sort(key=lambda x: x['properties']['HydroID'])
-        print len(points['features'])
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    q = session.query(Aquifers).filter(Aquifers.AquiferName == myaquifer['Name'])
+    exists = session.query(literal(True)).filter(q.exists()).scalar()
+    session.close()
+    if exists == None:
+        if myaquifer['Name']!=region and myaquifer['Name'].replace(' ', '_')!=region and myaquifer['Name'].replace(' ','_').title()!=region:
+            with open(well_file, 'r') as f:
+                wells_json = json.load(f)
+            points = {
+                'type': 'FeatureCollection',
+                'features': []
+            }
+            for feature in wells_json['features']:
+                feature['properties']['HydroID']=str(feature['properties']['HydroID'])
+                if feature['properties']['AquiferID'] == aquifer_id_number or feature['properties']['AquiferID'] in aquifer_id_numbers:
+                    points['features'].append(feature)
+            points['features'].sort(key=lambda x: x['properties']['HydroID'])
+            time_csv = []
+            mycsv=region+'/Wells_Master.csv'
+            the_csv=os.path.join(app_workspace.path,mycsv)
+            aquifer_id_number = str(aquifer_id_number)
+            print "to csv reader"
+            with open(the_csv) as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if row:
+                        if row['AquiferID'] == aquifer_id_number or int(float(row['AquiferID'])) in aquifer_id_numbers:
+                            if row['TsValue_normalized'] != '':
+                                timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
+                                            (float(row['TsValue_normalized'])))
+                                time_csv.append(timestep)
+            print "past csv reader"
+        else:
+            print("Region: ",region)
+            with open(well_file, 'r') as f:
+                points = json.load(f)
 
-        time_csv = []
-        mycsv = region+'/Wells_Master.csv'
-        the_csv = os.path.join(app_workspace.path, mycsv)
-        with open(the_csv) as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row['TsValue_normalized'] != '':
-                    timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
-                                (float(row['TsValue_normalized'])))
-                    time_csv.append(timestep)
-        print "made it past the_csv step"
-    time_csv.sort(key=lambda x:x[0])
-    number = 0
-    aquifermin = 0.0
-    max_number = len(points['features'])
-    for i in time_csv:
-        while number < max_number:
-            if i[0] == str(points['features'][number]['properties']['HydroID']):
-                if 'TsTime' not in points['features'][number]:
-                    points['features'][number]['TsTime'] = []
-                    points['features'][number]['TsValue'] = []
-                    points['features'][number]['TsValue_norm'] = []
+            points['features'].sort(key=lambda x: x['properties']['HydroID'])
+            print len(points['features'])
 
-                points['features'][number]['TsTime'].append(i[1])
-                points['features'][number]['TsValue'].append(i[2])
-                points['features'][number]['TsValue_norm'].append(i[3])
-                if i[2] < aquifermin:
-                    aquifermin = i[2]
-                break
-            number += 1
-        if number==max_number:
-            number=0
-            continue
-    print "made it past the time_csv combination step"
+            time_csv = []
+            mycsv = region+'/Wells_Master.csv'
+            the_csv = os.path.join(app_workspace.path, mycsv)
+            with open(the_csv) as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if row['TsValue_normalized'] != '':
+                        timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
+                                    (float(row['TsValue_normalized'])))
+                        time_csv.append(timestep)
+            print "made it past the_csv step"
+        time_csv.sort(key=lambda x:x[0])
+        number = 0
+        aquifermin = 0.0
+        max_number = len(points['features'])
+        for i in time_csv:
+            while number < max_number:
+                if i[0] == str(points['features'][number]['properties']['HydroID']):
+                    if 'TsTime' not in points['features'][number]:
+                        points['features'][number]['TsTime'] = []
+                        points['features'][number]['TsValue'] = []
+                        points['features'][number]['TsValue_norm'] = []
 
-
-
-    for i in points['features']:
-        if 'LandElev' not in i['properties']:
-            i['properties']['LandElev']=-9999
-        if 'TsValue' in i:
-            array = []
-            for j in range(0, len(i['TsTime'])):
-                this_time = i['TsTime'][j]
-                pos = this_time.find("/")
-                pos2 = this_time.find("/", pos + 1)
-                month = this_time[0:pos]
-                day = this_time[pos + 1:pos2]
-                year = this_time[pos2 + 1:pos2 + 5]
-                month = int(month)
-                year = int(year)
-                day = int(day)
-                this_time = calendar.timegm(datetime.datetime(year, month, day).timetuple())
-                i['TsTime'][j] = this_time
-            # The following code sorts the timeseries entries for each well so they are in chronological order
-            length = len(i['TsTime'])
-            for j in range(0, len(i['TsTime'])):
-                array.append((i['TsTime'][j], i['TsValue'][j], i['TsValue_norm'][j]))
-            array.sort(key=itemgetter(0))
-            i['TsTime'] = []
-            i['TsValue'] = []
-            i['TsValue_norm'] = []
-            #This portion of the sorting code checks to see if the dates are duplicates and does not add them if they are
-            oldtime=-9999.5555
-            for j in range(0, length):
-                if oldtime!=array[j][0]:
-                    i['TsTime'].append(array[j][0])
-                    i['TsValue'].append(array[j][1])
-                    i['TsValue_norm'].append(array[j][2])
-                    oldtime=array[j][0]
-    print "made it past the sorter"
-    points['aquifermin']=aquifermin
+                    points['features'][number]['TsTime'].append(i[1])
+                    points['features'][number]['TsValue'].append(i[2])
+                    points['features'][number]['TsValue_norm'].append(i[3])
+                    if i[2] < aquifermin:
+                        aquifermin = i[2]
+                    break
+                number += 1
+            if number==max_number:
+                number=0
+                continue
+        print "made it past the time_csv combination step"
 
 
-    name = myaquifer['Name']
 
-    directory = os.path.join(app_workspace.path, region + '/aquifers')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    #Write a json file to the app workspace for the specified aquifer.
-    # This file includes all the geographical, time series, and properties data for the aquifer.
-    filename = name.replace(' ', '_') + '.json'
-    filename=os.path.join(app_workspace.path,region+'/aquifers/'+filename)
-    with open(filename, 'w') as outfile:
-        json.dump(points, outfile)
+        for i in points['features']:
+            if 'LandElev' not in i['properties']:
+                i['properties']['LandElev']=-9999
+            if 'TsValue' in i:
+                array = []
+                for j in range(0, len(i['TsTime'])):
+                    this_time = i['TsTime'][j]
+                    pos = this_time.find("/")
+                    pos2 = this_time.find("/", pos + 1)
+                    month = this_time[0:pos]
+                    day = this_time[pos + 1:pos2]
+                    year = this_time[pos2 + 1:pos2 + 5]
+                    month = int(month)
+                    year = int(year)
+                    day = int(day)
+                    this_time = calendar.timegm(datetime.datetime(year, month, day).timetuple())
+                    i['TsTime'][j] = this_time
+                # The following code sorts the timeseries entries for each well so they are in chronological order
+                length = len(i['TsTime'])
+                for j in range(0, len(i['TsTime'])):
+                    array.append((i['TsTime'][j], i['TsValue'][j], i['TsValue_norm'][j]))
+                array.sort(key=itemgetter(0))
+                i['TsTime'] = []
+                i['TsValue'] = []
+                i['TsValue_norm'] = []
+                #This portion of the sorting code checks to see if the dates are duplicates and does not add them if they are
+                oldtime=-9999.5555
+                for j in range(0, length):
+                    if oldtime!=array[j][0]:
+                        i['TsTime'].append(array[j][0])
+                        i['TsValue'].append(array[j][1])
+                        i['TsValue_norm'].append(array[j][2])
+                        oldtime=array[j][0]
+        print "made it past the sorter"
+        points['aquifermin']=aquifermin
 
-    if name != 'NONE' and name != "None":
-        add_aquifer(points, region, name, myaquifer, units)
+
+        name = myaquifer['Name']
+
+        directory = os.path.join(app_workspace.path, region + '/aquifers')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        #Write a json file to the app workspace for the specified aquifer.
+        # This file includes all the geographical, time series, and properties data for the aquifer.
+        filename = name.replace(' ', '_') + '.json'
+        filename=os.path.join(app_workspace.path,region+'/aquifers/'+filename)
+        with open(filename, 'w') as outfile:
+            json.dump(points, outfile)
+
+        if name != 'NONE' and name != "None":
+            add_aquifer(points, region, name, myaquifer, units)
 
 
-    return [points,aquifermin]
+        return [points,aquifermin]
 
 
 #This function finds all the netcdf files for the aquifer on the Thredds server and returns an object for each one with its attributes

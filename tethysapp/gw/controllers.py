@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect, reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required,user_passes_test
-from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput, TableView
+from tethys_sdk.gizmos import Button, SelectInput, RangeSlider, TextInput, TableView,ToggleSwitch
 import pandas as pd
 import urllib
 from urllib.parse import urlencode
@@ -31,12 +31,15 @@ def removeregion(request):
     """
     Controller for the remove region page.
     """
-    app_workspace = app.get_app_workspace()
-    dirs = next(os.walk(app_workspace.path))[1]
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+    regionlist = session.query(Regions)
     regions = []
-    for entry in dirs:
-        region = (entry, entry)
+    for entry in regionlist:
+        region = (entry.RegionName, entry.RegionFileName)
         regions.append(region)
+    session.close()
+
     select_region = SelectInput(display_text='Select a Region to Remove:',
         name='select_region',
         multiple=False,
@@ -213,15 +216,83 @@ def addregion_nwis(request):
 @login_required()
 def addregion_nwis2(request,region):
     success=False
-
+    showstuff=False
     print("Region on next line:")
     print(region)
     app_workspace=app.get_app_workspace()
     # Code for writing the aquifers_csv file
     #options for the user to select which property in the aquifers json file to use as DisplayName, ID, and Name
     directory = os.path.join(app_workspace.path, region)
-    aqs = []
     majorfile = os.path.join(directory, 'MajorAquifers.json')
+    minorfile = os.path.join(directory, 'MinorAquifers.json')
+
+    toggle_region = SelectInput(display_text='Add Entire Region as an Aquifer?',
+         name='toggle_region',
+         multiple=False,
+         options=[("Yes","Yes"),("No","No")],
+         initial='Yes',
+         attributes={
+         }
+         )
+
+    displayminor = False
+    if os.path.exists(minorfile):
+        displayminor = True
+        with open(minorfile) as f:
+            minor_json = json.load(f)
+        minor_props = minor_json['features'][0]['properties'].viewkeys()
+        print(minor_props)
+
+        count = min(3, len(minor_json['features']))
+        minorrows = []
+        for i in range(0, count):
+            row = minor_json['features'][i]['properties'].viewvalues()
+            minorrows.append(row)
+        minor_table_view_aq = TableView(column_names=(minor_props),
+                                        rows=minorrows,
+                                        hover=True,
+                                        striped=False,
+                                        bordered=False,
+                                        condensed=False)
+        minor_ids = []
+        for i in minor_props:
+            id = (i, i)
+            minor_ids.append(id)
+
+        select_minor_AquiferID = SelectInput(display_text='Select AquiferID Attribute',
+                                             name='select_minor_AquiferID',
+                                             multiple=False,
+                                             options=minor_ids,
+                                             initial='AquiferID',
+                                             attributes={
+                                             }
+                                             )
+        select_minor_DisplayName = SelectInput(display_text='Select DisplayName Attribute',
+                                               name='select_minor_DisplayName',
+                                               multiple=False,
+                                               options=minor_ids,
+                                               initial='DisplayName',
+                                               attributes={
+                                               }
+                                               )
+        select_minor_Aquifer_Name = SelectInput(display_text='Select Aquifer_Name Attribute',
+                                                name='select_minor_Aquifer_Name',
+                                                multiple=False,
+                                                options=minor_ids,
+                                                initial='Aquifer_Name',
+                                                attributes={
+                                                }
+                                                )
+        opt_minor_ids = copy.deepcopy(minor_ids)
+        opt_minor_ids.insert(0, ('Unused', 'Unused'))
+        select_minor_porosity = SelectInput(display_text='Select Aquifer Storage Coefficient Attribute (optional)',
+                                            name='select_minor_porosity',
+                                            multiple=False,
+                                            options=opt_minor_ids,
+                                            initial='Unused',
+                                            attributes={
+                                            }
+                                            )
     with open(majorfile) as f:
         major_json = json.load(f)
     major_props=major_json['features'][0]['properties'].viewkeys()
@@ -305,17 +376,37 @@ def addregion_nwis2(request,region):
       }
     )
 
-
-    context={
-        'add_button':add_button,
-        'select_AquiferID':select_AquiferID,
-        'select_DisplayName':select_DisplayName,
-        'select_Aquifer_Name':select_Aquifer_Name,
-        'select_porosity':select_porosity,
-        'select_region':select_region,
-        'table_view_aq':table_view_aq,
-        'select_units':select_units,
-    }
+    if displayminor:
+        context={
+            'toggle_region':toggle_region,
+            'add_button':add_button,
+            'select_AquiferID':select_AquiferID,
+            'select_DisplayName':select_DisplayName,
+            'select_Aquifer_Name':select_Aquifer_Name,
+            'select_porosity':select_porosity,
+            'select_region':select_region,
+            'table_view_aq':table_view_aq,
+            'select_units':select_units,
+            'showminor':displayminor,
+            'select_minor_AquiferID': select_minor_AquiferID,
+            'select_minor_DisplayName': select_minor_DisplayName,
+            'select_minor_Aquifer_Name': select_minor_Aquifer_Name,
+            'select_minor_porosity': select_minor_porosity,
+            'minor_table_view_aq': minor_table_view_aq,
+        }
+    else:
+        context = {
+            'toggle_region':toggle_region,
+            'add_button': add_button,
+            'select_AquiferID': select_AquiferID,
+            'select_DisplayName': select_DisplayName,
+            'select_Aquifer_Name': select_Aquifer_Name,
+            'select_porosity': select_porosity,
+            'select_region': select_region,
+            'table_view_aq': table_view_aq,
+            'select_units': select_units,
+            'showminor': displayminor,
+        }
     return render(request, 'gw/addregion_nwis2.html', context)
 
 
@@ -501,8 +592,76 @@ def addregion2(request,region):
     # Code for writing the aquifers_csv file
     #options for the user to select which property in the aquifers json file to use as DisplayName, ID, and Name
     directory = os.path.join(app_workspace.path, region)
-    aqs = []
     majorfile = os.path.join(directory, 'MajorAquifers.json')
+    minorfile=os.path.join(directory, 'MinorAquifers.json')
+
+    toggle_region = SelectInput(display_text='Add Entire Region as an Aquifer?',
+        name='toggle_region',
+        multiple=False,
+        options=[("Yes", "Yes"), ("No", "No")],
+        initial='Yes',
+        attributes={
+        }
+    )
+
+    displayminor=False
+    if os.path.exists(minorfile):
+        displayminor=True
+        with open(minorfile) as f:
+            minor_json = json.load(f)
+        minor_props = minor_json['features'][0]['properties'].viewkeys()
+        print(minor_props)
+
+        count = min(3, len(minor_json['features']))
+        minorrows = []
+        for i in range(0, count):
+            row = minor_json['features'][i]['properties'].viewvalues()
+            minorrows.append(row)
+        minor_table_view_aq = TableView(column_names=(minor_props),
+                                  rows=minorrows,
+                                  hover=True,
+                                  striped=False,
+                                  bordered=False,
+                                  condensed=False)
+        minor_ids = []
+        for i in minor_props:
+            id = (i, i)
+            minor_ids.append(id)
+
+        select_minor_AquiferID = SelectInput(display_text='Select AquiferID Attribute',
+                                       name='select_minor_AquiferID',
+                                       multiple=False,
+                                       options=minor_ids,
+                                       initial='AquiferID',
+                                       attributes={
+                                       }
+                                       )
+        select_minor_DisplayName = SelectInput(display_text='Select DisplayName Attribute',
+                                         name='select_minor_DisplayName',
+                                         multiple=False,
+                                         options=minor_ids,
+                                         initial='DisplayName',
+                                         attributes={
+                                         }
+                                         )
+        select_minor_Aquifer_Name = SelectInput(display_text='Select Aquifer_Name Attribute',
+                                          name='select_minor_Aquifer_Name',
+                                          multiple=False,
+                                          options=minor_ids,
+                                          initial='Aquifer_Name',
+                                          attributes={
+                                          }
+                                          )
+        opt_minor_ids = copy.deepcopy(minor_ids)
+        opt_minor_ids.insert(0, ('Unused', 'Unused'))
+        select_minor_porosity = SelectInput(display_text='Select Aquifer Storage Coefficient Attribute (optional)',
+                                      name='select_minor_porosity',
+                                      multiple=False,
+                                      options=opt_minor_ids,
+                                      initial='Unused',
+                                      attributes={
+                                      }
+                                      )
     with open(majorfile) as f:
         major_json = json.load(f)
     major_props=major_json['features'][0]['properties'].viewkeys()
@@ -651,22 +810,49 @@ def addregion2(request,region):
                                attributes={
                                }
                                )
-    context={
-        'add_button':add_button,
-        'select_AquiferID':select_AquiferID,
-        'select_DisplayName':select_DisplayName,
-        'select_Aquifer_Name':select_Aquifer_Name,
-        'select_porosity':select_porosity,
-        'select_region':select_region,
-        'table_view':table_view,
-        'select_hydroid':select_hydroid,
-        'select_aqid':select_aqid,
-        'select_elev':select_elev,
-        'select_type':select_type,
-        'select_depth':select_depth,
-        'table_view_aq':table_view_aq,
-        'select_units':select_units,
-    }
+    if displayminor:
+        context={
+            'toggle_region':toggle_region,
+            'add_button':add_button,
+            'select_AquiferID':select_AquiferID,
+            'select_DisplayName':select_DisplayName,
+            'select_Aquifer_Name':select_Aquifer_Name,
+            'select_porosity':select_porosity,
+            'select_region':select_region,
+            'table_view':table_view,
+            'select_hydroid':select_hydroid,
+            'select_aqid':select_aqid,
+            'select_elev':select_elev,
+            'select_type':select_type,
+            'select_depth':select_depth,
+            'table_view_aq':table_view_aq,
+            'select_units':select_units,
+            'displayminor':displayminor,
+            'select_minor_AquiferID': select_minor_AquiferID,
+            'select_minor_DisplayName': select_minor_DisplayName,
+            'select_minor_Aquifer_Name': select_minor_Aquifer_Name,
+            'select_minor_porosity': select_minor_porosity,
+            'minor_table_view_aq':minor_table_view_aq,
+        }
+    else:
+        context = {
+            'toggle_region': toggle_region,
+            'add_button': add_button,
+            'select_AquiferID': select_AquiferID,
+            'select_DisplayName': select_DisplayName,
+            'select_Aquifer_Name': select_Aquifer_Name,
+            'select_porosity': select_porosity,
+            'select_region': select_region,
+            'table_view': table_view,
+            'select_hydroid': select_hydroid,
+            'select_aqid': select_aqid,
+            'select_elev': select_elev,
+            'select_type': select_type,
+            'select_depth': select_depth,
+            'table_view_aq': table_view_aq,
+            'select_units': select_units,
+            'displayminor': displayminor,
+        }
     return render(request, 'gw/addregion2.html', context)
 
 

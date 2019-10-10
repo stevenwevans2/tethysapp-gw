@@ -28,8 +28,8 @@ from model import *
 
 
 #global variables
-# thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
-thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
+# thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
 def getaquiferlist(app_workspace,region):
