@@ -42,7 +42,7 @@ def displaygeojson(request):
             mymajor['features'][0]['properties']['Name']=aquifer.AquiferName
             major.append(mymajor)
         return_obj['major'] = major
-        minoraquifers=session.query(Aquifers.AquiferName,Aquifers.AquiferShapeJSON).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="(Minor)")
+        minoraquifers=session.query(Aquifers.AquiferName,Aquifers.AquiferShapeJSON).filter(Aquifers.RegionName == region.replace("_"," "), Aquifers.AquiferType=="Minor")
         minor=[]
         if minoraquifers:
             for aquifer in minoraquifers:
@@ -205,16 +205,16 @@ def deleteregion(request):
 
             session.commit()
             session.close()
-            directory = os.path.join(thredds_serverpath, region)
-            if os.path.exists(directory):
-                shutil.rmtree(directory)
+            # directory = os.path.join(thredds_serverpath, region)
+            # if os.path.exists(directory):
+            #     shutil.rmtree(directory)
             app_workspace = app.get_app_workspace()
             directory = os.path.join(app_workspace.path, region)
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             success=True
         except Exception as e:
-            print e
+            print(e)
             success=False
         url = ''
         if success:
@@ -323,6 +323,7 @@ def finish_addregion(request):
                 writer.writeheader()
                 for aq in aqs:
                     writer.writerow({'ID': aq[0], 'Name': aq[1], 'CapsName': aq[2], 'Storage_Coefficient': aq[3]})
+            print(toggle_region)
             if toggle_region=="Yes":
                 writer.writerow({'ID': '-999', 'Name': region.replace("_", " ").title(), 'CapsName': region})
         try:
@@ -340,16 +341,15 @@ def finish_addregion(request):
             add_region(region, units)
             for aq in aquiferlist:
                 i = aq['Id']
+                print(aq)
                 if os.path.exists(well_file) and os.path.exists(times_file):
-                    print "made it to subdivide: upload"
                     subdivideaquifers(region, app_workspace, i,units)
                 elif os.path.exists(well_nwis_file):
-                    print("Made it to divide: NWIS")
                     divideaquifers(region, app_workspace, i,units)
             success = True
 
         except Exception as e:
-            print e
+            print(e)
             success = False
         url=''
         if success:
@@ -480,6 +480,9 @@ def loaddata(request):
         units=request.GET.get("units")
         temporal_interpolation=request.GET.get("temporal_interpolation")
         porosity=request.GET.get("porosity")
+        ndmin=request.GET.get("ndmin")
+        ndmax = request.GET.get("ndmax")
+        searchradius = request.GET.get("searchradius")
 
         return_obj['id'] = aquiferid
         app_workspace = app.get_app_workspace()
@@ -489,6 +492,9 @@ def loaddata(request):
         from_wizard=int(from_wizard)
 
         if interpolation_type:
+            ndmin=int(ndmin)
+            ndmax=int(ndmax)
+            searchradius=float(searchradius)
             start_date=int(start_date)
             end_date=int(end_date)
             interval=float(interval)
@@ -502,9 +508,9 @@ def loaddata(request):
         if aquiferid==9999:
             for i in range(1,length):
                 aquiferid=i
-                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity)
+                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius)
         else:
-            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity)
+            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius)
 
         return_obj['data']=points
         return_obj['message']=returnmessage
@@ -589,7 +595,7 @@ def divideaquifers(region,app_workspace,aquiferid,units):
                             well['TsTime'].append(array[j][0])
                             well['TsValue'].append(array[j][1])
                             oldtime = array[j][0]
-            print len(points['features'])
+            print(len(points['features']))
             points['aquifermin'] = aquifermin
         else:
             points=all_points
@@ -612,7 +618,6 @@ def divideaquifers(region,app_workspace,aquiferid,units):
 #This function takes a region and aquiferid number and writes a new JSON file with data for the specified aquifer.
 # This function divides the data from a CSV and JSON file combination.
 def subdivideaquifers(region,app_workspace,aquiferid,units):
-    print "into subdivide"
     aquiferlist = getaquiferlist(app_workspace, region)
 
     wellfile = region+"/Wells1.json"
@@ -651,7 +656,6 @@ def subdivideaquifers(region,app_workspace,aquiferid,units):
             mycsv=region+'/Wells_Master.csv'
             the_csv=os.path.join(app_workspace.path,mycsv)
             aquifer_id_number = str(aquifer_id_number)
-            print "to csv reader"
             with open(the_csv) as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
@@ -661,14 +665,12 @@ def subdivideaquifers(region,app_workspace,aquiferid,units):
                                 timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
                                             (float(row['TsValue_normalized'])))
                                 time_csv.append(timestep)
-            print "past csv reader"
         else:
-            print("Region: ",region)
             with open(well_file, 'r') as f:
                 points = json.load(f)
 
             points['features'].sort(key=lambda x: x['properties']['HydroID'])
-            print len(points['features'])
+            print(len(points['features']))
 
             time_csv = []
             mycsv = region+'/Wells_Master.csv'
@@ -680,7 +682,6 @@ def subdivideaquifers(region,app_workspace,aquiferid,units):
                         timestep = ((str(row['FeatureID']).strip()), (row['TsTime']), (float(row['TsValue'])),
                                     (float(row['TsValue_normalized'])))
                         time_csv.append(timestep)
-            print "made it past the_csv step"
         time_csv.sort(key=lambda x:x[0])
         number = 0
         aquifermin = 0.0
@@ -703,7 +704,6 @@ def subdivideaquifers(region,app_workspace,aquiferid,units):
             if number==max_number:
                 number=0
                 continue
-        print "made it past the time_csv combination step"
 
 
 
@@ -740,7 +740,6 @@ def subdivideaquifers(region,app_workspace,aquiferid,units):
                         i['TsValue'].append(array[j][1])
                         i['TsValue_norm'].append(array[j][2])
                         oldtime=array[j][0]
-        print "made it past the sorter"
         points['aquifermin']=aquifermin
 
 
@@ -769,6 +768,7 @@ def gettimelist(region,aquifer):
     list = []
     timelist=[]
     directory=os.path.join(thredds_serverpath,region)
+    print(directory)
     aquifer=aquifer.replace(" ","_")
     for filename in os.listdir(directory):
         if filename.startswith(aquifer+"."):
@@ -799,7 +799,7 @@ def gettimelist(region,aquifer):
         timelist.append(mytime)
     return timelist
 
-def interp_wizard(app_workspace, aquiferid, region, interpolation_type,interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity):
+def interp_wizard(app_workspace, aquiferid, region, interpolation_type,interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius):
     if from_wizard==True:
         interpolate = 1
     else:
@@ -810,7 +810,6 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type,interpola
     aquiferlist = session.query(Aquifers.AquiferFileName,Aquifers.AquiferWellsJSON).filter(Aquifers.RegionName == region.replace("_", " "),
                                                  Aquifers.AquiferID == str(aquiferid))
     for aquifer in aquiferlist:
-        print "got one"
         name = aquifer.AquiferFileName
         points=aquifer.AquiferWellsJSON
     session.close()
@@ -844,14 +843,14 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type,interpola
     start = t.time()
 
 
-    print len(points['features'])
+    print(len(points['features']))
 
     returnmessage=''
     # Execute the following function to interpolate groundwater levels and create a netCDF File and upload it to the server
     if interpolate == 1:
 
         returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type,interpolation_options, temporal_interpolation, start_date, end_date,
-                      interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity)
+                      interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity,ndmin,ndmax,searchradius)
 
     end = t.time()
     print(end - start)
@@ -892,6 +891,6 @@ def upload_to_hydroshare(request):
                 return_json['hs_domain'] = hs.hostname
 
     except Exception as e:
-        print e
+        print(e)
     finally:
         return JsonResponse(return_json)

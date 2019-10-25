@@ -4,8 +4,7 @@ function add_aquifer_settings(){
     var DisplayName=$("#select_DisplayName").find('option:selected').val();
     var Aquifer_Name=$("#select_Aquifer_Name").find('option:selected').val();
     var porosity=$("#select_porosity").find('option:selected').val();
-    var toggle_region=$("toggle_region").find('option:selected').val();
-
+    var toggle_region=$("#toggle_region").find('option:selected').val();
     var minor_AquiferID='';
     var minor_DisplayName='';
     var minor_Aquifer_Name='';
@@ -51,8 +50,7 @@ function add_aquifer_nwis_settings(){
     var DisplayName=$("#select_DisplayName").find('option:selected').val();
     var Aquifer_Name=$("#select_Aquifer_Name").find('option:selected').val();
     var porosity=$("#select_porosity").find('option:selected').val();
-    var toggle_region=$("toggle_region").find('option:selected').val();
-    console.log(toggle_region);
+    var toggle_region=$("#toggle_region").find('option:selected').val();
     var minor_AquiferID='';
     var minor_DisplayName='';
     var minor_Aquifer_Name='';

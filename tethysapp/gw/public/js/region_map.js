@@ -1,8 +1,10 @@
-var thredds_url="https://tethys2.byu.edu/thredds/wms/testAll/groundwater/";
+//var thredds_url="https://tethys2.byu.edu/thredds/wms/testAll/groundwater/";
 //var thredds_url = "http://localhost:8080/thredds/wms/testAll/groundwater/";
 var units="Metric";
 
 //Get a CSRF cookie for request
+//I am not sure that these 3 funtions actually do. I don't understand them. I just got some error message when I tried to run the app without them
+// and then I copied these lines of code in from the GRACE app and it fixed it.
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie != '') {
@@ -36,6 +38,7 @@ $(function() {
     });
 }); //document ready
 
+//THis code edits the leaflet LayerGroup to include an id, that way a layer group can be reselected elsewhere in the code based on an assigned id
 L.LayerGroup.include({
     customGetLayer: function (id) {
         for (var i in this._layers) {
@@ -46,17 +49,20 @@ L.LayerGroup.include({
     }
 });
 
-//This function is called when the interpolation method or the data type is adjusted on the app Regional Map page.
-//The function clears the displayed Raster layers and then adds new raster layers for the specified interpolation and data type.
+//This function is called when a new raster animation is selected on the app Regional Map page.
+//The function clears the displayed Raster layers and then adds new raster layers based on the selected raster animation.
 //The function calls the getLayerMinMax function to determine the bounds of the new raster and adjust the symbology and legend accordingly.
+//The rasters are displayed using the leaflet time dimension and display netcdf files stored on the thredds server specified by the
+// global variable "thredds_url" at the beginning of this page.
 function changeWMS(){
-
+//    name is the filename of the netcdf file what will be displayed
     var name=$("#available_dates").find('option:selected').val();
     name=name.replace(/ /g,"_");
     clearwaterlevels();
+//    THe NetCDF files are organized by region on the Thredds server, so the region must be specified to find the proper directory on the THREDDS server
     var region=$("#select_region").find('option:selected').val();
 
-
+//    format the url for the file on the THREDDS server
     var testWMS=thredds_url+region+'/'+name;
     if (name=='Blank.nc'){
         testWMS=thredds_url+'/'+name;
@@ -68,7 +74,7 @@ function changeWMS(){
     var wmsLayer=$("#select_view").find('option:selected').val();
     var palette=$("#select_symbology").find('option:selected').val();
 
-
+//    testLayer is a wms of the raster of groundwater levels from the specified NetCDF on the Thredds server
     var testLayer = L.tileLayer.wms(testWMS, {
         layers: wmsLayer,
         format: 'image/png',
@@ -78,6 +84,7 @@ function changeWMS(){
         colorscalerange:colormin+','+colormax,
         attribution: '<a href="https://ceen.et.byu.edu/">BYU</a>'
     });
+    //    contourLayer is a wms of the contours of groundwater levels from the specified NetCDF on the Thredds server
     var contourLayer=L.tileLayer.wms(testWMS,{
         layers: wmsLayer,
         crs: L.CRS.EPSG4326,
@@ -96,6 +103,9 @@ function changeWMS(){
         url=thredds_url+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
     }
 
+//    This oreq function gets a string of the available times from the time dimension of the NetCDF file and stores them in the variable "substring"
+// Then the function updates the time dimension of the WMS layer accodingly.
+//Then the function calls getLayerMinMax, which determines the min and max values of a netCDF dataset on the Thredds server
     var oReq = new XMLHttpRequest();
     oReq.addEventListener("load", (function(xhr) {
         var response = xhr.currentTarget.response;
@@ -118,11 +128,13 @@ function changeWMS(){
 //This function is called when the min, max, and opacity boxes are adjusted on the app Regional Map page. This function clears the netCDF rasters and legend
 // and then reloads the rasters and legend from the Thredds Server with the specified changes to the symbology.
 function updateWMS(){
+//    name is the filename of the netcdf file what will be displayed
     var name=$("#available_dates").find('option:selected').val();
     name=name.replace(/ /g,"_");
     clearwaterlevels();
+    //    THe NetCDF files are organized by region on the Thredds server, so the region must be specified to find the proper directory on the THREDDS server
     var region=$("#select_region").find('option:selected').val();
-
+//testWMS is the url for the NetCDF file on the THREDDS server
     var testWMS=thredds_url+region+'/'+name;
     if (name=='Blank.nc'){
         testWMS=thredds_url+'/'+name;
@@ -134,6 +146,7 @@ function updateWMS(){
     var wmsLayer=$("#select_view").find('option:selected').val();
     var palette=$("#select_symbology").find('option:selected').val();
 
+//    testLayer is a wms of the raster of groundwater levels from the specified NetCDF on the Thredds server
     var testLayer = L.tileLayer.wms(testWMS, {
         layers: wmsLayer,
         format: 'image/png',
@@ -143,6 +156,7 @@ function updateWMS(){
         colorscalerange:colormin+','+colormax,
         attribution: '<a href="https://ceen.et.byu.edu/">BYU</a>'
     });
+    //    contourLayer is a wms of the contours of groundwater levels from the specified NetCDF on the Thredds server
     var contourLayer=L.tileLayer.wms(testWMS,{
         layers: wmsLayer,
         crs: L.CRS.EPSG4326,
@@ -155,7 +169,7 @@ function updateWMS(){
     var testTimeLayer=L.timeDimension.layer.wms(testLayer,{
         cache:50
     });
-
+//THis code adds a legend for the raster to the map
     testLegend.onAdd = function(map) {
                     var src=testWMS+"?REQUEST=GetLegendGraphic&LAYER="+wmsLayer+"&PALETTE="+palette+"&COLORSCALERANGE="+colormin+","+colormax;
                     var div = L.DomUtil.create('div', 'info legend');
@@ -176,6 +190,9 @@ function updateWMS(){
         url=thredds_url+'/'+name+"?service=WMS&version=1.3.0&request=GetCapabilities";
     }
 
+//    This oreq function gets a string of the available times from the time dimension of the NetCDF file and stores them in the variable "substring"
+// Then the function updates the time dimension of the WMS layer accodingly.
+//Then the function calls getLayerMinMax, which determines the min and max values of a netCDF dataset on the Thredds server
     var oReq = new XMLHttpRequest();
     oReq.addEventListener("load", (function(xhr) {
         var response = xhr.currentTarget.response;
@@ -266,20 +283,17 @@ var getLayerMinMax = function(layer,testLayer,contourWMS, testWMS, callback,test
     oReq.send();
 };
 
-
+//THese two buttons are hidden by default, but become visible if certain criteria are met
 document.getElementById('buttons').style.display="none";
 document.getElementById('volbut').style.display="none";
 var regioncenter=[31.2,-100.0];
 var mychart=[]
-//add a map to the html div "map" with time dimension capabilities. Times are currently hard coded, but will need to be changed as new GRACE data comes
+//add a map to the html div "map" with time dimension capabilities. T
 var map = L.map('map', {
     crs: L.CRS.EPSG3857,//4326
     zoom: 5,
     fullscreenControl: true,
     timeDimension: true,
-//    timeDimensionOptions:{
-//			 times:"1949-12-30T00:00:00.000Z,1954-12-30T00:00:00.000Z,1959-12-30T00:00:00.000Z,1964-12-30T00:00:00.000Z,1969-12-30T00:00:00.000Z,1974-12-30T00:00:00.000Z,1979-12-30T00:00:00.000Z,1984-12-30T00:00:00.000Z,1989-12-30T00:00:00.000Z,1994-12-30T00:00:00.000Z,1999-12-30T00:00:00.000Z,2004-12-30T00:00:00.000Z,2009-12-30T00:00:00.000Z,2014-12-30T00:00:00.000Z",
-//    },
     timeDimensionControl: true,
     timeDimensionControlOptions:{
         loopButton:true,
@@ -308,6 +322,7 @@ var StreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 //	attribution: 'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
 //});
 
+//Define leaflet layergroups (rasters) and featuregroups (shpaefiles)
 var region_group=L.featureGroup();
 var well_group=L.featureGroup();
 var aquifer_group=L.featureGroup();
@@ -320,9 +335,11 @@ var overlayMaps={
 };
 var toggle=L.control.layers(null,overlayMaps).addTo(map);
 
-//This ajax controller loads the JSON file for the Texas State boundary and adds it to the map
+//This ajax controller loads the JSON file for the Region boundary and adds it to the map
 var geolayer = region+'_State_Boundary.json';
 var region=$("#select_region").find('option:selected').val();
+//Calls python code in the ajax_controllers.py. Calls the displaygeojson function, which returns json objects of the
+//region and aquifer boundaries in the response['state'], response['major'], and response['minor'] dict
 $.ajax({
     url: '/apps/gw/displaygeojson/',
     type: 'GET',
@@ -331,6 +348,7 @@ $.ajax({
     error: function (status) {
 
     }, success: function (response) {
+//  Code to add the region boundary (texasboundary) to the region_group and then add to the map
         texasboundary=response['state'].features;
         texasborder=L.geoJSON(texasboundary,{
             color:"red",
@@ -339,15 +357,17 @@ $.ajax({
         })
         region_group.addLayer(texasborder);
         region_group.addTo(map);
+//        Code to add any major aquifers to the major_group and then add to the map
         if (response['major']){
             major=response['major'];
             majoraquifers=L.geoJSON(major,{
                 weight:1,
                 fillOpacity:0.2,
                 onEachFeature: function (feature, layer){
-                    //map.doubleClickZoom.disable();
+                    //Hovering over the layer will display the aquifer name
                     tooltip_content="Major Aquifer: "+feature.properties.Name;
                     layer.bindTooltip(tooltip_content,{sticky:true});
+//                  Clicking on the layer will select that aquifer and will zoom to it and display its wells by calling the list_dates(2) function
                     layer.on({
                         click: function jumpaquifer(){
                             $("#select_aquifer").val(feature.properties.Id);
@@ -362,6 +382,7 @@ $.ajax({
             major_group.addTo(map);
             toggle.addOverlay(major_group, "Major Aquifers");
         }
+        //        Code to add any major aquifers to the major_group and then add to the map
         if (response['minor']){
             minor=response['minor'];
             minoraquifers=L.geoJSON(minor,{
@@ -369,8 +390,10 @@ $.ajax({
                 weight:1,
                 fillOpacity:0.2,
                 onEachFeature: function (feature, layer){
+                //Hovering over the layer will display the aquifer name
                     tooltip_content="Minor Aquifer: "+feature.properties.Name;
                     layer.bindTooltip(tooltip_content,{sticky:true});
+                    //                  Clicking on the layer will select that aquifer and will zoom to it and display its wells by calling the list_dates(2) function
                     layer.on({
                         click: function jumpaquifer(){
                             $("#select_aquifer").val(feature.properties.Id);
@@ -387,10 +410,11 @@ $.ajax({
         }
     }
 });
-
+//Code to define and add a legend to the map display. testLegend is the legend for raster coloring of the NetCDF
 var testLegend = L.control({
     position: 'bottomright'
 });
+//legend is a legend in the bottom left corner that defines the different types of wells
 var legend = L.control({position: 'bottomleft'});
 legend.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'info_legend');
@@ -402,6 +426,8 @@ legend.onAdd = function (map) {
     div.innerHTML = labels.join('<br>');
     return div;
 };
+//Code to remove the well type legend if the wells are removed from the display
+//plus code to remove the raster legend if the raster is removed from the display
 map.on('overlayremove', function(e){
     if (e.name==="Wells"){
         legend.remove();
@@ -410,6 +436,8 @@ map.on('overlayremove', function(e){
         testLegend.remove();
     }
 })
+//Code to add the well legend to the map if the wells are added to the display
+//plus code to add the raster legend to the map if the raster is added to the display
 map.on('overlayadd', function(e){
     if (e.name==="Wells"){
         legend.addTo(map);
@@ -429,14 +457,18 @@ function change_filter(){
 
 //This function is called when the aquifer is changed in the Select Aquifer dropdown.
 function change_aquifer(){
+//    remove the blank option that is currently selected when no aquifer is selected yet
     $("#select_aquifer option[value=9999]").remove();
+//    remove the timeseries shown in the chart below the map
     document.getElementById('chart').innerHTML='';
+//    display loading pinwheel
     var wait_text = "<strong>Loading Data...</strong><br>" +
         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='/static/gw/images/loading.gif'>";
     document.getElementById('waiting_output').innerHTML = wait_text;
+//    call these two functions to remove all the features from the old aquifer from the map
     clearwells();
     clearwaterlevels();
-
+//Code checks whether there area any rasters for the aquifer. Then calls the displaygeojson function
     aquifer_number=$("#select_aquifer").find('option:selected').val();
     aq_name=$("#available_dates").find('option:selected').val();
     if (typeof aq_name=="undefined"){
@@ -464,7 +496,11 @@ function clearwaterlevels(){
     testLegend.remove();
 }
 
-//This is the new function that I am working on
+//This function takes the aquifer_number and displayallwells as parameters.
+//aquifer_number identifies the aquifer_number for which the function will perform
+//Displayallwells is a callback funtcion to be called by this function
+//THe Function calls the loadjson ajax controlled for a specified aquifer_number in a specified region
+//THe ajax function returns the name of the aquifer (response['aquifer']) and the geojson object of the aquifer boundary (response['data'])
 function displaygeojson(aquifer_number, displayallwells) {
 
     var region=$("#select_region").find('option:selected').val();
@@ -495,13 +531,11 @@ function displaygeojson(aquifer_number, displayallwells) {
                 weight:1,
             }
             );
-            //map.setView(aquifer_center,5.5);
             aquifer_group.addLayer(AquiferLayer);
             map.fitBounds(aquifer_group.getBounds());
         }
-        //if no aquifer is loaded, zoom to the Texas boundaries
+        //if no aquifer is loaded, zoom to the region boundaries
         else{
-            //map.setView(regioncenter,5);
             map.fitBounds(region_group.getBounds());
         }
 
@@ -512,7 +546,10 @@ function displaygeojson(aquifer_number, displayallwells) {
         id=aquifer_number;
 
         var region=$("#select_region").find('option:selected').val();
-
+//        This code calls the ajax controller get_aquifer_wells for a specific aquifer_id in a specific region
+//          The code for get_aquifer_wells is in the model.py file
+//          The controller queries the database for the appropriate region and aquifer_id number and returns response['data']
+//          response['data'] is the geojson object of all wells in the aquifer with their properties and associated timeseries info
             $.ajax({
                 url: '/apps/gw/get_aquifer_wells/',
                 type: 'GET',
@@ -524,7 +561,7 @@ function displaygeojson(aquifer_number, displayallwells) {
                     var well_points=response['data'];//.features;
                     //calls displayallwells
                     displayallwells(aquifer_number, well_points,min_num);
-
+//                    Update the options that will be shown on the layer togglke for the map
                     overlayMaps={
                         "Aquifer Boundary":aquifer_group,
                         "Wells":well_group,
@@ -538,7 +575,8 @@ function displaygeojson(aquifer_number, displayallwells) {
         }
     })
 }
-
+//This function displays all wells as a geojson object on the map
+//Each well has functionality such that it will display its timeseries when it is clicked
 function displayallwells(aquifer_number,well_points,required){
 
     var length_unit="m";

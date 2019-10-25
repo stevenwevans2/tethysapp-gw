@@ -216,9 +216,6 @@ def addregion_nwis(request):
 @login_required()
 def addregion_nwis2(request,region):
     success=False
-    showstuff=False
-    print("Region on next line:")
-    print(region)
     app_workspace=app.get_app_workspace()
     # Code for writing the aquifers_csv file
     #options for the user to select which property in the aquifers json file to use as DisplayName, ID, and Name
@@ -241,7 +238,6 @@ def addregion_nwis2(request,region):
         with open(minorfile) as f:
             minor_json = json.load(f)
         minor_props = minor_json['features'][0]['properties'].viewkeys()
-        print(minor_props)
 
         count = min(3, len(minor_json['features']))
         minorrows = []
@@ -296,7 +292,6 @@ def addregion_nwis2(request,region):
     with open(majorfile) as f:
         major_json = json.load(f)
     major_props=major_json['features'][0]['properties'].viewkeys()
-    print(major_props)
 
     count = min(3, len(major_json['features']))
     myrows = []
@@ -586,8 +581,6 @@ def addregion(request):
 def addregion2(request,region):
     success=False
 
-    print("Region on next line:")
-    print(region)
     app_workspace=app.get_app_workspace()
     # Code for writing the aquifers_csv file
     #options for the user to select which property in the aquifers json file to use as DisplayName, ID, and Name
@@ -595,22 +588,12 @@ def addregion2(request,region):
     majorfile = os.path.join(directory, 'MajorAquifers.json')
     minorfile=os.path.join(directory, 'MinorAquifers.json')
 
-    toggle_region = SelectInput(display_text='Add Entire Region as an Aquifer?',
-        name='toggle_region',
-        multiple=False,
-        options=[("Yes", "Yes"), ("No", "No")],
-        initial='Yes',
-        attributes={
-        }
-    )
-
     displayminor=False
     if os.path.exists(minorfile):
         displayminor=True
         with open(minorfile) as f:
             minor_json = json.load(f)
         minor_props = minor_json['features'][0]['properties'].viewkeys()
-        print(minor_props)
 
         count = min(3, len(minor_json['features']))
         minorrows = []
@@ -665,13 +648,18 @@ def addregion2(request,region):
     with open(majorfile) as f:
         major_json = json.load(f)
     major_props=major_json['features'][0]['properties'].viewkeys()
-    print(major_props)
 
     count = min(3, len(major_json['features']))
     myrows = []
     for i in range(0, count):
         row = major_json['features'][i]['properties'].viewvalues()
         myrows.append(row)
+
+    toggle_region = SelectInput(display_text='Add Entire Region as an Aquifer?',
+        name='toggle_region',
+        multiple=False,
+        options=[("Yes", "Yes"), ("No", "No")],
+    )
 
     w_ids = []
     for i in major_props:
@@ -897,7 +885,7 @@ def region_map(request):
                                         ('Brazos River Alluvium',5),('Capitan Reef Complex',9),('Dockum',26),('Edwards-Trinity-High Plains',12),
                                         ('Ellenburger-San Saba',14),('Hickory',16),('Igneous',17),('Lipan', 30),('Marathon',18),
                                         ('Marble Falls',19),('Nacatoch',20),('Queen City',24),('Rita Blanca',23),('Rustler',25),
-                                        ('Sparta',27),('West Texas Bolsons',2),('Woodbine',29),('Yegua Jackson',31),('None',22),('Texas',32)],
+                                        ('Sparta',27),('West Texas Bolsons',2),('Woodbine',29),('Yegua Jackson',31),('Texas',-999)],
                                initial='',
                                attributes={
                                    'onchange':'list_dates(2)' #this calls list_dates, which then calls change_aquifer
@@ -974,7 +962,7 @@ def region_map(request):
                                'onclick': "totalvolume()",
                            }
                            )
-
+    thredds_url=app.get_custom_setting("thredds_url")
     context = {
         "select_region":select_region,
         "select_aquifer":select_aquifer,
@@ -984,7 +972,8 @@ def region_map(request):
         'delete_button':delete_button,
         'default_button':default_button,
         'region_home':region_home,
-        'volume_button':volume_button
+        'volume_button':volume_button,
+        'thredds_url':thredds_url,
     }
 
     return render(request, 'gw/region_map.html', context)
@@ -1048,6 +1037,50 @@ def interpolation(request):
                                  attributes={
                                  }
     )
+    select_ndmin = SelectInput(display_text='Minimum Wells to use for estimating a block',
+                                       name='select_ndmin',
+                                       multiple=False,
+                                       options=[("0","0"),("1","1"),("2","2"),("3","3"),("4","4"),("5","5"),("6","6"),
+                                                ("7", "7"),("8","8"),("9","9"),("10","10"),("11","11"),("12","12"),("13","13"),
+                                                ("14", "14"),("15","15"),("16","16"),("17","17"),("18","18"),("19","19"),("20","20"),
+                                                ("21", "21"),("22","22"),("23","23"),("24","24"),("25","25"),("26","26"),("27","27"),
+                                                ("28", "28"),("29","29"),("30","30"),("35","35"),("40","40"),("45","45"),("50","50"),
+                                                ("55", "55"),("60","60"),("65","65"),("70","70"),("75","75"),("80","80"),("85","85"),
+                                                ("90", "90"),("95","95"),("100","100"),("Use all wells","999")],
+                                       initial="5",
+                                       attributes={
+                                       }
+                                       )
+    select_ndmax = SelectInput(display_text='Maximum Wells to use for estimating a block',
+                                       name='select_ndmax',
+                                       multiple=False,
+                                       options=[("0","0"),("1","1"),("2","2"),("3","3"),("4","4"),("5","5"),("6","6"),
+                                                ("7", "7"),("8","8"),("9","9"),("10","10"),("11","11"),("12","12"),("13","13"),
+                                                ("14", "14"),("15","15"),("16","16"),("17","17"),("18","18"),("19","19"),("20","20"),
+                                                ("21", "21"),("22","22"),("23","23"),("24","24"),("25","25"),("26","26"),("27","27"),
+                                                ("28", "28"),("29","29"),("30","30"),("35","35"),("40","40"),("45","45"),("50","50"),
+                                                ("55", "55"),("60","60"),("65","65"),("70","70"),("75","75"),("80","80"),("85","85"),
+                                                ("90", "90"),("95","95"),("100","100"),("No Maximum","999")],
+                                       initial="15",
+                                       attributes={
+                                       }
+                                       )
+    rads=[]
+    for i in range(1,50):
+        j=float(i)/10.0
+        rad=(j,j)
+        rads.append(rad)
+    for i in range(5,10,1):
+        rad=(i,i)
+        rads.append(rad)
+    select_searchradius = SelectInput(display_text='Specify search radius in degrees',
+                                       name='select_searchradius',
+                                       multiple=False,
+                                       options=rads,
+                                       initial=2,
+                                       attributes={
+                                       }
+                                       )
     interpolation_options=SelectInput(display_text="Spatial Interpolation Options",
                                       name='interpolation_options',
                                       multiple=False,
@@ -1105,7 +1138,7 @@ def interpolation(request):
                             )
     min_samples=SelectInput(display_text='Minimum Water Level Samples per Well',
                             name='min_samples',
-                            options=[("1 Sample", 1),("2 Samples",2),("5 Samples",5),("10 Samples",10),("25 Samples",25),("50 Samples",50)],
+                            options=[("1 Sample", 1),("2 Samples",2),("5 Samples",5),("10 Samples",10),("15 Samples",15),("20 Samples",20),("25 Samples",25),("50 Samples",50)],
                             initial="5 Samples"
                             )
     min_ratio=SelectInput(display_text='Percent of Time Frame Well Timeseries Must Span',
@@ -1142,6 +1175,9 @@ def interpolation(request):
         "select_region":select_region,
         "select_aquifer":select_aquifer,
         "select_interpolation": select_interpolation,
+        "select_ndmin":select_ndmin,
+        "select_ndmax":select_ndmax,
+        "select_searchradius":select_searchradius,
         "start_date":start_date,
         "end_date":end_date,
         "frequency":frequency,
@@ -1162,24 +1198,23 @@ def interpolation(request):
 #The pullnwis function pulls data from the web for a specified region and writes the data to a JSON file named Wells.JSON in the appropriate folder.
 def pullnwis(state, app_workspace,region):
     states=state.split(',')
-    print(states)
     points = {
         'type': 'FeatureCollection',
         'features': []
     }
     aquifermin = 0.0
     for mystate in states:
-        print mystate
+        print(mystate)
         todaysdate=datetime.datetime.today()
         urlyear=str(todaysdate.year)
         urlmonth=str(todaysdate.month)
-        print urlmonth,urlyear
+        print(urlmonth,urlyear)
         link = "https://waterservices.usgs.gov/nwis/gwlevels/?format=json&stateCd="+mystate+"&startDT=1850-01-01&endDT="+urlyear+"-"+urlmonth+"-28&parameterCd=72019&siteStatus=all"
         with contextlib.closing(urllib.urlopen(link)) as f:
         # f=urllib.open(link)
             myfile=f.read()
         myfile = json.loads(myfile)
-        print len(myfile['value']['timeSeries'])
+        print(len(myfile['value']['timeSeries']))
 
 
         for i in range(0, len(myfile['value']['timeSeries'])):
@@ -1245,7 +1280,6 @@ def pullnwis(state, app_workspace,region):
                 continue
     # End Loop
     count = 0
-    print("Starting the TsValue loop")
     for i in points['features']:
         if 'TsValue' in i:
             array = []
@@ -1277,4 +1311,3 @@ def pullnwis(state, app_workspace,region):
     mywellsfile = os.path.join(app_workspace.path, region + "/Wells.json")
     with open(mywellsfile, 'w') as outfile:
         json.dump(points, outfile)
-    print("done with this function")

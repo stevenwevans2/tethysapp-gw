@@ -71,6 +71,9 @@ function submit_form(){
     var interpolation_options=$("#interpolation_options").find('option:selected').val();
     var temporal_interpolation=$("#temporal_interpolation").find('option:selected').val();
     var porosity=$("#select_porosity").val();
+    var ndmin=$("#select_ndmin").find('option:selected').val();
+    var ndmax=$("#select_ndmax").find('option:selected').val();
+    var searchradius=$("#select_searchradius").find('option:selected').val();
     console.log(porosity);
     if (start_date>=end_date){
         alert("Error, Start Date must be before End Date");
@@ -80,7 +83,7 @@ function submit_form(){
         $.ajax({
             url: '/apps/gw/loaddata/',
             type: 'GET',
-            data: {'id':id, 'temporal_interpolation':temporal_interpolation, 'interpolation_options':interpolation_options,'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units, 'porosity':porosity},
+            data: {'id':id, 'temporal_interpolation':temporal_interpolation, 'interpolation_options':interpolation_options,'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units, 'porosity':porosity,'ndmin':ndmin,'ndmax':ndmax,'searchradius':searchradius},
             contentType: 'application/json',
             error: function (status) {
 

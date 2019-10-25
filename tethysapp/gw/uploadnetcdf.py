@@ -28,8 +28,9 @@ from model import *
 
 
 #global variables
-thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
-# thredds_serverpath = "/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
+# thredds_serverpath='/opt/tomcat/content/thredds/public/testdata/groundwater/'
+thredds_serverpath = app.get_custom_setting("thredds_path")
+#thredds_serverpath="/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/"
 
 #This function opens the Aquifers.csv file for the specified region and returns a JSON object listing the aquifers
 def getaquiferlist(app_workspace,region):
@@ -176,7 +177,7 @@ def generate_variogram(X,y,variogram_function):
     g = g[(indices[0, :, :] > indices[1, :, :])]
     # d=squareform(pdist(X,metric='euclidean'))
     # g = 0.5 * pdist(y[:, None], metric='sqeuclidean')
-    # print d
+    # print(d)
 
     # Now we will sort the d and g into bins
     nlags = 10
@@ -223,11 +224,11 @@ def generate_variogram(X,y,variogram_function):
     res = least_squares(_variogram_residuals, x0, bounds=bnds, loss='soft_l1',
                         args=(lags, semivariance, variogram_function, weight))
     variogram_model_parameters = res.x
-    print "sill, range, nugget"
-    print variogram_model_parameters
+    print("sill, range, nugget")
+    print(variogram_model_parameters)
     return variogram_model_parameters
 
-def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolation_type,interpolation_options,temporal_interpolation,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity):
+def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolation_type,interpolation_options,temporal_interpolation,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity,ndmin,ndmax,searchradius):
     # Execute the following code to interpolate groundwater levels and create a netCDF File and upload it to the server
     # Download and Set up the DEM for the aquifer
     iterations = int((end_date - start_date) / interval + 1)
@@ -269,7 +270,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                 h.close()
                 newinterpolation_df=pd.DataFrame(columns=hydroids,data=depths)
                 existing_interp=True
-                print "used existing temporal interpolation"
+                print("Used existing temporal interpolation")
                 break
         h.close()
     if existing_interp==False:
@@ -280,7 +281,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
             for well in points['features']:
                 if 'TsTime' in well:
                     # If statement to check whether the timeseries has the minimum samples required
-                    if len(well['TsTime']) > min_samples:
+                    if len(well['TsTime']) >= min_samples:
                         listlength = len(well['TsTime'])
                         length_time = end_time - start_time
                         mylength_time = min(well['TsTime'][listlength - 1] - well['TsTime'][0],
@@ -300,15 +301,15 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                             wells_df = pd.DataFrame(index=pd.to_datetime(well['TsTime'], unit='s', origin='unix'),
                                                     data=well['TsValue'], columns=[name])
                             wells_df.index.drop_duplicates(keep="first")
-                            wells_df = wells_df.resample('3M').mean()
-                            first_date=wells_df.first_valid_index()-pd.DateOffset(years=time_tolerance)
-                            last_date=wells_df.last_valid_index()+pd.DateOffset(years=time_tolerance)
-                            wells_df=pd.concat([wells_df,pd.DataFrame(index=[first_date,last_date])], join="outer", axis=1)
+                            wells_df = wells_df.resample('Q').mean()
                             if 'Short' not in name:
-                                wells_df = wells_df.interpolate('nearest', limit=time_tolerance, limit_area='outside',
+                                first_date = wells_df.first_valid_index() - pd.DateOffset(years=time_tolerance)
+                                last_date = wells_df.last_valid_index() + pd.DateOffset(years=time_tolerance)
+                                wells_df = pd.concat([wells_df, pd.DataFrame(index=[first_date, last_date])],
+                                                     join="outer", axis=1)
+                                wells_df = wells_df.interpolate('nearest', limit=time_tolerance*2, limit_area='outside',
                                                                 limit_direction='both',
-                                                                fill_value="extrapolate").resample('3M').nearest()
-
+                                                                fill_value="extrapolate").resample('Q').nearest()
                             combined_df = pd.concat([combined_df, wells_df], join="outer", axis=1)
                             combined_df.drop_duplicates(inplace=True)
             #combined_df is a pandas dataframe containing the ts depth to water table values for each well in the aquifer with the min number of points
@@ -331,9 +332,9 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                 welli = corr_df.columns[i]
                 if 'Short' in str(welli):
                     mydf = combined_df[[welli]].copy()
-                    print "Well ", welli
+                    print("Well ", welli)
                     corr_values = corr_df.nlargest(5, corr_df.columns[i]).values[:, i]
-                    print corr_values
+                    print(corr_values)
                     delete_list = []
                     for j in range(len(corr_values)):
                         if corr_values[j] <= 0.75:
@@ -350,7 +351,6 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                                         norm_exdf[column].max() - norm_exdf[column].min())
                         exdf = normz_exdf.copy()
                         mymin = max(exdf[welli].first_valid_index(), exdf[reflist[0]].first_valid_index())
-                        print mymin
                         myrange = exdf[welli].last_valid_index() - mymin
                         exdf = exdf[mymin:mymin + myrange]  # exdf[welli].first_valid_index()+pd.DateOffset(years=10)
                         y = exdf[welli]
@@ -375,7 +375,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                         newname = str(welli).replace('Short', '')
                         interpolation_df = pd.concat([interpolation_df, norm_exdf['prediction']], join="outer", axis=1)
                         interpolation_df = interpolation_df.rename(columns={"prediction": newname})
-            print "finished temporal interpolation"
+            print("Finished MLR temporal interpolation")
             newinterpolation_df = interpolation_df[str(start_date):str(end_date)].resample(resample_rate,closed='left').nearest()
         else:
             #This code interpolates the timeseries values at each well using the pchip interpolation method. The data is extended up to the
@@ -397,7 +397,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                             try:
                                 wells_df = pd.concat([wells_df, df], join="outer", axis=1)
                             except:
-                                print "exception"
+                                print("exception")
                                 continue
             stime=str(start_date-date_shift)+'-12-25 00:00:00'
             if date_shift==2:
@@ -407,7 +407,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                        stime:etime]
             wells_df = wells_df.interpolate('nearest', limit=4 * time_tolerance, limit_direction='both',
                                             fill_value="extrapolate").resample(resample_rate).nearest()
-            print "done with temporal interpolation"
+            print("Completed pchip temporal interpolation")
             newinterpolation_df = wells_df
     lons = []
     lats = []
@@ -443,14 +443,13 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
         values.append(myvalue[np.logical_not(x)])
         elevations.append(myelev[np.logical_not(x)])
         ids.append(myids)
-        print len(mylon)
+        print(len(mylon))
     lons = np.array(lons)
     lats = np.array(lats)
     values = np.array(values)
     elevations = np.array(elevations)
     ids=np.array(ids)
     valueslist = np.array(valueslist)
-    print "done"
     #Now we prepare the data for the generate_variogram function
     coordinates = []
     all_empty=True
@@ -461,24 +460,23 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
             all_empty=False
     if all_empty==True:
         message= "There is not enough data to perform interpolation"
-        print message
+        print(message)
         return message
     coordinates = np.array(coordinates)
     variogram_function = spherical_variogram_model
     variogram_model_parameters=[]
     for i in range(0,iterations):
-        print len(coordinates[i])
+        print(len(coordinates[i]))
         if len(coordinates[i])>2:
             X = coordinates[i]
             if interpolation_options=="depth":
                 y = values[i]
             else:
                 y=elevations[i]
-            print elevations[i]
             variogram_model_parameters.append(generate_variogram(X,y,variogram_function))
         else:
             variogram_model_parameters.append([0,0,0])
-    print variogram_model_parameters
+    print(variogram_model_parameters)
 
     AquiferShape = {
         'type': 'FeatureCollection',
@@ -500,7 +498,6 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
             AquiferShape = object.RegionJSON
 
     session.close()
-    print(AquiferShape['features'][0])
     lonmin, latmin, lonmax, latmax = bbox(AquiferShape['features'][0])
     latgrid = np.mgrid[latmin:latmax:resolution]
     longrid = np.mgrid[lonmin:lonmax:resolution]
@@ -533,16 +530,19 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
         dem=dem*3.28084 #use this to convert from meters to feet
     dem_grid = np.reshape(dem, (lonrange, latrange))
     dem_grid[dem_grid<=-99]=-9999
-    print dem_grid
     outx = np.repeat(longrid, latrange)
     outy = np.tile(latgrid, lonrange)
     depth_grids = []
     elev_grids = []
 
     for i in range(0, iterations):
-        searchradius = 2#((latmin-latmax)**2+(lonmin-lonmax)**2)**.5
-        ndmax = 15#len(elevations[i])/5
-        ndmin = 5#max(ndmax /4,1)
+        # searchradius = 2#((latmin-latmax)**2+(lonmin-lonmax)**2)**.5
+        # ndmax = 15#len(elevations[i])/5
+        # ndmin = 5#max(ndmax /4,1)
+        if ndmin==999:
+            ndmin=len(lons[i])
+        if ndmax==999:
+            ndmax=len(lons[i])
         noct = 0
         nugget = 0
         sill = variogram_model_parameters[i][0]
@@ -605,13 +605,13 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                 elev_grid=np.reshape(elev_array,(lonrange,latrange))
                 idw_elev_grid = np.reshape(elev_idwarray, (lonrange, latrange))
                 x = np.isnan(elev_grid)
-                print np.isnan(elev_grid).sum() / elev_grid.size * 100.0, " % idw in Elev Grid"
+                print(np.isnan(elev_grid).sum() / elev_grid.size * 100.0, " % idw in Elev Grid")
                 elev_grid[x] = idw_elev_grid[x]
 
             depth_grid = np.reshape(array, (lonrange, latrange))
             idw_grid=np.reshape(idwarray, (lonrange, latrange))
             x = np.isnan(depth_grid)
-            print np.isnan(depth_grid).sum() / depth_grid.size * 100.0, " % idw in Depth Grid"
+            print(np.isnan(depth_grid).sum() / depth_grid.size * 100.0, " % idw in Depth Grid")
             depth_grid[x] = idw_grid[x]
 
             if interpolation_type == "Kriging with External Drift" or interpolation_options=="elev":
@@ -622,7 +622,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                 elev_grid[elev_grid<=-9000]=-9999
             depth_grids.append(depth_grid)
             elev_grids.append(elev_grid)
-            print i
+            print(i)
         else:
             depth_grid=np.full((lonrange,latrange),-9999)
             elev_grid=depth_grid
@@ -745,7 +745,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                 timearray.append(datetime.datetime(monthyear, 7, 1).toordinal())
         else:
             monthyear = start_date + interval * i
-            print monthyear
+            print(monthyear)
             quadyear = monthyear * 4
             if quadyear % 4 == 0:
                 targetyear = int(monthyear)
@@ -788,5 +788,5 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
     myshell = 'aquifersubset.sh'
     directory = temp_dir
     shellscript = os.path.join(app_workspace.path, myshell)
-    subprocess.call([shellscript, filename, directory, interpolation_type, region, str(resolution), app_workspace.path])
+    subprocess.call([shellscript, filename, directory, interpolation_type, region, str(resolution), app_workspace.path, thredds_serverpath])
     return "Success. NetCDF File Created"

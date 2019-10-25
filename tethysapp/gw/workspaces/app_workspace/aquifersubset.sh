@@ -5,7 +5,9 @@
 # $4 is the region
 # $5 is the grid resolution
 # $6 is the app_workspace
+# $7 is the thredds_serverpath
 echo "called shellscript"
+. /home/tethys/tethys/miniconda/bin/activate nco
 cd $2
 pwd
 gdal_rasterize -burn 1 -l shapefile -of netcdf -tr $5 $5 -co "FORMAT=NC4" shapefile.json Aquifer.nc
@@ -38,8 +40,8 @@ ncks -O -x -v volume temp.nc temp.nc
 
 ncks -C -A -v totalvolume volume.nc temp.nc
 
-#d='/home/student/tds/apache-tomcat-8.5.30/content/thredds/public/testdata/groundwater/'
-d='/opt/tomcat/content/thredds/public/testdata/groundwater/'
+d=$7
+#d='/opt/tomcat/content/thredds/public/testdata/groundwater/'
 
 destination=$d$4
 

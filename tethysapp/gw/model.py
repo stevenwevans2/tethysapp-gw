@@ -91,10 +91,10 @@ def init_primary_db(engine, first_time):
     session=Session()
     # dirs = next(os.walk(app_workspace.path))[1]
     # for region in dirs:
-    #     print region
+    #     print(region)
     #     aquifer_dir=os.path.join(app_workspace.path,region,'aquifers')
     #     for aquiferfile in os.listdir(aquifer_dir):
-    #         print aquiferfile
+    #         print(aquiferfile)
     #         file_path = os.path.join(app_workspace.path, region,'aquifers',aquiferfile)
     #         aquiferpath=os.path.join(app_workspace.path, region,'MajorAquifers.json')
     #         if os.path.exists(file_path) and os.path.exists(aquiferpath):
@@ -115,7 +115,7 @@ def init_primary_db(engine, first_time):
     #                 )
     #                 session.add(aquifer)
     #             else:
-    #                 print "No AquiferID for", aquiferfile
+    #                 print("No AquiferID for", aquiferfile)
 
     print("Added the aquifer to persistent store")
     session.commit()
@@ -128,7 +128,6 @@ def add_region(region,units):
     session=Session()
     q = session.query(Regions).filter(Regions.RegionFileName==region)
     exists=session.query(literal(True)).filter(q.exists()).scalar()
-    print exists
 
     if exists==None:
         regionfile=os.path.join(app_workspace.path, region + '/'+region+'_State_Boundary.json')
@@ -153,8 +152,7 @@ def add_aquifer(points,region,name,myaquifer,units):
     session=Session()
     q = session.query(Aquifers).filter(Aquifers.AquiferName == name)
     exists = session.query(literal(True)).filter(q.exists()).scalar()
-    print exists
-    print name
+    print(name)
 
     if exists == None:
 
@@ -217,9 +215,9 @@ def add_aquifer(points,region,name,myaquifer,units):
                 print("aquifer committed to persistent store")
 
         else:
-            print "No AquiferID for", name
+            print("No AquiferID for", name)
     else:
-        print "No Aquifer named ", name
+        print("No Aquifer named ", name)
     session.close()
     return
 
@@ -272,7 +270,7 @@ def download_DEM(region,myaquifer, units):
         'features': []
     }
     fieldname = 'Aquifer_Name'
-    print("into download_DEM")
+    print("Setting up DEM")
     match=False
     if os.path.exists(minorfile):
         with open(minorfile, 'r') as f:
@@ -304,7 +302,6 @@ def download_DEM(region,myaquifer, units):
                 if len(x)>long:
                     long=len(x)
                     answer=f
-        print(answer)
         lonmin, latmin, lonmax, latmax = bbox(aquiferShape['features'][answer])
 
     bounds = (lonmin - .1, latmin - .1, lonmax + .1, latmax + .1)
@@ -315,17 +312,17 @@ def download_DEM(region,myaquifer, units):
     else:
         output = os.path.join(directory, dem_path)
         elevation.clip(bounds=bounds, output=output, product='SRTM3')
-    print "This step works. 90 m DEM downloaded for ", name
+    print("90 m DEM successfully downloaded for ", name)
 
     if units:
         # Reproject DEM to 0.01 degree resolution using rasterio
         resolution=.01
-        dem_raster = rasterio.open(output)
-        src_crs = dem_raster.crs
-        src_shape = src_height, src_width = dem_raster.shape
-        src_transform = from_bounds(lonmin, latmin, lonmax, latmax, src_width, src_height)
-        source = dem_raster.read(1)
-        dem_json={'source':source,
-                  'src_crs':src_crs,
-                  'src_transform':src_transform}
+        with rasterio.open(output) as dem_raster:
+            src_crs = dem_raster.crs
+            src_shape = src_height, src_width = dem_raster.shape
+            src_transform = dem_raster.transform #from_bounds(lonmin, latmin, lonmax, latmax, src_width, src_height)
+            source = dem_raster.read(1)
+            dem_json={'source':source,
+                      'src_crs':src_crs,
+                      'src_transform':src_transform}
         return dem_json

@@ -1,5 +1,5 @@
 from tethys_sdk.base import TethysAppBase, url_map_maker
-from tethys_sdk.app_settings import PersistentStoreDatabaseSetting
+from tethys_sdk.app_settings import PersistentStoreDatabaseSetting, CustomSetting
 
 class Gw(TethysAppBase):
     """
@@ -156,3 +156,19 @@ class Gw(TethysAppBase):
         )
 
         return url_maps
+
+    def custom_settings(self):
+        return(
+            CustomSetting(
+                name='thredds_path',
+                type=CustomSetting.TYPE_STRING,
+                description="Local file path to the folder used by the Thredds server",
+                required=True,
+            ),
+            CustomSetting(
+                name='thredds_url',
+                type=CustomSetting.TYPE_STRING,
+                description="Url of the thredds server",
+                required=True,
+            )
+        )
