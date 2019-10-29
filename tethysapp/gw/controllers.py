@@ -7,7 +7,6 @@ import pandas as pd
 import urllib
 from urllib.parse import urlencode
 import contextlib
-from osgeo import gdal
 from ajax_controllers import *
 import copy
 
@@ -141,7 +140,7 @@ def addregion_nwis(request):
             # writefile(csv_file,region+"_Aquifers.csv")
             writefile(border_file,region+"_State_Boundary.json")
             writefile(major_file,"MajorAquifers.json")
-            writefile(dem_file,'temp.tif')
+            writefile(dem_file,'DEM.tif')
             State_Boundary = os.path.join(app_workspace.path, region + '/' + region + '_State_Boundary.json')
             with open(State_Boundary, 'r') as f:
                 state = json.load(f)
@@ -164,11 +163,11 @@ def addregion_nwis(request):
                             lonmax=mylonmax
             # lonmin, latmin, lonmax, latmax = bbox(AquiferShape['features'][0])
             out_path = os.path.join(app_workspace.path, region + "/DEM.tif")
-            dem_path=os.path.join(app_workspace.path, region + "/temp.tif")
-            ds = gdal.Open(dem_path)
-            ds = gdal.Translate(out_path, ds, outputSRS='EPSG:4326', projWin=[lonmin, latmax, lonmax, latmin])
-            ds = None
-            os.remove(dem_path)
+            # dem_path=os.path.join(app_workspace.path, region + "/temp.tif")
+            # ds = gdal.Open(dem_path)
+            # ds = gdal.Translate(out_path, ds, outputSRS='EPSG:4326', projWin=[lonmin, latmax, lonmax, latmin])
+            # ds = None
+            # os.remove(dem_path)
             if minor_file:
                 minor_file=minor_file[0]
                 writefile(minor_file, "MinorAquifers.json")
@@ -495,7 +494,7 @@ def addregion(request):
             writefile(major_file, "MajorAquifers.json")
             writefile(wells_file, "Wells1.json")
             writefile(time_file, "Wells_Master.csv")
-            writefile(dem_file, "temp.tif")
+            writefile(dem_file, "DEM.tif")
             #Code for adding the DEM
 
             State_Boundary = os.path.join(app_workspace.path, region + '/' + region + '_State_Boundary.json')
@@ -519,11 +518,11 @@ def addregion(request):
                         if mylonmax > lonmax:
                             lonmax = mylonmax
             out_path = os.path.join(app_workspace.path, region + "/DEM.tif")
-            dem_path = os.path.join(app_workspace.path, region + "/temp.tif")
-            ds = gdal.Open(dem_path)
-            ds = gdal.Translate(out_path, ds, outputSRS='EPSG:4326', projWin=[lonmin, latmax, lonmax, latmin])
-            ds = None
-            os.remove(dem_path)
+            # dem_path = os.path.join(app_workspace.path, region + "/temp.tif")
+            # ds = gdal.Open(dem_path)
+            # ds = gdal.Translate(out_path, ds, outputSRS='EPSG:4326', projWin=[lonmin, latmax, lonmax, latmin])
+            # ds = None
+            # os.remove(dem_path)
             if minor_file:
                 minor_file = minor_file[0]
                 writefile(minor_file, "MinorAquifers.json")

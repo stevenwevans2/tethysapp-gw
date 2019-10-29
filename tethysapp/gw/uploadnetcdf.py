@@ -20,7 +20,6 @@ from scipy.interpolate import UnivariateSpline
 import elevation
 import csv
 from .app import Gw as app
-from osgeo import gdal
 import statsmodels.api as sm
 import pandas as pd
 from model import *

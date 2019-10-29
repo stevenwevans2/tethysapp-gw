@@ -3,21 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="97f68757-facc-4a7f-848b-c9ced2909061" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis2.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion_nwis2.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/interpolation.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/interpolation.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/region_map.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/aquifersubset.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/deletetemp.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/deletetemp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/fix_names.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/workspaces/app_workspace/fix_names.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
