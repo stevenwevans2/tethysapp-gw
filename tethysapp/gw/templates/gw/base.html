@@ -92,5 +92,8 @@
 
 {% block scripts %}
   {{ block.super }}
+  <script>
+      var apiServer = "{% url 'gw:home' %}";
+  </script>
   <script src="{% static 'gw/js/main.js' %}" type="text/javascript"></script>
 {% endblock %}
