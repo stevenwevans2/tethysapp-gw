@@ -227,7 +227,7 @@ def generate_variogram(X,y,variogram_function):
     print(variogram_model_parameters)
     return variogram_model_parameters
 
-def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolation_type,interpolation_options,temporal_interpolation,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity,ndmin,ndmax,searchradius):
+def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolation_type,interpolation_options,temporal_interpolation,start_date,end_date,interval,resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity,ndmin,ndmax,searchradius,seasonal):
     # Execute the following code to interpolate groundwater levels and create a netCDF File and upload it to the server
     # Download and Set up the DEM for the aquifer
     iterations = int((end_date - start_date) / interval + 1)
@@ -258,20 +258,21 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
     for filename in os.listdir(directory):
         if filename.startswith(aquifer + "."):
             list.append(filename)
-    for item in list:
-        nc_file = os.path.join(directory, item)
-        h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
-        if h.start_date==start_date and h.end_date==end_date and h.interval==interval:
-            if 'tsvalue' in h.variables:
-                times = h.variables['time'][:]
-                depths=h.variables['tsvalue'][:, :]
-                hydroids=h.variables['hydroid'][:]
-                h.close()
-                newinterpolation_df=pd.DataFrame(columns=hydroids,data=depths)
-                existing_interp=True
-                print("Used existing temporal interpolation")
-                break
-        h.close()
+    # for item in list:
+    #     nc_file = os.path.join(directory, item)
+    #     h = netCDF4.Dataset(nc_file, 'r+', format="NETCDF4")
+    #     if h.start_date==start_date and h.end_date==end_date and h.interval==interval:
+    #         if 'tsvalue' in h.variables and h.temporal_interpolation in h.ncattrs():
+    #             if h.temporal_interpolation==temporal_interpolation:
+    #                 times = h.variables['time'][:]
+    #                 depths=h.variables['tsvalue'][:, :]
+    #                 hydroids=h.variables['hydroid'][:]
+    #                 h.close()
+    #                 newinterpolation_df=pd.DataFrame(columns=hydroids,data=depths)
+    #                 existing_interp=True
+    #                 print("Used existing temporal interpolation")
+    #                 break
+    #     h.close()
     if existing_interp==False:
         if temporal_interpolation=="MLR":
             #THe following code predicts the timeseries values for each well at specified time intervals using multi-linear regression with
@@ -300,26 +301,52 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                             wells_df = pd.DataFrame(index=pd.to_datetime(well['TsTime'], unit='s', origin='unix'),
                                                     data=well['TsValue'], columns=[name])
                             wells_df.index.drop_duplicates(keep="first")
-                            wells_df = wells_df.resample('Q').mean()
+                            if seasonal!=999 and interval>=1:
+                                wells_df = wells_df.resample('Q-APR').mean()
+                            else:
+                                wells_df = wells_df.resample('Q').mean()
                             if 'Short' not in name:
                                 first_date = wells_df.first_valid_index() - pd.DateOffset(years=time_tolerance)
                                 last_date = wells_df.last_valid_index() + pd.DateOffset(years=time_tolerance)
                                 wells_df = pd.concat([wells_df, pd.DataFrame(index=[first_date, last_date])],
                                                      join="outer", axis=1)
-                                wells_df = wells_df.interpolate('nearest', limit=time_tolerance*2, limit_area='outside',
-                                                                limit_direction='both',
-                                                                fill_value="extrapolate").resample('Q').nearest()
+                                if seasonal!=999 and interval>=1:
+                                    wells_df = wells_df.interpolate('nearest', limit=time_tolerance*2, limit_area='outside',
+                                                                    limit_direction='both',
+                                                                    fill_value="extrapolate").resample('Q-APR').mean()
+                                else:
+                                    wells_df = wells_df.interpolate('nearest', limit=time_tolerance * 2,
+                                                                    limit_area='outside',
+                                                                    limit_direction='both',
+                                                                    fill_value="extrapolate").resample('Q').nearest()
                             combined_df = pd.concat([combined_df, wells_df], join="outer", axis=1)
                             combined_df.drop_duplicates(inplace=True)
             #combined_df is a pandas dataframe containing the ts depth to water table values for each well in the aquifer with the min number of points
             # The columns of combined_df are the HydroIDs of the wells. If the well timeseries data spans the period of interpolation, the column title
             # is the HydroID. If the timeseries does not span the time period, then the column title is the HydroID + "Short"
             # The rows of the database are the timeseries values for 3 month intervals from start_date to end_date
-            combined_df = combined_df.resample('3M').mean()
-            corrs_df = combined_df.interpolate(method='pchip', limit_area='inside', limit=8)
+            if seasonal != 999 and interval >= 1:
+                minp=12
+                lim=8
+            else:
+                minp=12
+                lim=8
+            corrs_df = combined_df.interpolate(method='pchip', limit_area='inside', limit=lim)
             combined_df.interpolate(method='pchip', inplace=True, limit_area='inside')
+            if seasonal!=999 and interval>=1:
+                offset = combined_df.index[0].month
+                offset = ( offset + 2) / 3 - 1  # 0 for winter(nov-jan), 1 for spring (feb-apr), 2 for summer (may-jul), 3 for fall (aug-oct)
+                st_season = int(seasonal - offset)
+                if st_season < 0:
+                    st_season += 4
+                combined_df = combined_df.resample('Q-APR').mean()
+                combined_df = combined_df.iloc[st_season::4, :]
+            else:
+                combined_df = combined_df.resample('3M').mean()
+            combined_df.interpolate(method='pchip',inplace=True,limit_area='inside')
             interpolation_df = combined_df.drop(combined_df.filter(regex='Short').columns, axis=1)
-            corr_df = corrs_df.corr(min_periods=12)
+            combined_df['linear'] = np.linspace(0, 1, len(combined_df))
+            corr_df = corrs_df.corr(min_periods=minp)
             corr_df = corr_df - np.identity(len(corr_df))
             length = len(corr_df) - 1
             for row in corr_df.index:
@@ -330,6 +357,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                 reflist = np.array(corr_df.nlargest(5, corr_df.columns[i]).index)
                 welli = corr_df.columns[i]
                 if 'Short' in str(welli):
+                    reflist = np.append(reflist, 'linear')
                     mydf = combined_df[[welli]].copy()
                     print("Well ", welli)
                     corr_values = corr_df.nlargest(5, corr_df.columns[i]).values[:, i]
@@ -349,31 +377,46 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                             normz_exdf[column] = (norm_exdf[column] - norm_exdf[column].min()) / (
                                         norm_exdf[column].max() - norm_exdf[column].min())
                         exdf = normz_exdf.copy()
-                        mymin = max(exdf[welli].first_valid_index(), exdf[reflist[0]].first_valid_index())
-                        myrange = exdf[welli].last_valid_index() - mymin
-                        exdf = exdf[mymin:mymin + myrange]  # exdf[welli].first_valid_index()+pd.DateOffset(years=10)
+                        try:
+                            mymin = max(exdf[welli].first_valid_index(), exdf[reflist[0]].first_valid_index())
+                        except:
+                            print("error in mymin")
+                            continue
+                        mymax = exdf[welli].last_valid_index()
+                        exdf = exdf[mymin:mymax]  # exdf[welli].first_valid_index()+pd.DateOffset(years=10)
                         y = exdf[welli]
                         x = exdf.as_matrix(columns=reflist)
-                        model = sm.OLS(y, x)
-                        model_fit = model.fit_regularized(alpha=0.005)
-                        b = np.array(model_fit.params)
-                        neg_bs = []
-                        for j in range(len(b)):
-                            if b[j] < 0:
-                                neg_bs.append(j)
-                        if len(neg_bs) > 0:
-                            x = np.delete(x, neg_bs, 1)
-                            reflist = np.delete(reflist, neg_bs)
+                        try:
+                            # THese three lines are new
+                            n,m=x.shape
+                            x0=np.ones((n,1))
+                            x=np.hstack((x,x0))
                             model = sm.OLS(y, x)
                             model_fit = model.fit_regularized(alpha=0.005)
                             b = np.array(model_fit.params)
-                        norm_exdf['prediction'] = np.dot(normz_exdf.as_matrix(columns=reflist), b)
-                        norm_exdf['prediction'] = norm_exdf['prediction'] * (norm_exdf[welli].max() - norm_exdf[welli].min()) + \
-                                                  norm_exdf[welli].min()
-                        norm_exdf.loc[corrs_df[welli].notnull(), 'prediction'] = corrs_df[welli]
-                        newname = str(welli).replace('Short', '')
-                        interpolation_df = pd.concat([interpolation_df, norm_exdf['prediction']], join="outer", axis=1)
-                        interpolation_df = interpolation_df.rename(columns={"prediction": newname})
+                            # neg_bs = []
+                            # for j in range(len(b)):
+                            #     if b[j] < 0:
+                            #         neg_bs.append(j)
+                            # if len(neg_bs) > 0:
+                            #     x = np.delete(x, neg_bs, 1)
+                            #     reflist = np.delete(reflist, neg_bs)
+                            #     model = sm.OLS(y, x)
+                            #     model_fit = model.fit_regularized(alpha=0.005)
+                            #     b = np.array(model_fit.params)
+                            A = normz_exdf.as_matrix(columns=reflist)
+                            n, m = A.shape
+                            A0 = np.ones((n, 1))
+                            A = np.hstack((A, A0))
+                            norm_exdf['prediction'] = np.dot(A, b)
+                            norm_exdf['prediction'] = norm_exdf['prediction'] * (norm_exdf[welli].max() - norm_exdf[welli].min()) + \
+                                                      norm_exdf[welli].min()
+                            norm_exdf.loc[corrs_df[welli].notnull(), 'prediction'] = corrs_df[welli]
+                            newname = str(welli).replace('Short', '')
+                            interpolation_df = pd.concat([interpolation_df, norm_exdf['prediction']], join="outer", axis=1)
+                            interpolation_df = interpolation_df.rename(columns={"prediction": newname})
+                        except:
+                            print("error for well ",welli,". ")
             print("Finished MLR temporal interpolation")
             newinterpolation_df = interpolation_df[str(start_date):str(end_date)].resample(resample_rate,closed='left').nearest()
         else:
@@ -398,16 +441,28 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
                             except:
                                 print("exception")
                                 continue
-            stime=str(start_date-date_shift)+'-12-25 00:00:00'
-            if date_shift==2:
-                date_shift=0
-            etime=str(end_date-date_shift+1)
-            wells_df = wells_df.interpolate(method='pchip', limit_area='inside').resample('3M').nearest()[
-                       stime:etime]
-            wells_df = wells_df.interpolate('nearest', limit=4 * time_tolerance, limit_direction='both',
-                                            fill_value="extrapolate").resample(resample_rate).nearest()
+            if seasonal!=999 and interval>=1:
+                offset = wells_df.index[0].month
+                offset = ( offset + 2) / 3 - 1  # 0 for winter(nov-jan), 1 for spring (feb-apr), 2 for summer (may-jul), 3 for fall (aug-oct)
+                st_season = seasonal - offset
+                if st_season < 0:
+                    st_season += 4
+                wells_df = wells_df.resample('Q-APR').mean()
+                wells_df = wells_df.iloc[st_season::4, :]
+                wells_df = wells_df[str(start_date):str(end_date)].interpolate('nearest', limit=time_tolerance, limit_direction='both',
+                                                fill_value="extrapolate").resample(resample_rate).nearest()
+            else:
+                stime=str(start_date-date_shift)+'-12-25 00:00:00'
+                if date_shift==2:
+                    date_shift=0
+                etime=str(end_date-date_shift+1)
+                wells_df = wells_df.interpolate(method='pchip', limit_area='inside').resample('3M').nearest()[
+                           stime:etime]
+                wells_df = wells_df[str(start_date):str(end_date)].interpolate('nearest', limit=4 * time_tolerance, limit_direction='both',
+                                                fill_value="extrapolate").resample(resample_rate).nearest()
             print("Completed pchip temporal interpolation")
             newinterpolation_df = wells_df
+
     lons = []
     lats = []
     values = []
@@ -725,6 +780,9 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
     timearray = []  # [datetime.datetime(2000,1,1).toordinal()-1,datetime.datetime(2002,1,1).toordinal()-1]
     t=0
     for i in range(0, iterations):
+        month_to_put=1
+        if seasonal!=999:
+            month_to_put=(seasonal+1)*3-2
         tsvalue[i, :] = valueslist[i, :]
         interpolatable=True
         if len(values[i])<3 or len(elevations[i]) <3:
@@ -732,7 +790,7 @@ def upload_netcdf(points,aq_name,app_workspace,aquifer_number,region,interpolati
 
         if sixmonths == False:
             year = int(year)
-            timearray.append(datetime.datetime(year, 1, 1).toordinal())
+            timearray.append(datetime.datetime(year, month_to_put, 1).toordinal())
         elif threemonths==False:
             monthyear = start_date + interval * i
             doubleyear = monthyear * 2

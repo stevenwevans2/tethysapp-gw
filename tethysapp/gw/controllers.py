@@ -1123,6 +1123,12 @@ def interpolation(request):
                              options=dates,
                              initial=2015
                              )
+    seasonal= SelectInput(display_text='Annual Sampling Time',
+                             name='seasonal',
+                             multiple=False,
+                             options=[("Winter (Nov-Jan)",0),("Spring (Feb-Apr)",1),("Summer (May-July)",2),("Fall (Aug-Oct)",3),("Use All Data",999)],
+                             initial="Use All Data"
+                             )
     frequency = SelectInput(display_text='Time Increment',
                            name='frequency',
                            multiple=False,
@@ -1180,6 +1186,7 @@ def interpolation(request):
         "start_date":start_date,
         "end_date":end_date,
         "frequency":frequency,
+        "seasonal":seasonal,
         "resolution":resolution,
         "submit_button":submit_button,
         "default":default,

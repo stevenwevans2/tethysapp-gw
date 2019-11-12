@@ -60,6 +60,7 @@ function submit_form(){
     var start_date=$("#start_date").find('option:selected').val();
     var end_date=$("#end_date").find('option:selected').val();
     var interval=$("#frequency").find('option:selected').val();
+    var seasonal=$("#seasonal").find('option:selected').val();
     var resolution=$("#resolution").find('option:selected').val();
     var id=$("#select_aquifer option:selected").val()
     var length=$("#select_aquifer option").length-1;
@@ -83,7 +84,7 @@ function submit_form(){
         $.ajax({
             url: '/apps/gw/loaddata/',
             type: 'GET',
-            data: {'id':id, 'temporal_interpolation':temporal_interpolation, 'interpolation_options':interpolation_options,'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units, 'porosity':porosity,'ndmin':ndmin,'ndmax':ndmax,'searchradius':searchradius},
+            data: {'id':id, 'temporal_interpolation':temporal_interpolation, 'interpolation_options':interpolation_options,'interpolation_type':interpolation_type,'region':region,'start_date':start_date,'end_date':end_date,'interval':interval,'resolution':resolution, 'length':length, 'make_default':make_default, 'min_samples':min_samples, 'min_ratio':min_ratio, 'time_tolerance':time_tolerance, 'from_wizard':1, 'units':units, 'porosity':porosity,'ndmin':ndmin,'ndmax':ndmax,'searchradius':searchradius,'seasonal':seasonal},
             contentType: 'application/json',
             error: function (status) {
 

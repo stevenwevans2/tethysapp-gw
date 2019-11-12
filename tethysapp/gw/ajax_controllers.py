@@ -483,6 +483,7 @@ def loaddata(request):
         ndmin=request.GET.get("ndmin")
         ndmax = request.GET.get("ndmax")
         searchradius = request.GET.get("searchradius")
+        seasonal=request.GET.get("seasonal")
 
         return_obj['id'] = aquiferid
         app_workspace = app.get_app_workspace()
@@ -504,13 +505,14 @@ def loaddata(request):
             min_ratio=float(min_ratio)
             time_tolerance=int(time_tolerance)
             porosity=float(porosity)
+            seasonal=int(seasonal)
 
         if aquiferid==9999:
             for i in range(1,length):
                 aquiferid=i
-                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius)
+                points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius,seasonal)
         else:
-            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius)
+            points,returnmessage=interp_wizard(app_workspace, aquiferid, region, interpolation_type, interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius,seasonal)
 
         return_obj['data']=points
         return_obj['message']=returnmessage
@@ -794,12 +796,14 @@ def gettimelist(region,aquifer):
         }
         if 'interp_options' in h.ncattrs():
             mytime['Interp_Options']=h.interp_options
+        if 'temporal_interpolation' in h.ncattrs():
+            mytime['temporal_interpolation']=h.temporal_interpolation
         h.close()
 
         timelist.append(mytime)
     return timelist
 
-def interp_wizard(app_workspace, aquiferid, region, interpolation_type,interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius):
+def interp_wizard(app_workspace, aquiferid, region, interpolation_type,interpolation_options, temporal_interpolation, start_date, end_date, interval, resolution, make_default, min_samples, min_ratio, time_tolerance, from_wizard, units,porosity,ndmin,ndmax,searchradius,seasonal):
     if from_wizard==True:
         interpolate = 1
     else:
@@ -850,7 +854,7 @@ def interp_wizard(app_workspace, aquiferid, region, interpolation_type,interpola
     if interpolate == 1:
 
         returnmessage=upload_netcdf(points, name, app_workspace, aquiferid, region, interpolation_type,interpolation_options, temporal_interpolation, start_date, end_date,
-                      interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity,ndmin,ndmax,searchradius)
+                      interval, resolution, min_samples, min_ratio, time_tolerance, date_name, make_default, units,porosity,ndmin,ndmax,searchradius,seasonal)
 
     end = t.time()
     print(end - start)

@@ -972,17 +972,8 @@ function displayallwells(aquifer_number,well_points,required){
                                     marker:{enabled: true},
                                     visible:(function(){
                                             type=$("#select_view").find('option:selected').val();
-                                            if (type=="elevation"){
-                                                type="Elevation of Water Table ("+length_unit+")";
-                                            }
-                                            else if(type=="drawdown"){
-                                                type="Drawdown ("+length_unit+")";
-                                            }
-                                            else{
-                                                type="Depth to Water Table ("+length_unit+")";
-                                            }
                                             visible=false
-                                            if (type=="Depth to Water Table ("+length_unit+")"){
+                                            if (type=="depth"){
                                                 visible=true;
                                             }
                                             return visible;
@@ -995,17 +986,8 @@ function displayallwells(aquifer_number,well_points,required){
                                     color:'blue',
                                     visible:(function(){
                                             type=$("#select_view").find('option:selected').val();
-                                            if (type=="elevation"){
-                                                type="Elevation of Water Table ("+length_unit+")";
-                                            }
-                                            else if(type=="drawdown"){
-                                                type="Drawdown ("+length_unit+")";
-                                            }
-                                            else{
-                                                type="Depth to Water Table ("+length_unit+")";
-                                            }
                                             visible=false
-                                            if (type=="Elevation of Water Table ("+length_unit+")"){
+                                            if (type=="elevation"){
                                                 visible=true;
                                             }
                                             return visible;
@@ -1018,17 +1000,8 @@ function displayallwells(aquifer_number,well_points,required){
                                     color:'#1A429E',
                                     visible:(function(){
                                             type=$("#select_view").find('option:selected').val();
-                                            if (type=="elevation"){
-                                                type="Elevation of Water Table ("+length_unit+")";
-                                            }
-                                            else if(type=="drawdown"){
-                                                type="Drawdown ("+length_unit+")";
-                                            }
-                                            else{
-                                                type="Depth to Water Table ("+length_unit+")";
-                                            }
                                             visible=false
-                                            if (type=="Drawdown ("+length_unit+")"){
+                                            if (type=="drawdown"){
                                                 visible=true;
                                             }
                                             return visible;
@@ -1048,18 +1021,55 @@ function displayallwells(aquifer_number,well_points,required){
                                         var interp_depths=response['depths'];
                                         var interp_times=response['times'];
                                         var interpodata=[];
+                                        var interpelev=[];
+                                        var interpdrawdown=[];
                                         var j=0;
                                         for (var i=0;i<interp_times.length;i++){
                                             if (interp_depths[i]!=-9999){
                                                 interpodata[j]=[new Date(interp_times[i]*24*3600*1000)-new Date('3939-1-2'),interp_depths[i]];
+                                                interpelev[j]=[new Date(interp_times[i]*24*3600*1000)-new Date('3939-1-2'),interp_depths[i]+feature.properties.LandElev];
+                                                interpdrawdown[j]=[new Date(interp_times[i]*24*3600*1000)-new Date('3939-1-2'),interp_depths[i]-interpodata[0][1]];
                                                 j=j+1;
                                             }
                                         }
                                         mychart.addSeries({
-                                            name: "Well Depth Used in Interpolation",
+                                            name: "Depth Used in Interpolation("+length_unit+")",
                                             marker:{enabled: true},
                                             data:interpodata,
-                                            visible:true
+                                            visible:(function(){
+                                            type=$("#select_view").find('option:selected').val();
+                                            visible=false
+                                            if (type=="depth"){
+                                                visible=true;
+                                            }
+                                            return visible;
+                                        })()
+                                        });
+                                        mychart.addSeries({
+                                            name: "Elevation Used in Interpolation("+length_unit+")",
+                                            marker:{enabled: true},
+                                            data:interpelev,
+                                            visible:(function(){
+                                            type=$("#select_view").find('option:selected').val();
+                                            visible=false
+                                            if (type=="elevation"){
+                                                visible=true;
+                                            }
+                                            return visible;
+                                        })()
+                                        });
+                                        mychart.addSeries({
+                                            name: "Drawdown Used in Interpolation("+length_unit+")",
+                                            marker:{enabled: true},
+                                            data:interpdrawdown,
+                                            visible:(function(){
+                                            type=$("#select_view").find('option:selected').val();
+                                            visible=false
+                                            if (type=="drawdown"){
+                                                visible=true;
+                                            }
+                                            return visible;
+                                        })()
                                         });
                                     }
                                 }
@@ -1083,135 +1093,140 @@ function displayallwells(aquifer_number,well_points,required){
                                 if (!mychart){
                                     return;
                                 }
-                                var since='';
-                                type=$("#select_view").find('option:selected').val();
-                                if (type=="elevation"){
-                                    type="Elevation of Water Table ("+length_unit+")";
-                                }
-                                else if(type=="drawdown"){
-                                    type="Drawdown ("+length_unit+")";
-                                    var blank_raster=$("#available_dates").find('option:selected').val();
-                                    var first_entry=data[0][0];
-                                    if (blank_raster!="Blank.nc"){
-                                        var first_time=new Date(testTimeLayer._timeDimension.getAvailableTimes()[0]);
-                                        var last_entry=data[data.length-1][0];
-                                        if (last_entry<first_time){
-                                            var min =first_entry;
-                                        }
-                                        else{
-                                            var min=Math.max(first_time,first_entry);
-                                        }
-                                    }
-                                    else{
-                                        var min=first_entry;
-                                    }
-                                    min=new Date(min)
-                                    year=min.getFullYear();
-                                    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                                    var month = months[min.getMonth()];
-                                    since="since "+month+", "+year+" ";
-                                }
-                                else{
-                                    type="Depth to Water Table ("+length_unit+")";
-                                }
-                                for (var i=0;i<mychart.series.length;i++){
-                                    if (mychart.series[i].name==type){
-                                        mychart.series[i].show();
-                                    }
-                                    else{
-                                        mychart.series[i].hide();
-                                    }
-                                }
-                                mychart.yAxis[0].setTitle({text: type});
-                                type=type.substring(0,type.length-4)
-                                mychart.setTitle({text:type +since+'at Well ' +feature.properties.HydroID+", located at "+feature.geometry.coordinates})
+                                document.getElementById('chart').innerHTML='';
+                                set_color();
+                                map.closePopup();
+                                return;
+//                                THis code slows down the app and makes it freeze too much
+//                                var since='';
+//                                type=$("#select_view").find('option:selected').val();
+//                                if (type=="elevation"){
+//                                    type="Elevation of Water Table ("+length_unit+")";
+//                                }
+//                                else if(type=="drawdown"){
+//                                    type="Drawdown ("+length_unit+")";
+//                                    var blank_raster=$("#available_dates").find('option:selected').val();
+//                                    var first_entry=data[0][0];
+//                                    if (blank_raster!="Blank.nc"){
+//                                        var first_time=new Date(testTimeLayer._timeDimension.getAvailableTimes()[0]);
+//                                        var last_entry=data[data.length-1][0];
+//                                        if (last_entry<first_time){
+//                                            var min =first_entry;
+//                                        }
+//                                        else{
+//                                            var min=Math.max(first_time,first_entry);
+//                                        }
+//                                    }
+//                                    else{
+//                                        var min=first_entry;
+//                                    }
+//                                    min=new Date(min)
+//                                    year=min.getFullYear();
+//                                    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+//                                    var month = months[min.getMonth()];
+//                                    since="since "+month+", "+year+" ";
+//                                }
+//                                else{
+//                                    type="Depth to Water Table ("+length_unit+")";
+//                                }
+//                                for (var i=0;i<mychart.series.length;i++){
+//                                    if (mychart.series[i].name==type){
+//                                        mychart.series[i].show();
+//                                    }
+//                                    else{
+//                                        mychart.series[i].hide();
+//                                    }
+//                                }
+//                                mychart.yAxis[0].setTitle({text: type});
+//                                type=type.substring(0,type.length-4)
+//                                mychart.setTitle({text:type +since+'at Well ' +feature.properties.HydroID+", located at "+feature.geometry.coordinates})
 
                             }).bind(this));
                             testTimeLayer._timeDimension.on('availabletimeschanged', (function updateTitle() {
                                 if (!mychart){
                                     return;
                                 }
-                                var since='';
-                                type=$("#select_view").find('option:selected').val();
-                                if (type=="elevation"){
-                                    type="Elevation of Water Table ("+length_unit+")";
-                                }
-                                else if(type=="drawdown"){
-                                    type="Drawdown ("+length_unit+")";
-                                    var blank_raster=$("#available_dates").find('option:selected').val();
-                                    var first_entry=data[0][0];
-                                    if (blank_raster!="Blank.nc"){
-                                        var first_time=new Date(testTimeLayer._timeDimension.getAvailableTimes()[0]);
-                                        var last_entry=data[data.length-1][0];
-                                        if (last_entry<first_time){
-                                            var min =first_entry;
-                                        }
-                                        else{
-                                            var min=Math.max(first_time,first_entry);
-                                        }
-                                    }
-                                    else{
-                                        var min=first_entry;
-                                    }
-                                    min=new Date(min)
-                                    year=min.getFullYear();
-                                    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                                    var month = months[min.getMonth()];
-                                    since="since "+month+", "+year+" ";
-                                }
-                                else{
-                                    type="Depth to Water Table ("+length_unit+")";
-                                }
-                                for (var i=0;i<mychart.series.length;i++){
-                                    if (mychart.series[i].name==type){
-                                        mychart.series[i].show();
-                                    }
-                                    else{
-                                        mychart.series[i].hide();
-                                    }
-                                }
-                                mychart.yAxis[0].setTitle({text: type});
-                                type=type.substring(0,type.length-4)
-                                mychart.setTitle({text:type +since+'at Well ' +feature.properties.HydroID+", located at "+feature.geometry.coordinates})
-
+                                document.getElementById('chart').innerHTML='';
+                                set_color();
+                                map.closePopup();
+                                return;
+//                                this code slows down the app and makes it freeze too much
+//                                var since='';
+//                                type=$("#select_view").find('option:selected').val();
+//                                if (type=="elevation"){
+//                                    type="Elevation of Water Table ("+length_unit+")";
+//                                }
+//                                else if(type=="drawdown"){
+//                                    type="Drawdown ("+length_unit+")";
+//                                    var blank_raster=$("#available_dates").find('option:selected').val();
+//                                    var first_entry=data[0][0];
+//                                    if (blank_raster!="Blank.nc"){
+//                                        var first_time=new Date(testTimeLayer._timeDimension.getAvailableTimes()[0]);
+//                                        var last_entry=data[data.length-1][0];
+//                                        if (last_entry<first_time){
+//                                            var min =first_entry;
+//                                        }
+//                                        else{
+//                                            var min=Math.max(first_time,first_entry);
+//                                        }
+//                                    }
+//                                    else{
+//                                        var min=first_entry;
+//                                    }
+//                                    min=new Date(min)
+//                                    year=min.getFullYear();
+//                                    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+//                                    var month = months[min.getMonth()];
+//                                    since="since "+month+", "+year+" ";
+//                                }
+//                                else{
+//                                    type="Depth to Water Table ("+length_unit+")";
+//                                }
+//                                for (var i=0;i<mychart.series.length;i++){
+//                                    if (mychart.series[i].name==type){
+//                                        mychart.series[i].show();
+//                                    }
+//                                    else{
+//                                        mychart.series[i].hide();
+//                                    }
+//                                }
+//                                mychart.yAxis[0].setTitle({text: type});
+//                                type=type.substring(0,type.length-4)
+//                                mychart.setTitle({text:type +since+'at Well ' +feature.properties.HydroID+", located at "+feature.geometry.coordinates})
+//
+////                              code to update the shaded region of the chart
+//                                var last_entry=data[data.length-1][0];
+//                                var max=Math.max(last_time,last_entry);
+//                                var first_entry=data[0][0];
+//                                var blank_raster=$("#available_dates").find('option:selected').val();
+//                                if (blank_raster!="Blank.nc"){
+//                                    var last_time=new Date(testTimeLayer._timeDimension.getAvailableTimes()[testTimeLayer._timeDimension.getAvailableTimes().length-1]);
+//                                    var first_time=new Date(testTimeLayer._timeDimension.getAvailableTimes()[0]);
+//                                    var min=Math.min(first_time,first_entry);
+//                                    var max=Math.max(last_time, last_entry);
+//                                }
+//                                else{
+//                                    var min=first_entry;
+//                                    var max=last_entry;
+//                                }
+//
+//                                mychart.xAxis[0].removePlotBand('band1');
+//                                mychart.xAxis[0].removePlotBand('band2');
+//                                mychart.xAxis[0].addPlotBand({
+//                                    color: 'rgba(0,0,0,0.05)',
+//                                    from: new Date(1850,0,1),
+//                                    to:new Date(testTimeLayer._timeDimension.getAvailableTimes()[0]),
+//                                    id:'band1'
+//                                })
+//                                mychart.xAxis[0].addPlotBand({
+//                                    color: 'rgba(0,0,0,0.05)',
+//                                    from: new Date(testTimeLayer._timeDimension.getAvailableTimes()[testTimeLayer._timeDimension.getAvailableTimes().length-1]),
+//                                    to:new Date(2050,0,1),
+//                                    id:'band2'
+//                                })
+//                                mychart.xAxis[0].setExtremes(min,max);
                             }).bind(this));
-                            testTimeLayer._timeDimension.on('availabletimeschanged', (function() {
-                                if (!mychart){
-                                    return;
-                                }
 
-                                var last_entry=data[data.length-1][0];
-                                var max=Math.max(last_time,last_entry);
-                                var first_entry=data[0][0];
-                                var blank_raster=$("#available_dates").find('option:selected').val();
-                                if (blank_raster!="Blank.nc"){
-                                    var last_time=new Date(testTimeLayer._timeDimension.getAvailableTimes()[testTimeLayer._timeDimension.getAvailableTimes().length-1]);
-                                    var first_time=new Date(testTimeLayer._timeDimension.getAvailableTimes()[0]);
-                                    var min=Math.min(first_time,first_entry);
-                                    var max=Math.max(last_time, last_entry);
-                                }
-                                else{
-                                    var min=first_entry;
-                                    var max=last_entry;
-                                }
-
-                                mychart.xAxis[0].removePlotBand('band1');
-                                mychart.xAxis[0].removePlotBand('band2');
-                                mychart.xAxis[0].addPlotBand({
-                                    color: 'rgba(0,0,0,0.05)',
-                                    from: new Date(1850,0,1),
-                                    to:new Date(testTimeLayer._timeDimension.getAvailableTimes()[0]),
-                                    id:'band1'
-                                })
-                                mychart.xAxis[0].addPlotBand({
-                                    color: 'rgba(0,0,0,0.05)',
-                                    from: new Date(testTimeLayer._timeDimension.getAvailableTimes()[testTimeLayer._timeDimension.getAvailableTimes().length-1]),
-                                    to:new Date(2050,0,1),
-                                    id:'band2'
-                                })
-                                mychart.xAxis[0].setExtremes(min,max);
-
-                            }).bind(this));
                         }
 
                     });
@@ -1484,6 +1499,7 @@ function confirm_delete(){
     var name=$("#available_dates").find('option:selected').val();
     var x =confirm("Are you sure you want to delete the current NetCDF Raster? ("+name+")");
     if (x){
+        clearwaterlevels();
         $.ajax({
         url: '/apps/gw/deletenetcdf/',
         type: 'GET',

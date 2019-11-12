@@ -7,7 +7,7 @@
 # $6 is the app_workspace
 # $7 is the thredds_serverpath
 echo "called shellscript"
-. /home/tethys/tethys/miniconda/bin/activate nco
+#. /home/tethys/tethys/miniconda/bin/activate nco
 cd $2
 pwd
 gdal_rasterize -burn 1 -l shapefile -of netcdf -tr $5 $5 -co "FORMAT=NC4" shapefile.json Aquifer.nc
