@@ -328,6 +328,71 @@ def finish_addregion(request):
                 writer.writerow({'ID': '-999', 'Name': region.replace("_", " ").title(), 'CapsName': region})
         try:
             # Set up the appropriate folders on the Thredds server
+            blank_raster=os.path.join(thredds_serverpath,"Blank.nc")
+            if not os.path.exists(blank_raster):
+                lons = [0.0, 1.0]
+                lons = np.array(lons)
+                lats = lons
+                h = netCDF4.Dataset(blank_raster, 'w', format="NETCDF4")
+
+                h.start_date = 1850
+                h.end_date = 2020
+                h.interval = 1
+                h.resolution = 1
+                h.min_samples = 0
+                h.min_ratio = 0
+                h.time_tolerance = 0
+                h.default = 0
+
+                time = h.createDimension("time", 0)
+                lat = h.createDimension("lat", len(lats))
+                lon = h.createDimension("lon", len(lons))
+                latitude = h.createVariable("lat", np.float64, ("lat"))
+                longitude = h.createVariable("lon", np.float64, ("lon"))
+                time = h.createVariable("time", np.float64, ("time"), fill_value="NaN")
+                depth = h.createVariable("depth", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
+                elevation = h.createVariable("elevation", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
+                elevation.long_name = "Elevation of Water Table"
+                elevation.units = "ft"
+                elevation.grid_mapping = "WFS84"
+                elevation.cell_measures = "area: area"
+                elevation.coordinates = "time lat lon"
+
+                depth.long_name = "Depth to Water Table"
+                depth.units = "ft"
+                depth.grid_mapping = "WGS84"
+                depth.cell_measures = "area: area"
+                depth.coordinates = "time lat lon"
+
+                drawdown = h.createVariable("drawdown", np.float64, ('time', 'lon', 'lat'), fill_value=-9999)
+                drawdown.long_name = "Well Drawdown"
+                drawdown.units = "ft"
+                drawdown.grid_mapping = "WGS84"
+                drawdown.cell_measures = "area: area"
+                drawdown.coordinates = "time lat lon"
+
+                latitude.long_name = "Latitude"
+                latitude.units = "degrees_north"
+                latitude.axis = "Y"
+                longitude.long_name = "Longitude"
+                longitude.units = "degrees_east"
+                longitude.axis = "X"
+                time.axis = "T"
+                time.units = 'days since 0001-01-01 00:00:00 UTC'
+                latitude[:] = lats[:]
+                longitude[:] = lons[:]
+                year = 1850
+                timearray = []
+
+                for i in range(0, 170):
+                    print "iteration", i
+                    timearray.append(datetime.datetime(year, 1, 1).toordinal() - 1)
+                    year += 1
+                    time[i] = timearray[i]
+                    depth[i, 0, 0] = -9999
+                    drawdown[i, 0, 0] = -9999
+                    elevation[i, 0, 0] = -9999
+                h.close()
             thredds_folder = os.path.join(thredds_serverpath, region)
             if not os.path.exists(thredds_folder):
                 os.mkdir(thredds_folder)

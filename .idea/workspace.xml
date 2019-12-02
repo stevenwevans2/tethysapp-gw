@@ -3,13 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="97f68757-facc-4a7f-848b-c9ced2909061" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/interpolation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/region_map.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/uploadnetcdf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
