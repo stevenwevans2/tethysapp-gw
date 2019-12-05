@@ -4,8 +4,12 @@
     <list default="true" id="97f68757-facc-4a7f-848b-c9ced2909061" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/ajax_controllers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/controllers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/controllers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/public/js/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" beforeDir="false" afterPath="$PROJECT_DIR$/tethysapp/gw/templates/gw/addregion2.html" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -29,6 +33,11 @@
   </component>
   <component name="ProjectId" id="1Ohv7x3gRCt9PWvysk88FSM8jaw" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/tethysapp/gw/templates/gw" />
@@ -41,15 +50,15 @@
       <recent name="$PROJECT_DIR$/tethysapp/gw/public/js" />
     </key>
   </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
+  <component name="ServiceViewManager">
+    <option name="viewStates">
       <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
       </list>
     </option>
   </component>
@@ -78,5 +87,11 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="639" y="222" width="774" height="526" key="find.popup" timestamp="1575584231348">
+      <screen x="65" y="24" width="1855" height="951" />
+    </state>
+    <state x="639" y="222" width="774" height="526" key="find.popup/65.24.1855.951@65.24.1855.951" timestamp="1575584231348" />
   </component>
 </project>

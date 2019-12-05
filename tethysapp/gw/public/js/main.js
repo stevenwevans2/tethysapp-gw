@@ -36,7 +36,17 @@ function add_aquifer_settings() {
             .find("option:selected")
             .val()
     }
-
+    var latlon=document.getElementById("latlon").value
+    var wlat=""
+    var wlon=""
+    if (latlon==true || latlon=="True"){
+        wlat=$("#select_lat")
+            .find("option:selected")
+            .val()
+        wlon=$("#select_lon")
+            .find("option:selected")
+            .val()
+    }
     var HydroID = $("#select_hydroid")
         .find("option:selected")
         .val()
@@ -76,7 +86,9 @@ function add_aquifer_settings() {
             minor_DisplayName: minor_DisplayName,
             minor_Aquifer_Name: minor_Aquifer_Name,
             minor_porosity: minor_porosity,
-            toggle_region: toggle_region
+            toggle_region: toggle_region,
+            wlat: wlat,
+            wlon: wlon
         },
         contentType: "application/json",
         error: function(status) {},

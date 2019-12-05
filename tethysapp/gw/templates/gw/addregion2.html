@@ -20,6 +20,7 @@
   {% gizmo select_Aquifer_Name %}
   {% gizmo select_porosity %}
   <input type="hidden" id="showminor" value="{{ displayminor }}">
+  <input type="hidden" id="latlon" value="{{ csvfile }}">
   {% if displayminor %}
     <h1>Select Minor Aquifer Properties</h1>
     <h6>Use the dropdown menus below to select the appropriate properties from you uploaded Minor aquifer JSON file to be used in the app.</h6>
@@ -32,6 +33,10 @@
   <h1>Select Well Properties</h1>
   <h6>Use the dropdown menus below to select the appropriate properties from you uploaded well JSON file to be used in the app.</h6>
   {% gizmo table_view %}
+  {% if csvfile %}
+    {% gizmo select_lat %}
+    {% gizmo select_lon %}
+  {% endif %}
   {% gizmo select_hydroid %}
   {% gizmo select_aqid %}
   {% gizmo select_elev %}

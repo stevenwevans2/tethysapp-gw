@@ -149,7 +149,6 @@ def add_region(region, units):
 
 
 def add_aquifer(points, region, name, myaquifer, units):
-
     Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
     session = Session()
     q = session.query(Aquifers).filter(Aquifers.AquiferName == name)

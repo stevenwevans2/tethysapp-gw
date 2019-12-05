@@ -53,7 +53,7 @@
     <h2>Well Data</h2>
     <div class="form-group{% if wells_error %} has-error{% endif %}">
       <label class="control-label">
-        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">Well Locations JSON File
+        <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="topright" title="Help">Well Locations JSON or CSV File
           <a data-toggle="modal" data-target="#help-modal5"><span class="glyphicon glyphicon-question-sign"></span></a>
         </div>
       </label>
@@ -171,6 +171,8 @@
           </ul>
           <h6>Example format of Well Locations JSON File</h6>
           <img src="{% static 'gw/images/example_wells.png' %}" width="100%">
+          <h6>or CSV File</h6>
+          <img src="{% static 'gw/images/example_wellcsv.PNG' %}" width="100%">
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

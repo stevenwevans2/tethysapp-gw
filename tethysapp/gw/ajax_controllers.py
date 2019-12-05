@@ -251,6 +251,8 @@ def finish_addregion(request):
         minor_Aquifer_Name=request.GET.get('minor_Aquifer_Name')
         minor_porosity=request.GET.get('minor_porosity')
         toggle_region=request.GET.get("toggle_region")
+        wlat=request.GET.get('wlat')
+        wlon=request.GET.get('wlon')
         print(minor_Aquifer_Name)
         app_workspace=app.get_app_workspace()
         directory = os.path.join(app_workspace.path, region)
@@ -294,19 +296,48 @@ def finish_addregion(request):
         if come_from=="upload":
             #This section is for updating and saving the well properties
             wellfile = os.path.join(directory, 'Wells1.json')
-            with open(wellfile) as f:
-                well_json = json.load(f)
-            for w in well_json['features']:
-                w['properties']['HydroID'] = w['properties'].pop(HydroID)
-                w['properties']['AquiferID'] = w['properties'].pop(AqID)
-                if Elev != "Unused":
-                    w['properties']['LandElev'] = w['properties'].pop(Elev)
-                if Type != "Unused":
-                    w['properties']['FType'] = w['properties'].pop(Type)
-                if Depth != "Unused":
-                    w['properties']['WellDepth'] = w['properties'].pop(Depth)
+            if os.path.exists(wellfile):
+                with open(wellfile) as f:
+                    well_json = json.load(f)
+                for w in well_json['features']:
+                    w['properties']['HydroID'] = w['properties'].pop(HydroID)
+                    w['properties']['AquiferID'] = w['properties'].pop(AqID)
+                    if Elev != "Unused":
+                        w['properties']['LandElev'] = w['properties'].pop(Elev)
+                    if Type != "Unused":
+                        w['properties']['FType'] = w['properties'].pop(Type)
+                    if Depth != "Unused":
+                        w['properties']['WellDepth'] = w['properties'].pop(Depth)
+
+            else:
+                wellfile=os.path.join(directory, 'Wells1.csv')
+                well_json = {
+                    'type': 'FeatureCollection',
+                    'features': []
+                }
+                with open(wellfile) as csvfile:
+                    reader = csv.DictReader(csvfile)
+                    for row in reader:
+                        w={
+                            'type':'Feature',
+                            'properties':dict(),
+                            'geometry':dict()
+                        }
+                        w['properties']['HydroID'] = row[HydroID]
+                        w['properties']['AquiferID'] = int(row[AqID])
+                        if Elev != "Unused":
+                            w['properties']['LandElev'] = row[Elev]
+                        if Type != "Unused":
+                            w['properties']['FType'] = row[Type]
+                        if Depth != "Unused":
+                            w['properties']['WellDepth'] = row[Depth]
+                        w['geometry']['type']="Point"
+                        w['geometry']['coordinates']=[row[wlon],row[wlat]]
+                        well_json['features'].append(w)
+            wellfile = os.path.join(directory, 'Wells1.json')
             with open(wellfile, 'w') as f:
                 json.dump(well_json, f)
+
             #end well properties
 
         the_csv = os.path.join(directory, region + '_Aquifers.csv')

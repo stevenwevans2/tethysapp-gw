@@ -484,13 +484,15 @@ def addregion(request):
             wells_file = wells_file[0]
             time_file = time_file[0]
             dem_file = dem_file[0]
+            wellfilename=wells_file.name.split('.')
+            wellfileextension=wellfilename[-1]
             region = region.replace(' ', '_')
             app_workspace = app.get_app_workspace()
 
             # writefile(csv_file, region + "_Aquifers.csv")
             writefile(border_file, region + "_State_Boundary.json")
             writefile(major_file, "MajorAquifers.json")
-            writefile(wells_file, "Wells1.json")
+            writefile(wells_file, "Wells1."+wellfileextension)
             writefile(time_file, "Wells_Master.csv")
             writefile(dem_file, "DEM.tif")
             # Code for adding the DEM
@@ -585,6 +587,7 @@ def addregion2(request, region):
     directory = os.path.join(app_workspace.path, region)
     majorfile = os.path.join(directory, 'MajorAquifers.json')
     minorfile = os.path.join(directory, 'MinorAquifers.json')
+
 
     displayminor = False
     if os.path.exists(minorfile):
@@ -733,15 +736,39 @@ def addregion2(request, region):
 
     # These options are for choosing the well attributes for your region
     well_file = os.path.join(directory, 'Wells1.json')
-    with open(well_file) as f:
-        well_json = json.load(f)
-    well_props = well_json['features'][0]['properties'].viewkeys()
-    count = min(3, len(well_json['features']))
-    myrows = []
-    for i in range(0, count):
-        row = well_json['features'][i]['properties'].viewvalues()
-        myrows.append(row)
+    csvfile=True
+    if os.path.exists(well_file):
+        csvfile=False
+        with open(well_file) as f:
+            well_json = json.load(f)
+        well_props = well_json['features'][0]['properties'].viewkeys()
+        count = min(3, len(well_json['features']))
+        myrows = []
+        for i in range(0, count):
+            row = well_json['features'][i]['properties'].viewvalues()
+            myrows.append(row)
 
+    else:
+        well_file=os.path.join(directory, 'Wells1.csv')
+        with open(well_file) as f:
+            reader=csv.DictReader(f)
+            rows=list(reader)
+        with open(well_file) as f:
+            reader=csv.DictReader(f)
+            well_props=reader.fieldnames
+            rowcount=sum(1 for row in reader)
+            print(rowcount)
+            count=min(3,rowcount)
+            myrows=[]
+            keys=rows[0].viewkeys()
+            for i in range(0,count):
+                row=rows[i]
+                newrow=[]
+                for j in well_props:
+                    newrow.append(row[j])
+                print("row:",newrow)
+                myrows.append(newrow)
+            print(myrows)
     w_ids = []
     for i in well_props:
         id = (i, i)
@@ -756,6 +783,22 @@ def addregion2(request, region):
     opt_ids = copy.deepcopy(w_ids)
     opt_ids.insert(0, ('Unused', 'Unused'))
 
+    select_lat= SelectInput(display_text='Select Well Latitude',
+                                 name='select_lat',
+                                 multiple=False,
+                                 options=w_ids,
+                                 initial='Lat',
+                                 attributes={
+                                 }
+                                 )
+    select_lon = SelectInput(display_text='Select Well Longitude',
+                                 name='select_lon',
+                                 multiple=False,
+                                 options=w_ids,
+                                 initial='Lon',
+                                 attributes={
+                                 }
+                                 )
     select_hydroid = SelectInput(display_text='Select Well HydroID Attribute',
                                  name='select_hydroid',
                                  multiple=False,
@@ -814,6 +857,9 @@ def addregion2(request, region):
             'table_view_aq': table_view_aq,
             'select_units': select_units,
             'displayminor': displayminor,
+            'csvfile': csvfile,
+            'select_lat': select_lat,
+            'select_lon': select_lon,
             'select_minor_AquiferID': select_minor_AquiferID,
             'select_minor_DisplayName': select_minor_DisplayName,
             'select_minor_Aquifer_Name': select_minor_Aquifer_Name,
@@ -838,6 +884,9 @@ def addregion2(request, region):
             'table_view_aq': table_view_aq,
             'select_units': select_units,
             'displayminor': displayminor,
+            'csvfile':csvfile,
+            'select_lat': select_lat,
+            'select_lon': select_lon,
         }
     return render(request, 'gw/addregion2.html', context)
 
